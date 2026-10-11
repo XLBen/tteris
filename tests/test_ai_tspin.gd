@@ -59,6 +59,8 @@ static func run_module() -> Dictionary:
 	_case_lookahead_fires_the_armed_slot_and_hold_is_kept_for_the_t(ctx)
 	_case_digging_starts_near_death_and_lasts_until_the_stack_is_clear(ctx)
 	_case_upper_tiers_land_doubles_in_open_play(ctx)
+	_case_modes_are_a_state_machine(ctx)
+	_case_tetris_mode_stacks_flat_around_a_well(ctx)
 	return ctx
 
 
@@ -95,8 +97,14 @@ static func _paint(board: Board, rows: Array[String], raise: int = 0) -> void:
 				board.set_cell(Vector2i(x, y), Board.GARBAGE)
 
 
-static func _ai(battle: VersusBattle, tier: StringName) -> VersusAI:
-	return VersusAI.new(battle, 1, VersusAI.DIFFICULTY_PROFILES[tier], SEED)
+static func _ai(battle: VersusBattle, tier: StringName, spinning: bool = true) -> VersusAI:
+	var ai: VersusAI = VersusAI.new(battle, 1, VersusAI.DIFFICULTY_PROFILES[tier], SEED)
+	# These cases are about T-Spin building: the tiers that can are put in
+	# that mode (which attack a tier goes for is otherwise drawn, see the
+	# mode cases).
+	if spinning and VersusAI.DIFFICULTY_PROFILES[tier]["tspin_policy"] != &"none":
+		ai.force_mode(VersusAI.Mode.TSPIN)
+	return ai
 
 
 static func _slot_value(tier: StringName, rows: Array[String]) -> int:
@@ -227,20 +235,23 @@ static func _case_lookahead_fires_the_armed_slot_and_hold_is_kept_for_the_t(ctx:
 
 
 ## Near death every tier switches to digging (clears first, no setups, a
-## faster pace) and keeps digging until the stack is DANGER_RELEASE_ROWS under
-## its danger line - it does not flip back the moment one row is gone.
+## faster pace) and keeps digging until the stack is down to its attack_rows
+## (revised 2026-10-11, owner: down to a handful of rows before it attacks
+## again) - it does not flip back the moment one row is gone.
 static func _case_digging_starts_near_death_and_lasts_until_the_stack_is_clear(ctx: Dictionary) -> void:
-	var ok: bool = VersusAI.DANGER_RELEASE_ROWS >= 2 and VersusAI.DANGER_PACE < 1.0
+	var ok: bool = VersusAI.DANGER_PACE < 1.0
 	for tier: StringName in [&"easy", &"normal", &"hard", &"lunatic"]:
 		var danger_rows: int = int(VersusAI.DIFFICULTY_PROFILES[tier]["danger_rows"])
+		var attack_rows: int = int(VersusAI.DIFFICULTY_PROFILES[tier]["attack_rows"])
+		ok = ok and attack_rows <= 6 and attack_rows <= danger_rows - 3
 		var battle: VersusBattle = _battle_with(FLAT, 2)
 		var ai: VersusAI = _ai(battle, tier)
 		# FLAT is two rows on top of `raise` rows.
 		ai._build_plan(battle.current_piece(1))
-		ok = ok and not ai._ctx_danger
+		ok = ok and not ai._ctx_danger and ai.mode() != VersusAI.Mode.DIG
 		_paint(battle.board(1), FLAT, danger_rows - 1)
 		ai._build_plan(battle.current_piece(1))
-		ok = ok and ai._ctx_danger
+		ok = ok and ai._ctx_danger and ai.mode() == VersusAI.Mode.DIG and ai.mode_name() == "DIG"
 		# Digging values a line cleared now far above the same line when safe,
 		# and a lower peak above a higher one.
 		var grid: Array = ai._copy_board_grid(battle.board(1))
@@ -249,13 +260,17 @@ static func _case_digging_starts_near_death_and_lasts_until_the_stack_is_clear(c
 		tall[(Board.BOARD_HEIGHT - danger_rows - 3) * Board.BOARD_WIDTH] = Board.GARBAGE
 		tall[(Board.BOARD_HEIGHT - danger_rows - 2) * Board.BOARD_WIDTH] = Board.GARBAGE
 		ok = ok and before - ai._score_placement(tall, 0, 10) >= 2 * VersusAI.DANGER_PEAK_WEIGHT
-		# One row under the line: still digging. Well clear of it: back to normal.
+		# Under the line, even a row over attack_rows: still digging. Down
+		# to attack_rows: back to an attack.
 		_paint(battle.board(1), FLAT, danger_rows - 4)
 		ai._build_plan(battle.current_piece(1))
 		ok = ok and ai._ctx_danger
-		_paint(battle.board(1), FLAT, danger_rows - VersusAI.DANGER_RELEASE_ROWS - 2)
+		_paint(battle.board(1), FLAT, attack_rows - 1)
 		ai._build_plan(battle.current_piece(1))
-		ok = ok and not ai._ctx_danger
+		ok = ok and ai._ctx_danger and ai.mode() == VersusAI.Mode.DIG
+		_paint(battle.board(1), FLAT, attack_rows - 2)
+		ai._build_plan(battle.current_piece(1))
+		ok = ok and not ai._ctx_danger and ai.mode() != VersusAI.Mode.DIG
 	_case(ctx, "digging_starts_near_death_and_lasts_until_the_stack_is_clear", ok)
 
 
@@ -266,7 +281,7 @@ static func _case_upper_tiers_land_doubles_in_open_play(ctx: Dictionary) -> void
 		var battle: VersusBattle = VersusBattle.new()
 		battle.setup(VersusBattle.Rules.FIXED, 1, VersusBattle.MatchFormat.SINGLE, SEED)
 		battle.debug_freeze_side(0, true)
-		var ai: VersusAI = _ai(battle, tier)
+		var ai: VersusAI = _ai(battle, tier, false)
 		var elapsed: float = 0.0
 		while battle.phase() == VersusBattle.Phase.PLAYING and elapsed < SOLO_SECONDS:
 			battle.tick(TICK)
@@ -279,3 +294,81 @@ static func _case_upper_tiers_land_doubles_in_open_play(ctx: Dictionary) -> void
 	# minute and a half alone, none from a tier that does not spin.
 	ok = ok and int(doubles[&"normal"]) == 0 and int(doubles[&"hard"]) >= 2 and int(doubles[&"lunatic"]) >= 2
 	_case(ctx, "upper_tiers_build_and_land_tspin_doubles_in_open_play", ok)
+
+
+## What a tier goes for is a state machine (VersusAI.Mode): a tier without a
+## well just stacks, one without T-Spins stacks for Tetrises, the upper tiers
+## draw one of the two attacks - again after every attack that landed, and
+## when they come out of digging.
+static func _case_modes_are_a_state_machine(ctx: Dictionary) -> void:
+	var ok: bool = VersusAI.MODE_NAMES.size() == VersusAI.Mode.size()
+	var battle: VersusBattle = _battle_with(FLAT, 2)
+	ok = ok and _ai(battle, &"easy").mode() == VersusAI.Mode.STACK and _ai(battle, &"normal").mode() == VersusAI.Mode.TETRIS
+	for tier: StringName in [&"hard", &"lunatic"]:
+		var share: float = float(VersusAI.DIFFICULTY_PROFILES[tier]["tetris_share"])
+		ok = ok and share > 0.1 and share < 0.9
+		var ai: VersusAI = _ai(battle, tier, false)
+		var drawn: Dictionary = {VersusAI.Mode.TETRIS: 0, VersusAI.Mode.TSPIN: 0}
+		for _i: int in 200:
+			var mode: int = ai._draw_attack_mode()
+			ok = ok and drawn.has(mode)
+			drawn[mode] = int(drawn.get(mode, 0)) + 1
+		ok = ok and absf(float(drawn[VersusAI.Mode.TETRIS]) / 200.0 - share) < 0.12
+		# An attack that landed draws the next one; nothing else changes a mode
+		# on a calm board.
+		ai.force_mode(VersusAI.Mode.TSPIN)
+		var grid: Array = ai._copy_board_grid(battle.board(1))
+		for _i: int in 5:
+			ai._update_mode(grid, 4)
+		ok = ok and ai.mode() == VersusAI.Mode.TSPIN and ai.mode_changes() == 0
+		var seen: Dictionary = {}
+		for _i: int in 60:
+			ai._attack_landed = true
+			ai._update_mode(grid, 4)
+			seen[ai.mode()] = true
+		ok = ok and seen.size() == 2 and seen.has(VersusAI.Mode.TETRIS) and seen.has(VersusAI.Mode.TSPIN)
+		# Stacking for a Tetris builds no slots and keeps no T for one.
+		var slot: VersusBattle = _battle_with(READY_HALF_FILLED)
+		var flat_ai: VersusAI = _ai(slot, tier, false)
+		flat_ai.force_mode(VersusAI.Mode.TETRIS)
+		flat_ai._build_plan(slot.current_piece(1))
+		ok = ok and flat_ai.mode() == VersusAI.Mode.TETRIS and not flat_ai._ctx_slot_started and flat_ai.mode_name() == "TETRIS"
+	_case(ctx, "ai_modes_are_a_state_machine", ok)
+
+
+## Stacking for a Tetris: any column can be the well (the lowest one when the
+## mode starts), the rest is kept flat, and the I pieces score Tetrises.
+static func _case_tetris_mode_stacks_flat_around_a_well(ctx: Dictionary) -> void:
+	var ok: bool = true
+	# The well goes where the stack is lowest: here the fourth column.
+	var dented: VersusBattle = _battle_with(FLAT, 2)
+	for row: int in range(Board.BOARD_HEIGHT - 4, Board.BOARD_HEIGHT):
+		dented.board(1).set_cell(Vector2i(Board.BOARD_WIDTH - 1, row), Board.GARBAGE)
+		dented.board(1).set_cell(Vector2i(3, row), Board.EMPTY)
+	var picker: VersusAI = _ai(dented, &"lunatic", false)
+	picker.force_mode(VersusAI.Mode.DIG)
+	picker._tetris_share = 1.0
+	picker._update_mode(picker._copy_board_grid(dented.board(1)), 4)
+	ok = ok and picker.mode() == VersusAI.Mode.TETRIS and picker.well_column() == 3
+	for tier: StringName in [&"hard", &"lunatic"]:
+		var battle: VersusBattle = VersusBattle.new()
+		battle.setup(VersusBattle.Rules.FIXED, 1, VersusBattle.MatchFormat.SINGLE, SEED)
+		battle.debug_freeze_side(0, true)
+		var profile: Dictionary = (VersusAI.DIFFICULTY_PROFILES[tier] as Dictionary).duplicate()
+		profile["tetris_share"] = 1.0
+		var ai: VersusAI = VersusAI.new(battle, 1, profile, SEED)
+		var tetrises: int = 0
+		var elapsed: float = 0.0
+		while battle.phase() == VersusBattle.Phase.PLAYING and elapsed < SOLO_SECONDS:
+			battle.tick(TICK)
+			ai.tick(TICK)
+			elapsed += TICK
+			for event: Dictionary in battle.drain_events():
+				if event["type"] == &"clear" and int(event["side"]) == 1 and int(event["lines"]) == 4:
+					tetrises += 1
+		(ctx["lines"] as Array).append("INFO %s stacking for Tetrises: %d Tetrises, %d T-Spin Doubles in %d pieces" % [
+			tier, tetrises, battle.tspin_clears(1, 2), battle.pieces_placed(1)])
+		ok = ok and battle.phase() == VersusBattle.Phase.PLAYING and ai.mode() != VersusAI.Mode.TSPIN
+		# A Tetris needs ten pieces: a good share of them becomes one.
+		ok = ok and tetrises >= 4 and tetrises * 40 >= battle.pieces_placed(1)
+	_case(ctx, "tetris_mode_stacks_flat_around_a_well", ok)

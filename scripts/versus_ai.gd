@@ -62,6 +62,21 @@ extends RefCounted
 ##   held T is pulled back out when a spin is on.
 ## Setups are only built while the stack is safely low; in danger the tiers
 ## fall back to plain survival.
+##
+## Modes: what a tier is trying to do is a small state machine (Mode), looked
+## at once per piece (_update_mode):
+##   STACK    tidy stacking with no plan to attack (the tier keeps no well)
+##   TETRIS   flat stacking around one empty column (`_well_col`, whichever
+##            column is lowest when the mode starts), waiting for an I piece
+##   TSPIN    building T-Spin slots (tiers with a `tspin_policy`)
+##   DIG      near death: clear lines now, keep the peak down, no setups
+## Any mode turns to DIG when the stack plus the incoming garbage is above the
+## tier's `danger_rows`, and DIG only ends once that is down to `attack_rows` -
+## well clear of the line, so the tier does not start a setup on a stack that
+## one more attack buries again. Leaving DIG, and after every attack that
+## landed (a Tetris, a T-Spin Double or Triple), the next attack mode is drawn:
+## TETRIS with the tier's `tetris_share`, else TSPIN. mode() / mode_name()
+## expose it (the versus scene shows it on its debug line).
 ## (Earlier design, kept for the record:) a spin candidate was
 ## enumerated from the current board: every resting pre-rotation position
 ## the T can reach by a plain vertical drop, rotated once CW through the
@@ -115,6 +130,12 @@ const WELL_COLUMN: int = Board.BOARD_WIDTH - 1
 ##   t_waste_penalty       cost of laying a T flat while a slot is being built
 ##   style_noise           seeded +-jitter on every candidate's score: two AIs
 ##                         of one tier on the same piece order play differently
+##   attack_rows           digging ends when the stack plus the incoming
+##                         garbage is down to this many rows
+##   tetris_share          share of the attacks that are Tetris stacking
+##                         instead of T-Spin building (T-Spin tiers)
+##   tetris_well_weight    cost per cell in the well while stacking for a
+##                         Tetris (default: twice well_weight)
 ## An empty profile resolves to the normal entry.
 const DIFFICULTY_PROFILES: Dictionary = {
 	&"easy": {
@@ -139,6 +160,7 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"plan_sim_budget": 96,
 		"follow_candidates": 0,
 		"danger_soft_rows": 12,
+		"attack_rows": 6,
 	},
 	&"normal": {
 		"pps": 0.9,
@@ -162,6 +184,7 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"plan_sim_budget": 320,
 		"follow_candidates": 5,
 		"danger_soft_rows": 12,
+		"attack_rows": 6,
 	},
 	&"hard": {
 		"pps": 1.4,
@@ -193,6 +216,8 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"plan_sim_budget": 640,
 		"follow_candidates": 4,
 		"danger_soft_rows": 12,
+		"attack_rows": 6,
+		"tetris_share": 0.5,
 	},
 	&"lunatic": {
 		# 2.5 on average: about 2.2 between bursts, 5 inside them (see
@@ -229,6 +254,8 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"plan_sim_budget": 1024,
 		"follow_candidates": 4,
 		"danger_soft_rows": 12,
+		"attack_rows": 6,
+		"tetris_share": 0.4,
 	},
 }
 ## Safety valve: an unreachable plan (walled-in piece) forces a hard drop
@@ -261,13 +288,16 @@ const FOLLOW_DANGER_STEP: int = 200
 ## TSPIN_B2B_MULT lifts the profiled `tspin_bonus` while the side's B2B chain
 ## is active - constructive (lunatic) only.
 const TSPIN_B2B_MULT: float = 1.25
-## Digging (see _build_plan) ends once the stack plus the incoming garbage is
-## this many rows under the tier's danger_rows.
-const DANGER_RELEASE_ROWS: int = 4
+## What the tier is trying to do (see "Modes" in the header).
+enum Mode { STACK, TETRIS, TSPIN, DIG }
+const MODE_NAMES: Array[String] = ["STACK", "TETRIS", "T-SPIN", "DIG"]
+## Points for clearing 0..4 lines while stacking for a Tetris: anything less
+## than the Tetris spends rows the I piece was meant for.
+const TETRIS_CLEAR_VALUES: Array[int] = [0, -400, -500, -400, 1600]
 ## While digging: cost per row of the tallest column, and the share of the
 ## usual time a piece gets (a player in trouble plays faster).
 const DANGER_PEAK_WEIGHT: int = 60
-const DANGER_PACE: float = 0.8
+const DANGER_PACE: float = 0.7
 ## A burst is this much likelier to start on a piece planned under pressure.
 const BURST_PRESSURE_FACTOR: float = 3.0
 ## Pieces the pace is averaged over, the share of the time lost (or gained)
@@ -370,7 +400,17 @@ var _cover_weight: int = 0
 var _ctx_b2b: bool = false
 var _ctx_combo: int = 0
 var _ctx_danger: bool = false
-var _panic: bool = false
+## The mode state machine (see the header): the mode, the column kept empty
+## while stacking for a Tetris, whether the piece just planned lands an attack
+## (the next mode is drawn after it), and how often the mode changed.
+var _mode: Mode = Mode.STACK
+var _well_col: int = WELL_COLUMN
+var _attack_landed: bool = false
+var _mode_changes: int = 0
+var _attack_rows: int = 6
+var _tetris_share: float = 0.0
+var _tetris_well_weight: int = 0
+var _mode_rng: RandomNumberGenerator = RandomNumberGenerator.new()
 var _ctx_follow: bool = false
 ## Board-value half of the most recent _score_placement result (the other
 ## half is the placement's reward).
@@ -491,6 +531,75 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_rng.seed = rng_seed
 	_style_rng.seed = hash([rng_seed, "style"])
 	_burst_rng.seed = hash([rng_seed, "burst"])
+	_mode_rng.seed = hash([rng_seed, "mode"])
+	_attack_rows = mini(int(_profile.get("attack_rows", 6)), _danger_rows - 1)
+	_tetris_share = clampf(float(_profile.get("tetris_share", 0.0)), 0.0, 1.0)
+	_tetris_well_weight = int(_profile.get("tetris_well_weight", _well_weight * 2))
+	_mode = _draw_attack_mode()
+
+
+## The mode the tier is in (see "Modes" in the header) and its name.
+func mode() -> Mode:
+	return _mode
+
+
+func mode_name() -> String:
+	return MODE_NAMES[_mode]
+
+
+## Puts the tier in a mode (tests and tools); the state machine carries on
+## from there.
+func force_mode(forced: Mode) -> void:
+	_mode = forced
+	_well_col = WELL_COLUMN
+	_attack_landed = false
+
+
+## The column kept empty while stacking for a Tetris.
+func well_column() -> int:
+	return _well_col
+
+
+## Times the mode changed so far (calibration read).
+func mode_changes() -> int:
+	return _mode_changes
+
+
+## The state machine's step, once per planned piece. `pressure` is the stack
+## height plus the incoming garbage, in rows.
+func _update_mode(grid: Array, pressure: int) -> void:
+	var before: Mode = _mode
+	if pressure > _danger_rows:
+		_mode = Mode.DIG
+	elif _mode == Mode.DIG:
+		# Out of danger is not enough: dig on until there is room to build.
+		if pressure <= _attack_rows:
+			_mode = _draw_attack_mode()
+	elif _attack_landed:
+		_mode = _draw_attack_mode()
+	_attack_landed = false
+	if _mode == before:
+		return
+	_mode_changes += 1
+	_well_col = WELL_COLUMN
+	if _mode == Mode.TETRIS:
+		# Any column can be the well: the lowest one is the cheapest to keep
+		# empty (the right edge, then the left, when several are).
+		var heights: Array[int] = _column_heights(grid)
+		for col: int in [0, 1, 2, 3, 4, 5, 6, 7, 8, 0, WELL_COLUMN]:
+			if heights[col] <= heights[_well_col]:
+				_well_col = col
+
+
+## The attack a tier goes for next: none for a tier without a well, Tetris
+## stacking for one that builds no T-Spins, else one of the two by the tier's
+## tetris_share.
+func _draw_attack_mode() -> Mode:
+	if _well_weight <= 0:
+		return Mode.STACK
+	if _tspin_policy == &"none" or _tslot_ready <= 0:
+		return Mode.TETRIS
+	return Mode.TETRIS if _mode_rng.randf() < _tetris_share else Mode.TSPIN
 
 
 ## Read-only view of the active difficulty profile (versus.gd and the tests
@@ -732,7 +841,7 @@ func _schedule_beats(piece: Tetromino, swapped_in: bool) -> void:
 			budget = maxf(budget, 1.0 / _burst_pps)
 	if swapped_in:
 		budget *= 0.5
-	if _ctx_danger and pace < _burst_pps:
+	if _ctx_danger and pace != _burst_pps:
 		budget *= DANGER_PACE
 	var key: float = maxf(MIN_KEY_INTERVAL, budget * (1.0 - _think_share) / float(keys))
 	var think: float = maxf(MIN_THINK_INTERVAL, budget - key * float(keys - 1))
@@ -820,16 +929,12 @@ func _build_plan(piece: Tetromino) -> void:
 	# Near death the AI switches to digging: clear lines now, keep the peak
 	# down, no setups - and it stays that way until the stack is well clear of
 	# the line again, instead of flipping back the moment one row is gone.
-	var pressure: int = _max_height(grid) + _battle.pending_garbage(_side)
-	if pressure > _danger_rows:
-		_panic = true
-	elif pressure <= _danger_rows - DANGER_RELEASE_ROWS:
-		_panic = false
-	_ctx_danger = _panic
+	_update_mode(grid, _max_height(grid) + _battle.pending_garbage(_side))
+	_ctx_danger = _mode == Mode.DIG
 	_ctx_t_near = _t_at_hand(piece.piece_type)
 	_slot_is_ready = false
 	_slot_fill_seen = 0
-	_ctx_slot_started = _tslot_ready > 0 and not _ctx_danger and _tslot_value(grid, _column_heights(grid)) > 0
+	_ctx_slot_started = _tslot_ready > 0 and _mode == Mode.TSPIN and _tslot_value(grid, _column_heights(grid)) > 0
 	if _slot_is_ready:
 		_ready_plans += 1
 		_ready_fill_sum += _slot_fill_seen
@@ -854,6 +959,8 @@ func _build_plan(piece: Tetromino) -> void:
 	var cand_is_spin: Array[bool] = []
 	# The spin entry behind a spin candidate ({} for a plain landing).
 	var cand_spin: Array[Dictionary] = []
+	# Lines each candidate clears.
+	var cand_cleared: Array[int] = []
 	var collect: bool = true
 	var best_score: int = 0
 	var best_rotation: int = 0
@@ -934,6 +1041,7 @@ func _build_plan(piece: Tetromino) -> void:
 				cand_boards.append(spin_board)
 				cand_is_spin.append(true)
 				cand_spin.append(entry)
+				cand_cleared.append(int(spin_simulation["cleared"]))
 			if not found_safe or spin_candidate > safe_best_score:
 				found_safe = true
 				safe_best_score = spin_candidate
@@ -987,6 +1095,7 @@ func _build_plan(piece: Tetromino) -> void:
 				cand_boards.append(candidate_board)
 				cand_is_spin.append(false)
 				cand_spin.append({})
+				cand_cleared.append(int(simulation["cleared"]))
 			if not found_safe or candidate > safe_best_score:
 				found_safe = true
 				safe_best_score = candidate
@@ -1012,6 +1121,7 @@ func _build_plan(piece: Tetromino) -> void:
 	var chosen_x: int = safe_best_x
 	var chosen_is_spin: bool = safe_best_is_spin
 	var chosen_spin: Dictionary = safe_best_spin
+	var chosen_cleared: int = safe_best_cleared
 	if _lookahead_depth >= 2 and found_safe and cand_scores.size() >= 2:
 		var queue: Array[int] = _battle.next_queue(_side)
 		var best_total: int = 0
@@ -1029,6 +1139,7 @@ func _build_plan(piece: Tetromino) -> void:
 				chosen_x = cand_xs[index]
 				chosen_is_spin = cand_is_spin[index]
 				chosen_spin = cand_spin[index]
+				chosen_cleared = cand_cleared[index]
 	if found_safe:
 		_plan_rotation = chosen_rotation
 		_plan_x = chosen_x
@@ -1040,6 +1151,7 @@ func _build_plan(piece: Tetromino) -> void:
 				chosen_rotation = cand_rotations[slip]
 				chosen_is_spin = cand_is_spin[slip]
 				chosen_spin = cand_spin[slip]
+				chosen_cleared = cand_cleared[slip]
 				_plan_rotation = chosen_rotation
 				_plan_x = cand_xs[slip]
 				_mistakes_made += 1
@@ -1052,6 +1164,8 @@ func _build_plan(piece: Tetromino) -> void:
 	# rotation of the entry's start) followed by its grounded moves; tick()
 	# finishes with the zero-travel hard drop (see the spin phases there).
 	_spin_plan = chosen_is_spin and not chosen_spin.is_empty()
+	# An attack is about to land: the next one is drawn afresh (_update_mode).
+	_attack_landed = found_safe and (chosen_cleared >= 4 or (_spin_plan and chosen_cleared >= 2))
 	if _spin_plan:
 		_plan_rotation = int(chosen_spin["pre_rotation"])
 		_plan_x = int(chosen_spin["pre_x"])
@@ -1518,7 +1632,7 @@ func _beam_follow_value(board: Array, queue: Array[int], queue_index: int, level
 	# (which then waits in the hold slot), fires an armed slot. Without this
 	# the search would see no reason to arm a slot now rather than later.
 	var is_t: bool = piece_type == Tetromino.PieceType.T
-	if _tslot_ready > 0 and not _ctx_danger and (is_t or held_t) and _plan_sims < usable:
+	if _tslot_ready > 0 and _mode == Mode.TSPIN and (is_t or held_t) and _plan_sims < usable:
 		var fired: Dictionary = _slot_fire(board)
 		if not fired.is_empty():
 			_plan_sims += 1
@@ -1913,24 +2027,31 @@ func _score_placement(after: Array, cleared: int, y: int, spin_kind: int = Scori
 	# the Tetris well is not reserved: the rows a spin clears must be filled
 	# wall to wall, so the well column is stacked like any other.
 	var slot_value: int = 0
-	if _tslot_ready > 0 and not _ctx_danger and aggregate <= _danger_soft_rows * Board.BOARD_WIDTH:
+	if _tslot_ready > 0 and _mode == Mode.TSPIN and aggregate <= _danger_soft_rows * Board.BOARD_WIDTH:
 		slot_value = _tslot_value(after, heights)
 	# The reserved well stays out of the bumpiness sum: it is supposed to be
 	# a cliff.
 	var well: bool = _well_weight > 0 and not _ctx_danger and slot_value == 0
 	var bumpiness: int = 0
-	for col: int in range(Board.BOARD_WIDTH - (2 if well else 1)):
-		bumpiness += absi(heights[col] - heights[col + 1])
+	var beside: int = -1
+	for col: int in Board.BOARD_WIDTH:
+		if well and col == _well_col:
+			continue
+		if beside >= 0:
+			bumpiness += absi(heights[col] - heights[beside])
+		beside = col
 	var shafts: int = 0
 	for col: int in Board.BOARD_WIDTH:
-		if well and col == WELL_COLUMN:
+		if well and col == _well_col:
 			continue
 		var left: int = heights[col - 1] if col > 0 else Board.BOARD_HEIGHT
 		var right: int = heights[col + 1] if col < Board.BOARD_WIDTH - 1 else Board.BOARD_HEIGHT
 		shafts += maxi(0, mini(left, right) - heights[col] - DEEP_WELL_FREE_ROWS)
-	var values: Array = _danger_clear_values if _ctx_danger else _clear_values
+	var values: Array = _danger_clear_values if _ctx_danger else (TETRIS_CLEAR_VALUES if _mode == Mode.TETRIS else _clear_values)
 	var score: int = int(values[mini(cleared, 4)])
-	if cleared > 0 and _attack_weight > 0:
+	# (Stacking for a Tetris, the rows a smaller clear sends are no reason to
+	# make it.)
+	if cleared > 0 and _attack_weight > 0 and (cleared >= 4 or _mode != Mode.TETRIS):
 		var perfect_clear: bool = aggregate == 0
 		var combo_count: int = 1 if _ctx_follow else _ctx_combo + 1
 		score += _attack_weight * VersusBattle.attack_for_event(cleared, spin_kind, _ctx_b2b, combo_count, perfect_clear)
@@ -1947,7 +2068,7 @@ func _score_placement(after: Array, cleared: int, y: int, spin_kind: int = Scori
 			peak = maxi(peak, height)
 		_last_board_value -= DANGER_PEAK_WEIGHT * peak
 	if well:
-		_last_board_value -= _well_weight * heights[WELL_COLUMN]
+		_last_board_value -= (_tetris_well_weight if _mode == Mode.TETRIS else _well_weight) * heights[_well_col]
 	return score + _last_board_value
 
 

@@ -667,6 +667,11 @@ func _setup_bgm() -> void:
 	_bgm_director = BgmDirector.new()
 	add_child(_bgm_director)
 	_bgm_director.setup(&"BGM")
+	# What is playing, in the bottom right corner.
+	var corner: CanvasLayer = CanvasLayer.new()
+	corner.name = "MusicLayer"
+	add_child(corner)
+	NowPlaying.add_to(corner, _bgm_director)
 
 
 ## Game-over panel: the pack's "result_panel" layout on its own layer above

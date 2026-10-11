@@ -39,7 +39,7 @@ Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,
 & "<godot>" --headless --path . --script res://tests/run_all.gd
 ```
 
-Expected: `ALL TESTS PASSED (283)`, exit code 0, about three minutes. One module:
+Expected: `ALL TESTS PASSED (285)`, exit code 0, about three minutes. One module:
 `--script res://tests/test_menu.gd`. After editing a script:
 `--headless --check-only --script res://scripts/<file>.gd`; after editing scenes
 or resources: `--headless --editor --quit`.
@@ -69,6 +69,7 @@ or resources: `--headless --editor --quit`.
 |---|---|
 | `tools/fx_studio/` | the Pixel FX pack, the animated title and the animated backdrop: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
 | `tools/make_bgm.py` | the BGM: every song at six tempos (numpy, scipy, ffmpeg) |
+| `tools/ai_dig_lab.gd` | how fast each AI tier digs out of a buried board |
 | `tools/bgm_smoke.gd` | measures the change from one song to the next |
 | `tools/make_default_sfx.py`, `make_default_blocks.py` | the default pack's sounds and block atlas |
 | `tools/build_default_layouts.gd` | the default pack's screen layouts (`--headless --script`) |

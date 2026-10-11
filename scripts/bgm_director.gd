@@ -79,6 +79,11 @@ func song_title() -> String:
 	return String(_songs[_song]["title"]) if _song >= 0 else ""
 
 
+## Beats per minute of the track that plays (0 without music).
+func tempo() -> float:
+	return float(_tracks[_level]["bpm"]) if not _tracks.is_empty() else 0.0
+
+
 ## The song that follows the one playing.
 func coming_song() -> int:
 	return _coming

@@ -29,6 +29,8 @@ const CELL_SIZE: int = 22
 const NEXT_COUNT: int = 5
 const ROUND_OVER_DELAY: float = 2.0
 const COUNTDOWN_SECONDS: float = 3.0
+## Shows the debug line with the bots' modes (temporary, to watch how they fight).
+const DEBUG_AI_STATE: bool = true
 ## Time each AI may spend planning per frame (see VersusAI.frame_budget_usec).
 const AI_FRAME_BUDGET_USEC: int = 6000
 ## The stack is "in danger" once it (plus the incoming garbage) reaches this
@@ -89,6 +91,7 @@ var _bgm_player: AudioStreamPlayer:
 	get:
 		return _bgm_director.current() if _bgm_director != null else null
 var _bgm_director: BgmDirector
+var _debug_label: Label
 ## Tallest stack (plus incoming garbage) seen by this frame's refresh.
 var _frame_pressure: int = 0
 var _sfx: Dictionary = {}
@@ -450,7 +453,9 @@ func _handle_events() -> void:
 		var event: Dictionary = events[i]
 		var side: int = int(event["side"])
 		var view: SideView = _sides[side] as SideView
-		var mine: bool = side == VersusBattle.Side.PLAYER
+		# The sounds are those of the left board - of both when nobody plays
+		# and two CPUs fight it out.
+		var mine: bool = side == VersusBattle.Side.PLAYER or _left_ai != null
 		match event["type"]:
 			&"lock":
 				var cells: Array[Vector2i] = _visible_cells(event["cells"])
@@ -599,10 +604,47 @@ func _setup_bgm() -> void:
 	_bgm_director = BgmDirector.new()
 	add_child(_bgm_director)
 	_bgm_director.setup(&"BGM")
+	# What is playing, in the bottom right corner; the debug line opposite.
+	var corner: CanvasLayer = CanvasLayer.new()
+	corner.name = "MusicLayer"
+	add_child(corner)
+	NowPlaying.add_to(corner, _bgm_director)
+	if DEBUG_AI_STATE and (_ai != null or _left_ai != null):
+		_debug_label = Label.new()
+		_debug_label.name = "DebugAiState"
+		_debug_label.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+		_debug_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_debug_label.add_theme_font_override("font", ResourcePack.font("mono"))
+		_debug_label.add_theme_font_size_override("font_size", 12)
+		_debug_label.add_theme_color_override("font_color", ResourcePack.color("highlight"))
+		_debug_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+		_debug_label.offset_left = 10.0
+		_debug_label.offset_top = -26.0
+		_debug_label.offset_bottom = -10.0
+		corner.add_child(_debug_label)
+		_refresh_debug()
+
+
+## The temporary debug line: what each bot is trying to do right now (the
+## mode of its state machine, see VersusAI). bot_a plays the left board (only
+## in a CPU-against-CPU match), bot_b the right one.
+func _refresh_debug() -> void:
+	if _debug_label == null:
+		return
+	var parts: PackedStringArray = []
+	if _left_ai != null:
+		parts.append("bot_a: %s" % _left_ai.mode_name())
+	if _ai != null:
+		parts.append("bot_b: %s" % _ai.mode_name())
+	_debug_label.text = "debug  " + "   ".join(parts)
 
 
 func _load_sfx() -> void:
 	_sfx = ResourcePack.make_sfx_players(self, SFX_EVENTS)
+	if _left_ai != null:
+		# Two boards sound at once: one board's sound does not cut the other's.
+		for key: String in _sfx:
+			(_sfx[key] as AudioStreamPlayer).max_polyphony = 2
 
 
 func _play_sfx(sfx_name: String, pitch: float = 1.0) -> void:
@@ -759,6 +801,7 @@ func _refresh_view() -> void:
 		_refresh_side(side, _sides[side] as SideView)
 	if _bgm_director != null:
 		_bgm_director.update_pressure(_frame_pressure)
+	_refresh_debug()
 	_level_label.text = tr("LEVEL %d") % _model.level(VersusBattle.Side.PLAYER)
 	var best_of_3: bool = _model.match_format() == VersusBattle.MatchFormat.BEST_OF_3
 	_wins_label.visible = best_of_3

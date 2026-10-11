@@ -197,6 +197,16 @@ static func _case_menu_entries(ctx: Dictionary) -> void:
 		ok = ok and title.frame_at((float(frames) - 0.5) / fps) == frames - 1 and title.frame_at((float(frames) + 0.5) / fps) == loop_from
 		ok = ok and title.frame_at((float(frames + (frames - loop_from)) + 0.5) / fps) == loop_from
 		ok = ok and int(pack_title["columns"]) * (pack_title["frame"] as Vector2i).x <= (pack_title["texture"] as Texture2D).get_width()
+	# Behind the menus runs the pack's animated backdrop: one loop of whole frames.
+	var backdrop: PackBackdrop = _tree().root.find_child("PackBackdrop", true, false) as PackBackdrop
+	var pack_backdrop: Dictionary = ResourcePack.backdrop()
+	ok = ok and backdrop != null and not pack_backdrop.is_empty()
+	if backdrop != null and not pack_backdrop.is_empty():
+		var count: int = int(pack_backdrop["frames"])
+		var rate: float = float(pack_backdrop["fps"])
+		var rows: int = ceili(float(count) / float(int(pack_backdrop["columns"])))
+		ok = ok and count > 1 and backdrop.frame_at(0.0) == 0 and backdrop.frame_at((float(count) - 0.5) / rate) == count - 1 			and backdrop.frame_at((float(count) + 0.5) / rate) == 0
+		ok = ok and rows * (pack_backdrop["frame"] as Vector2i).y <= (pack_backdrop["texture"] as Texture2D).get_height()
 	menu.free()
 	_case(ctx, "menu_entries_new_game_options_exit", ok)
 

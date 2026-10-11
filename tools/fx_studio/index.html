@@ -208,7 +208,7 @@
 	function draw() {
 		const def = state.def, zoom = Number($('zoom').value);
 		// The title is shown on its own, as on the menu; the board effects on the board.
-		const alone = def.kind === 'title';
+		const alone = def.kind === 'title' || def.kind === 'backdrop';
 		const stageW = alone ? def.w + 24 : STAGE_W, stageH = alone ? def.h + 48 : STAGE_H;
 		if (stage.width !== stageW * zoom || stage.height !== stageH * zoom) {
 			stage.width = stageW * zoom;
@@ -222,7 +222,7 @@
 			const sky = ctx.createLinearGradient(0, 0, 0, stage.height);
 			sky.addColorStop(0, '#2c3a5e');
 			sky.addColorStop(1, '#1a2238');
-			ctx.fillStyle = $('board').checked ? sky : '#05070c';
+			ctx.fillStyle = $('board').checked && def.kind === 'title' ? sky : '#05070c';
 			ctx.fillRect(0, 0, stage.width, stage.height);
 		} else if ($('board').checked) ctx.drawImage(boardCanvas, 0, 0, stage.width, stage.height);
 		else { ctx.fillStyle = '#05070c'; ctx.fillRect(0, 0, stage.width, stage.height); }
@@ -285,7 +285,7 @@
 		$('note').textContent = def.note;
 		$('m-frame').textContent = def.w + ' x ' + def.h;
 		$('m-frames').textContent = def.frames + ' @ ' + def.fps + ' fps';
-		$('m-anchor').textContent = def.loopFrom ? 'loops from frame ' + (def.loopFrom + 1) : def.anchor;
+		$('m-anchor').textContent = def.loopFrom !== undefined ? 'loops from frame ' + (def.loopFrom + 1) : def.anchor;
 		$('m-game').textContent = (def.w * def.scale) + ' x ' + (def.h * def.scale) + ' px';
 		const total = def.frames / def.fps;
 		const phases = $('phases');
@@ -301,6 +301,7 @@
 		});
 		$('ticks').style.setProperty('--tick', (100 / def.frames) + '%');
 		$('loopmark').hidden = !def.loopFrom;
+		$('zoom').value = def.kind === 'backdrop' ? '4' : $('zoom').value;
 		if (def.loopFrom) $('loopmark').style.left = (def.loopFrom / def.frames * 100) + '%';
 		bake();
 		buildLayers();
@@ -397,7 +398,7 @@
 		if (state.playing) {
 			const total = state.def.frames / state.def.fps;
 			state.clock += dt * Number($('speed').value);
-			if (state.def.loopFrom && state.loop) {
+			if (state.def.loopFrom !== undefined && state.loop) {
 				// A looping effect goes round from its loop frame, as in the game.
 				if (state.clock >= total) state.clock = state.def.loopFrom / state.def.fps + (state.clock - total);
 			} else if (state.clock >= total + 0.35) {

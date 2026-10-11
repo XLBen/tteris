@@ -644,6 +644,8 @@ func _setup_background() -> void:
 	_background.modulate = _bg_base_modulate
 	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	($Background as CanvasLayer).add_child(_background)
+	# The pack's animated backdrop, when it has one, covers the still picture.
+	PackBackdrop.add_to($Background)
 	# The scene's flat fills take the pack colors too.
 	var base: ColorRect = get_node_or_null(^"Background/BackgroundColor") as ColorRect
 	if base != null:

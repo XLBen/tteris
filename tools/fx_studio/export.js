@@ -70,25 +70,28 @@ function icon(def, frames) {
 	return png(size, size, out);
 }
 
-// The title belongs to the default pack (every pack may bring its own): the
-// sheet goes there and its "title" entry in pack.json is rewritten in place.
-// Exporting anywhere else just writes the sheet next to the effects.
-function writeTitle(target, def, made, stats) {
-	const entry = { sheet: 'title.png', frame: [def.w, def.h], frames: def.frames, fps: def.fps, scale: def.scale, loop_from: def.loopFrom, glow: 0.3 };
-	const line = '"title": ' + JSON.stringify(entry).replace(/,"/g, ', "').replace(/":/g, '": ');
+// The loops (the title and the backdrop) belong to the default pack - every
+// pack may bring its own: the sheet goes there and its entry in pack.json is
+// rewritten in place. Exporting anywhere else just writes the sheet next to
+// the effects.
+function writeLoop(target, def, made, stats) {
+	const key = def.kind, file = key + '.png';
+	const entry = { sheet: file, frame: [def.w, def.h], frames: def.frames, fps: def.fps };
+	if (key === 'title') Object.assign(entry, { scale: def.scale, loop_from: def.loopFrom, glow: 0.3 });
+	const line = '"' + key + '": ' + JSON.stringify(entry).replace(/,"/g, ', "').replace(/":/g, '": ');
 	const home = path.join(target, '..', 'default');
 	const manifest = path.join(home, 'pack.json');
 	let where = target;
 	if (path.basename(target) === 'pixelfx' && fs.existsSync(manifest)) {
 		where = home;
 		let text = fs.readFileSync(manifest, 'utf8');
-		const old = /\n\t"title": \{.*\}(,?)\n/;
+		const old = new RegExp('\\n\\t"' + key + '": \\{.*\\}(,?)\\n');
 		text = old.test(text) ? text.replace(old, '\n\t' + line + '$1\n') : text.replace('\n\t"fonts": {', '\n\t' + line + ',\n\t"fonts": {');
 		fs.writeFileSync(manifest, text);
 	}
-	fs.writeFileSync(path.join(where, 'title.png'), png(made.width, made.height, made.data));
-	console.log('%s  %dx%d  %d frames, loops from %d  sheet %dx%d  particles born %d, peak %d  -> %s',
-		def.name.padEnd(14), def.w, def.h, def.frames, def.loopFrom, made.width, made.height, stats.born, stats.peak, where);
+	fs.writeFileSync(path.join(where, file), png(made.width, made.height, made.data));
+	console.log('%s  %dx%d  %d frames @ %d fps, loops from %d  sheet %dx%d  particles born %d, peak %d  -> %s',
+		def.name.padEnd(14), def.w, def.h, def.frames, def.fps, def.loopFrom, made.width, made.height, stats.born, stats.peak, where);
 }
 
 function main() {
@@ -99,8 +102,8 @@ function main() {
 	for (const def of FX.effectList) {
 		const { frames, stats } = FX.renderFrames(def);
 		const made = sheet(def, frames);
-		if (def.kind === 'title') {
-			writeTitle(target, def, made, stats);
+		if (def.kind === 'title' || def.kind === 'backdrop') {
+			writeLoop(target, def, made, stats);
 			continue;
 		}
 		fs.writeFileSync(path.join(target, 'fx', def.name + '.png'), png(made.width, made.height, made.data));

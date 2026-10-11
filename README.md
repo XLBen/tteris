@@ -67,7 +67,7 @@ or resources: `--headless --editor --quit`.
 
 | Tool | Makes |
 |---|---|
-| `tools/fx_studio/` | the Pixel FX pack and the animated title: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
+| `tools/fx_studio/` | the Pixel FX pack, the animated title and the animated backdrop: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
 | `tools/make_coldwar_bgm.py` | the six BGM tracks (numpy, scipy, ffmpeg) |
 | `tools/make_default_sfx.py`, `make_default_blocks.py` | the default pack's sounds and block atlas |
 | `tools/build_default_layouts.gd` | the default pack's screen layouts (`--headless --script`) |

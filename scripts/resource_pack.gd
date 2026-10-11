@@ -30,6 +30,9 @@ extends RefCounted
 ##   title     the animated title of the menus, a sprite sheet:
 ##             {"sheet": file, "frame": [w, h], "frames": n, "fps": n,
 ##             "scale": n, "loop_from": frame, "glow": 0..1}. See title().
+##   backdrop  the animated background, one seamless loop as a sprite sheet:
+##             {"sheet": file, "frame": [w, h], "frames": n, "fps": n}. See
+##             backdrop().
 ##   fx        numbers that tune the built-in drawn effects (shake,
 ##             shards_per_cell, sparks_per_drop): see fx_number().
 ##
@@ -318,6 +321,38 @@ static func title() -> Dictionary:
 		}
 		break
 	_cache["title"] = found
+	return found
+
+
+## The animated background, from the top-most pack that has a usable one;
+## empty when none does (the still "background" texture is shown instead).
+## Keys: texture, frame (Vector2i), frames, columns, fps.
+static func backdrop() -> Dictionary:
+	ensure_loaded()
+	if _cache.has("backdrop"):
+		return _cache["backdrop"]
+	var found: Dictionary = {}
+	for pack: Dictionary in _stack:
+		var entry: Variant = (pack["manifest"] as Dictionary).get("backdrop")
+		if not (entry is Dictionary):
+			continue
+		var sheet: Texture2D = _load_file(_resolve(String(entry.get("sheet", "")), String(pack["dir"]))) as Texture2D
+		var frame: Variant = entry.get("frame")
+		if sheet == null or not (frame is Array) or (frame as Array).size() != 2:
+			continue
+		var size: Vector2i = Vector2i(int(frame[0]), int(frame[1]))
+		if size.x <= 0 or size.y <= 0 or size.x > sheet.get_width() or size.y > sheet.get_height():
+			continue
+		var columns: int = sheet.get_width() / size.x
+		found = {
+			"texture": sheet,
+			"frame": size,
+			"columns": columns,
+			"frames": clampi(int(entry.get("frames", 1)), 1, columns * (sheet.get_height() / size.y)),
+			"fps": clampf(float(entry.get("fps", 12.0)), 1.0, 120.0),
+		}
+		break
+	_cache["backdrop"] = found
 	return found
 
 

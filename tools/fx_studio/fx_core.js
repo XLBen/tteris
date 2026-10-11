@@ -258,7 +258,7 @@
 				}
 			} else if (this.persist) {
 				// Trails fade faster at the very end, so the timeline closes empty.
-				const keep = this.sim.duration - this.sim.t < 0.12 ? this.persist * 0.6 : this.persist;
+				const keep = this.sim.duration - this.sim.t < Math.max(0.12, 3 / this.sim.fps) ? this.persist * 0.6 : this.persist;
 				for (let i = 0; i < this.f.length; i++) this.f[i] = this.f[i] < 0.03 ? 0 : this.f[i] * keep;
 			}
 		}
@@ -407,7 +407,8 @@
 			// effect that loops (def.loopFrom) is as clean where its loop starts.
 			const loopStart = (this.def.loopFrom || 0) / this.fps;
 			const limit = this.t < loopStart - 3 * TICK ? loopStart : this.duration;
-			p.life = Math.min(p.life || 0.5, limit - this.t - 3 * TICK);
+			// (A frame of slack at the usual 30 fps; a slow loop needs a whole frame of its own.)
+			p.life = Math.min(p.life || 0.5, limit - this.t - Math.max(3 * TICK, 1.5 / this.fps));
 			if (p.life <= 0) return p;
 			this.parts.push(p);
 			this.stats.born++;

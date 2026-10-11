@@ -266,6 +266,9 @@ func _apply_pack_to_scene() -> void:
 	if image != null:
 		image.texture = ResourcePack.texture("background")
 		image.modulate = ResourcePack.color("background_tint")
+		# The pack's animated backdrop, when it has one, covers the still picture.
+		if not image.get_parent().has_node(^"PackBackdrop"):
+			PackBackdrop.add_to(image.get_parent())
 	var area_fill: Polygon2D = get_node_or_null(^"GameArea/AreaFill") as Polygon2D
 	if area_fill != null:
 		area_fill.color = ResourcePack.color("area_fill")

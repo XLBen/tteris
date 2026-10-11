@@ -1,5 +1,6 @@
 // The effects of the "Pixel FX" resource pack, one per game event, and the
-// game's animated title (the last one, kind 'title': it loops).
+// two loops of the default pack: the backdrop behind everything and the
+// animated title (kinds 'backdrop' and 'title').
 //
 // Sizes are art pixels: a board cell is CELL (11) of them, so a sheet drawn at
 // scale 2 lines up with the game's 22-pixel cells. Every effect is a timeline
@@ -538,6 +539,141 @@
 		},
 	});
 
+	const MINOS = [
+		[[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]],
+		[[1, 0], [2, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [1, 1], [2, 1]], [[0, 0], [0, 1], [1, 1], [2, 1]], [[2, 0], [0, 1], [1, 1], [2, 1]],
+	];
+	const mixColor = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+	const BLACK = [0, 0, 0];
+
+	// ------------------------------------------------------------- backdrop
+	// The picture behind the menus and the game: a night sky over a skyline of
+	// stacked blocks. It is one seamless loop - everything that moves is a
+	// function of the loop's phase and comes back to where it started: the
+	// aurora drifts on a circle through its noise, every star twinkles a whole
+	// number of times, the tetrominoes of three depths fall a whole number of
+	// screens, the windows blink in step. Two shooting stars are born, burn
+	// their trail and die inside the loop. Kept dark and calm on purpose: the
+	// boards and the menus are read on top of it.
+	const SKY = hexes(['#060814', '#090d1e', '#0d142c', '#121c3c', '#17254c', '#1c2f5c']);
+	const NIGHT = { w: 192, h: 108, loop: 6, fps: 12, cell: 6 };
+	FX.RAMPS.aurora = ['#16306a30', '#1c448448', '#22609c5c', '#2c84b068', '#44b0c070', '#7cdcd478'];
+	FX.RAMPS.streak = ['#3c68c880', '#78a8f0c0', '#c8e0ff', '#ffffff'];
+	const BAYER4 = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map((v) => (v + 0.5) / 16);
+
+	define({
+		name: 'backdrop',
+		kind: 'backdrop',
+		title: 'Backdrop',
+		note: 'The background of the whole game, one seamless six-second loop: a dithered night sky, an aurora drifting through it, stars that twinkle, tetrominoes falling at three depths, two shooting stars with burning trails, and a skyline of stacked blocks whose windows blink.',
+		w: NIGHT.w, h: NIGHT.h, fps: NIGHT.fps, frames: NIGHT.loop * NIGHT.fps, loopFrom: 0, anchor: 'center', seed: 211,
+		phases: [{ name: 'first shooting star', at: 0 }, { name: 'calm', at: 2.2 }, { name: 'second shooting star', at: 3.2 }, { name: 'calm, back to the start', at: 5 }],
+		setup(sim) {
+			sim.layer('sky', { kind: 'color' });
+			sim.layer('aurora', { ramp: 'aurora' });
+			sim.layer('stars', { kind: 'color' });
+			sim.layer('far', { kind: 'color' });
+			sim.layer('trail', { ramp: 'streak', persist: 0.9 });
+			sim.layer('shooting', { ramp: 'streak', dither: 0 });
+			sim.layer('mid', { kind: 'color' });
+			sim.layer('near', { kind: 'color' });
+			sim.layer('skyline', { kind: 'color' });
+			// The cast is fixed once: only the phase moves it.
+			const r = makeRng(77);
+			const S = sim.state;
+			S.stars = [];
+			for (let i = 0; i < 90; i++) S.stars.push({ x: r.int(0, NIGHT.w - 1), y: r.int(0, 84), times: r.int(1, 3), phase: r.angle(), big: r() < 0.12, tint: r.pick(ICE) });
+			S.minos = [];
+			for (const [depth, count, cell, falls] of [[0, 9, 2, 1], [1, 6, 3, 1], [2, 3, 5, 2]]) {
+				for (let i = 0; i < count; i++) S.minos.push({ depth, cell, falls, shape: r.int(0, 6), x: r.int(4, NIGHT.w - cell * 4 - 4), start: r.range(0, 1), turn: r.int(0, 3) });
+			}
+			S.towers = [];
+			for (let col = 0; col < NIGHT.w / NIGHT.cell; col++) {
+				const height = Math.max(1, Math.round(1 + 2.4 * FX.fbm(col * 0.35, 4.2, 9.1) * 2 + (r() < 0.2 ? 1 : 0)));
+				const lights = [];
+				for (let row = 0; row < height; row++) if (r() < 0.3) lights.push({ row, times: r.int(1, 2), phase: r.angle() });
+				S.towers.push({ height, lights });
+			}
+		},
+		update(sim, t) {
+			const L = sim.byName, r = sim.rng;
+			for (const [key, at, x, y] of [['one', 0.5, 20, 6], ['two', 3.3, 96, 2]]) {
+				if (!sim.once(key, at)) continue;
+				sim.emit({ layer: L.shooting, x, y, vx: 96, vy: 42, life: 0.85, size: 0.5, heat: [1, 0.8], trail: L.trail, trailHeat: [1, 0.7],
+					onDeath(p, s) { sparks(s, L.shooting, p.x, p.y, 8, { speed: [10, 45], life: [0.2, 0.45], streak: 0 }); } });
+			}
+			// The trail thins into drifting dust.
+			if ((sim.during(0.6, 1.5) || sim.during(3.4, 4.3)) && sim.ticks % 6 === 0) {
+				const head = sim.parts.find((p) => p.trail);
+				if (head) sim.emit({ layer: L.shooting, x: head.x - r.range(4, 22), y: head.y - r.range(2, 10), vx: r.range(-6, 6), vy: r.range(4, 14), life: r.range(0.3, 0.6), size: 0.5, heat: [0.7, 0] });
+			}
+		},
+		draw(sim, t) {
+			const L = sim.byName, S = sim.state;
+			const p = ((t / NIGHT.loop) % 1 + 1) % 1;
+			const w = NIGHT.w, h = NIGHT.h;
+			// Sky: dithered bands, darkest on top.
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					const band = (y / h) * (SKY.length - 1) + (BAYER4[(y & 3) * 4 + (x & 3)] - 0.5);
+					L.sky.px(x, y, SKY[Math.max(0, Math.min(SKY.length - 1, Math.round(band)))]);
+				}
+			}
+			// Aurora: a ribbon of noise, read along a circle so it returns.
+			const ox = Math.cos(p * TAU) * 0.7, oy = Math.sin(p * TAU) * 0.7;
+			for (let y = 6; y < 78; y++) {
+				const ribbon = Math.sin(((y - 6) / 72) * Math.PI);
+				for (let x = 0; x < w; x++) {
+					const wave = FX.fbm(x * 0.022 + ox, y * 0.05 + oy + Math.sin(x * 0.05 + p * TAU) * 0.25, 3.7);
+					const heat = (wave - 0.44) * 2.6 * ribbon;
+					if (heat > 0) L.aurora.plot(x, y, heat);
+				}
+			}
+			for (const star of S.stars) {
+				const glow = 0.5 + 0.5 * Math.sin(p * TAU * star.times + star.phase);
+				if (glow < 0.22) continue;
+				L.stars.px(star.x, star.y, glow > 0.7 ? WHITE : star.tint, 0.35 + 0.65 * glow);
+				if (star.big && glow > 0.82) {
+					for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) L.stars.px(star.x + dx, star.y + dy, star.tint, 0.6);
+				}
+			}
+			// Tetrominoes: far ones small and faint, near ones large with a bevel.
+			const span = h + 40;
+			for (const mino of S.minos) {
+				const layer = [L.far, L.mid, L.near][mino.depth];
+				const tint = mixColor(PIECES[mino.shape], SKY[3], [0.74, 0.64, 0.54][mino.depth]);
+				const light = mixColor(tint, WHITE, 0.25), dark = mixColor(tint, BLACK, 0.4);
+				const y0 = Math.round(((mino.start + p * mino.falls) % 1) * span) - 24;
+				for (let [cx, cy] of MINOS[mino.shape]) {
+					for (let q = 0; q < mino.turn; q++) [cx, cy] = [2 - cy, cx];
+					for (let j = 0; j < mino.cell; j++) {
+						for (let i = 0; i < mino.cell; i++) {
+							const edge = mino.depth === 0 ? tint : j === 0 || i === 0 ? light : j === mino.cell - 1 || i === mino.cell - 1 ? dark : tint;
+							layer.px(mino.x + cx * mino.cell + i, y0 + cy * mino.cell + j, edge);
+						}
+					}
+				}
+			}
+			// Skyline: stacked blocks along the bottom, some windows lit.
+			const wall = hexes(['#080b1a', '#0c1126', '#141c3a'])
+			S.towers.forEach((tower, col) => {
+				for (let row = 0; row < tower.height; row++) {
+					const x0 = col * NIGHT.cell, y0 = h - (row + 1) * NIGHT.cell;
+					for (let j = 0; j < NIGHT.cell; j++) {
+						for (let i = 0; i < NIGHT.cell; i++) L.skyline.px(x0 + i, y0 + j, j === 0 || i === 0 ? wall[2] : j === NIGHT.cell - 1 || i === NIGHT.cell - 1 ? wall[0] : wall[1]);
+					}
+				}
+				for (const light of tower.lights) {
+					const on = Math.sin(p * TAU * light.times + light.phase);
+					if (on < -0.2) continue;
+					const x0 = col * NIGHT.cell + 2, y0 = h - (light.row + 1) * NIGHT.cell + 2;
+					const lamp = on > 0.5 ? [0.98, 0.82, 0.42] : [0.6, 0.44, 0.2];
+					for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) L.skyline.px(x0 + i, y0 + j, lamp);
+				}
+			});
+		},
+	});
+
 	// ---------------------------------------------------------------- title
 	// The game's title, built out of falling blocks and then kept alive. Unlike
 	// the board effects it does not end: an intro plays once (blocks rain down
@@ -550,13 +686,6 @@
 	const GLYPHS = FX.titleGlyphs || require('./title_glyphs.js');
 	const TITLE = { w: 224, h: 60, block: 3, x0: 22, y0: 9, intro: 2.2, loop: 3.0, fall: 0.26, drop: 70, sweep: [1.45, 1.8] };
 	const TITLE_COLORS = hexes(['#33d9f2', '#f2cc40', '#bf66f2', '#66e680', '#f27373']);
-	const MINOS = [
-		[[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]],
-		[[1, 0], [2, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [1, 1], [2, 1]], [[0, 0], [0, 1], [1, 1], [2, 1]], [[2, 0], [0, 1], [1, 1], [2, 1]],
-	];
-	const mixColor = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
-	const BLACK = [0, 0, 0];
-
 	// Every lit pixel of the title: where its block ends up and when it lands.
 	function titleBlocks() {
 		const blocks = [];
@@ -716,7 +845,7 @@
 	});
 
 	for (const def of defs) {
-		def.fps = 30;
+		def.fps = def.fps || 30;
 		def.scale = 2;
 		FX.effects[def.name] = def;
 	}

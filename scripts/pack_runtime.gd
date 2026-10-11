@@ -17,6 +17,7 @@ const UI_SOUND_CONTROLLER: NodePath = ^"/root/ProjectUISoundController"
 var _backdrop: CanvasLayer
 var _gradient: TextureRect
 var _image: TextureRect
+var _animated: PackBackdrop
 
 
 func _ready() -> void:
@@ -60,6 +61,10 @@ func apply() -> void:
 	_gradient.texture = fill
 	_image.texture = ResourcePack.texture("background")
 	_image.modulate = Color(ResourcePack.color("background_tint"), 0.5)
+	# The pack's animated backdrop, when it has one, covers the still picture.
+	if _animated != null:
+		_animated.queue_free()
+	_animated = PackBackdrop.add_to(_backdrop)
 	_apply_ui_sounds()
 
 

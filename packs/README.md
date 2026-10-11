@@ -239,6 +239,21 @@ pack without a title falls back to the next pack's, ending at the default
 pack's 俄罗斯方块, which is rendered by `tools/fx_studio` (the `title`
 effect; its characters come from `make_title_glyphs.py`).
 
+### Backdrop
+
+The background of the menus and the game can be an animation as well:
+
+```json
+"backdrop": {"sheet": "backdrop.png", "frame": [192, 108], "frames": 72, "fps": 12}
+```
+
+All frames are one loop (the last must lead back into the first). It is
+drawn unfiltered and scaled up to cover the window, so a small sheet is
+enough: 192 x 108 is a sixth of the 1152 x 648 window. A pack without a
+backdrop uses the next pack's; with none at all the still `background`
+texture shows. The default pack's night sky is the `backdrop` effect of
+`tools/fx_studio`.
+
 `packs/pixelfx/` is a pack made only of effects. Its sheets are rendered by
 `tools/fx_studio`: open `tools/fx_studio/index.html` in a browser to play,
 scrub and take apart every effect (timeline phases, layers, particle counts),

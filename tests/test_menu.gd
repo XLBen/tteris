@@ -12,6 +12,7 @@ const AUTOLOAD_NAMES: Array[String] = [
 	"GameSession",
 	"ProjectMusicController",
 	"ProjectUISoundController",
+	"LanSession",
 ]
 const MODE_BUTTONS: Dictionary = {
 	"ClassicButton": &"classic",
@@ -21,17 +22,22 @@ const MODE_BUTTON_SCENES: Dictionary = {
 	"ClassicButton": GAME_SCENE_PATH,
 	"VersusButton": VERSUS_SCENE_PATH,
 }
-const MODE_SELECT_BUTTONS: Array[String] = ["ClassicButton", "VersusButton", "BackButton"]
+# 2026-10-12 (owner): the main menu picks the way to play; this screen is the
+# versus setup page.
+const MODE_SELECT_BUTTONS: Array[String] = ["VersusStartButton", "BackButton"]
 const REMOVED_MODE_BUTTONS: Array[String] = [
 	"EasyButton",
 	"NormalButton",
 	"HardButton",
 	"LunaticButton",
 	"GrowthButton",
+	"ClassicButton",
+	"VersusButton",
 ]
 # 2026-10-11 (owner): How to Play and Resource Packs are main menu entries.
-const VISIBLE_ENTRY_BUTTONS: Array[String] = ["NewGameButton", "OptionsButton", "HowToPlayButton", "ResourcePackButton", "ExitButton"]
-const HIDDEN_ENTRY_BUTTONS: Array[String] = ["CreditsButton", "ContinueGameButton", "LevelSelectButton"]
+# 2026-10-12 (owner): four ways to play replace New Game.
+const VISIBLE_ENTRY_BUTTONS: Array[String] = ["SoloButton", "PveButton", "EveButton", "LanButton", "OptionsButton", "HowToPlayButton", "ResourcePackButton", "ExitButton"]
+const HIDDEN_ENTRY_BUTTONS: Array[String] = ["NewGameButton", "CreditsButton", "ContinueGameButton", "LevelSelectButton"]
 const OPTIONS_TAB_COUNT: int = 4
 const EXPECTED_CASES: int = 7
 
@@ -164,10 +170,29 @@ static func _case_menu_entries(ctx: Dictionary) -> void:
 	for button_name: String in HIDDEN_ENTRY_BUTTONS:
 		var button: Node = menu.find_child(button_name, true, false)
 		ok = ok and button is Button and not (button as Button).visible
-	# The 'New Game' entry must point at the mode select scene (mode choice is
-	# part of starting a game), not straight at the board.
-	var target: String = String(menu.get_game_scene_path())
-	ok = ok and target == MODE_SELECT_PATH
+	# Top to bottom: the four ways to play, then the rest.
+	var order: Array[int] = []
+	for button_name: String in VISIBLE_ENTRY_BUTTONS:
+		var entry: Node = menu.find_child(button_name, true, false)
+		order.append(entry.get_index() if entry != null else -1)
+	var sorted: Array[int] = order.duplicate()
+	sorted.sort()
+	ok = ok and order == sorted
+	# Solo starts the classic game at once; each versus entry opens the setup
+	# screen on its own page.
+	var session = _tree().root.get_node_or_null(^"GameSession")
+	var stub: SceneLoaderStub = SceneLoaderStub.new()
+	menu.scene_loader_node = stub
+	session.start_mode(session.MODE_NONE)
+	(menu.find_child("SoloButton", true, false) as Button).pressed.emit()
+	ok = ok and session.is_classic() and stub.loaded_paths == [GAME_SCENE_PATH]
+	session.start_mode(session.MODE_NONE)
+	var pages: Dictionary = {"PveButton": &"pve", "EveButton": &"eve", "LanButton": &"lan"}
+	for button_name: String in pages:
+		(menu.find_child(button_name, true, false) as Button).pressed.emit()
+		ok = ok and session.versus_page == pages[button_name] and stub.loaded_paths[-1] == MODE_SELECT_PATH \
+			and not session.is_versus()
+	session.versus_page = &"pve"
 	menu.free()
 	_case(ctx, "menu_entries_new_game_options_exit", ok)
 
@@ -228,10 +253,6 @@ static func _case_mode_select_structure(ctx: Dictionary) -> void:
 		# The old difficulty/growth entries are gone, not just hidden.
 		for button_name: String in REMOVED_MODE_BUTTONS:
 			ok = ok and select.find_child(button_name, true, false) == null
-		var classic: Node = select.find_child("ClassicButton", true, false)
-		var versus: Node = select.find_child("VersusButton", true, false)
-		ok = ok and classic is Button and (classic as Button).text == "Classic"
-		ok = ok and versus is Button and (versus as Button).text == "Versus"
 		var select_target: String = String(select.get_game_scene_path())
 		ok = ok and select_target == GAME_SCENE_PATH
 		select.free()
@@ -253,30 +274,21 @@ static func _case_mode_buttons_map_to_session(ctx: Dictionary) -> void:
 	select.scene_loader_node = stub
 	var ok: bool = true
 	session.start_mode(session.MODE_NONE)
-	# Classic keeps the direct path: one press writes the mode and loads the
-	# single-player scene.
-	var classic_button: Button = select.find_child("ClassicButton", true, false) as Button
-	ok = ok and classic_button != null
-	if classic_button != null:
-		classic_button.pressed.emit()
-		ok = ok and session.mode == MODE_BUTTONS["ClassicButton"]
-		ok = ok and session.is_classic() == true and session.is_versus() == false
-		ok = ok and session.versus_match_in_progress == false and _wins_are(session, 0, 0)
-		ok = ok and stub.loaded_paths.size() == 1 \
-			and stub.loaded_paths[0] == MODE_BUTTON_SCENES["ClassicButton"]
-	# Versus opens the setup page (revised 2026-10-10: one page instead of the
-	# three-step wizard): nothing is written to the session and no scene is
-	# loaded until Start Match.
-	var versus_button: Button = select.find_child("VersusButton", true, false) as Button
-	ok = ok and versus_button != null
-	if versus_button != null:
-		versus_button.pressed.emit()
+	# select_mode() is the one way out of this screen: classic writes the mode
+	# and loads the single-player scene.
+	select.select_mode(MODE_BUTTONS["ClassicButton"])
+	ok = ok and session.mode == MODE_BUTTONS["ClassicButton"]
+	ok = ok and session.is_classic() == true and session.is_versus() == false
+	ok = ok and session.versus_match_in_progress == false and _wins_are(session, 0, 0)
+	ok = ok and stub.loaded_paths.size() == 1 \
+		and stub.loaded_paths[0] == MODE_BUTTON_SCENES["ClassicButton"]
+	# The setup page is open from the start: nothing is written to the session
+	# and no scene is loaded until Start Match.
 	var options: Node = select.find_child("VersusOptionsBoxContainer", true, false)
 	ok = ok and options is BoxContainer and (options as BoxContainer).visible
-	ok = ok and classic_button != null and not classic_button.visible
-	ok = ok and versus_button != null and not versus_button.visible
 	ok = ok and session.mode == MODE_BUTTONS["ClassicButton"] \
 		and session.is_versus() == false and stub.loaded_paths.size() == 1
+	(select.find_child("VersusSpeedFixedSpeed", true, false) as Button).pressed.emit()
 	# Every choice is on the page at once and the picked option of each row
 	# stays highlighted (toggle buttons in one group per row).
 	for option_name: String in ["VersusSpeedFixedSpeed", "VersusSpeedRisingSpeed",

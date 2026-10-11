@@ -33,6 +33,7 @@ const MODULE_PATHS: Array[String] = [
 	"res://tests/test_ui_fix.gd",
 	"res://tests/test_versus_battle.gd",
 	"res://tests/test_versus_flow.gd",
+	"res://tests/test_lan.gd",
 	"res://tests/test_versus_difficulty.gd",
 	"res://tests/test_ai_tiers.gd",
 	"res://tests/test_ai_tspin.gd",

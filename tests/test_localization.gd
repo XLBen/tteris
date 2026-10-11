@@ -79,6 +79,8 @@ const DYNAMIC_OVERLAY_KEYS: Array[String] = [
 	"PLAYER WINS ROUND %d", "AI WINS ROUND %d", "DRAW - REPLAY",
 	"LINES SENT %d : %d", "PLAYER WINS MATCH", "AI WINS MATCH",
 	"ROUND WINS %d : %d", "LEVEL %d",
+	# LAN matches (2026-10-12) name the two humans instead.
+	"YOU WIN ROUND %d", "RIVAL WINS ROUND %d", "YOU WIN THE MATCH", "RIVAL WINS THE MATCH",
 ]
 const GAME_OVER_SCORE_KEY: String = "SCORE %d"
 
@@ -355,12 +357,14 @@ static func _case_menu_text_keys_untouched(ctx: Dictionary) -> void:
 	var select: Node = await _spawn_scene(MODE_SELECT_PATH)
 	ok = ok and select != null
 	if select != null:
-		var classic: Node = select.find_child("ClassicButton", true, false)
-		var versus: Node = select.find_child("VersusButton", true, false)
+		# 2026-10-12: the Classic / Versus entries became the setup page's own
+		# choices; the same rule holds for them.
+		var classic: Node = select.find_child("VersusSpeedRisingSpeed", true, false)
+		var start: Node = select.find_child("VersusStartButton", true, false)
 		# Frozen semantics (BC-06, same standard as test_menu.gd): .text
 		# keeps the English literal; rendering translation is separate.
 		ok = ok and classic is Button and (classic as Button).text == "Classic"
-		ok = ok and versus is Button and (versus as Button).text == "Versus"
+		ok = ok and start is Button and (start as Button).text == "Start Match"
 		select.free()
 	_case(ctx, "menu_text_keys_untouched", ok)
 
@@ -388,6 +392,11 @@ static func _case_first_party_copy_covered(ctx: Dictionary) -> void:
 				continue
 			checked += 1
 			if TranslationServer.translate(text) != text:
+				continue
+			# A label the game writes already translated copy into (the setup
+			# page's description and LAN status) turns auto-translate off.
+			if (node as Control).auto_translate_mode == Node.AUTO_TRANSLATE_MODE_DISABLED:
+				exempt += 1
 				continue
 			# "<Resource Pack>: <pack name>" is composed at runtime: the label
 			# part is translated, the pack's own name is a proper name.

@@ -2,107 +2,107 @@
 
 [ext_resource type="Script" path="res://scripts/ui/pack_select.gd" id="1_u71nd"]
 
-[node name="PackSelect" type="Control" unique_id=1553538534]
+[node name="PackSelect" type="Control" unique_id=1406416604]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1152.0
 offset_bottom = 648.0
 script = ExtResource("1_u71nd")
 
-[node name="Shade" type="ColorRect" parent="." unique_id=621258252]
+[node name="Shade" type="ColorRect" parent="." unique_id=705369152]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 color = Color(0, 0, 0, 0.7)
 
-[node name="Center" type="CenterContainer" parent="." unique_id=1859567711]
+[node name="Center" type="CenterContainer" parent="." unique_id=1655537885]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="Window" type="PanelContainer" parent="Center" unique_id=326234440]
+[node name="Window" type="PanelContainer" parent="Center" unique_id=1284533110]
 custom_minimum_size = Vector2(900, 540)
 layout_mode = 2
 
-[node name="Content" type="VBoxContainer" parent="Center/Window" unique_id=628784766]
+[node name="Content" type="VBoxContainer" parent="Center/Window" unique_id=1747175883]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="Center/Window/Content" unique_id=1072920927]
+[node name="Title" type="Label" parent="Center/Window/Content" unique_id=1969019175]
 layout_mode = 2
 theme_type_variation = &"MenuTitle"
 text = "Resource Packs"
 horizontal_alignment = 1
 
-[node name="Hint" type="Label" parent="Center/Window/Content" unique_id=268911478]
+[node name="Hint" type="Label" parent="Center/Window/Content" unique_id=562376752]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "PACKS_HINT"
 horizontal_alignment = 1
 
-[node name="Columns" type="HBoxContainer" parent="Center/Window/Content" unique_id=1177384547]
+[node name="Columns" type="HBoxContainer" parent="Center/Window/Content" unique_id=1480008160]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 14
 
-[node name="AvailableColumn" type="VBoxContainer" parent="Center/Window/Content/Columns" unique_id=1098827780]
+[node name="AvailableColumn" type="VBoxContainer" parent="Center/Window/Content/Columns" unique_id=870388521]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="Center/Window/Content/Columns/AvailableColumn" unique_id=1230159229]
+[node name="Title" type="Label" parent="Center/Window/Content/Columns/AvailableColumn" unique_id=1561044094]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "Available"
 
-[node name="Scroll" type="ScrollContainer" parent="Center/Window/Content/Columns/AvailableColumn" unique_id=1052917456]
+[node name="Scroll" type="ScrollContainer" parent="Center/Window/Content/Columns/AvailableColumn" unique_id=223550740]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="AvailableList" type="VBoxContainer" parent="Center/Window/Content/Columns/AvailableColumn/Scroll" unique_id=1747874752]
+[node name="AvailableList" type="VBoxContainer" parent="Center/Window/Content/Columns/AvailableColumn/Scroll" unique_id=1873784142]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="EnabledColumn" type="VBoxContainer" parent="Center/Window/Content/Columns" unique_id=622345525]
+[node name="EnabledColumn" type="VBoxContainer" parent="Center/Window/Content/Columns" unique_id=477919079]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="Center/Window/Content/Columns/EnabledColumn" unique_id=1047914031]
+[node name="Title" type="Label" parent="Center/Window/Content/Columns/EnabledColumn" unique_id=373506240]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "Enabled"
 
-[node name="Scroll" type="ScrollContainer" parent="Center/Window/Content/Columns/EnabledColumn" unique_id=1964213493]
+[node name="Scroll" type="ScrollContainer" parent="Center/Window/Content/Columns/EnabledColumn" unique_id=1294169039]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="EnabledList" type="VBoxContainer" parent="Center/Window/Content/Columns/EnabledColumn/Scroll" unique_id=1876047210]
+[node name="EnabledList" type="VBoxContainer" parent="Center/Window/Content/Columns/EnabledColumn/Scroll" unique_id=945591982]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 6
 
-[node name="Footer" type="HBoxContainer" parent="Center/Window/Content" unique_id=754048909]
+[node name="Footer" type="HBoxContainer" parent="Center/Window/Content" unique_id=146725770]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="OpenFolderButton" type="Button" parent="Center/Window/Content/Footer" unique_id=248803623]
+[node name="OpenFolderButton" type="Button" parent="Center/Window/Content/Footer" unique_id=1414640469]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Open Pack Folder"
 
-[node name="Spacer" type="Control" parent="Center/Window/Content/Footer" unique_id=823869656]
+[node name="Spacer" type="Control" parent="Center/Window/Content/Footer" unique_id=1034310949]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="DoneButton" type="Button" parent="Center/Window/Content/Footer" unique_id=1829009555]
+[node name="DoneButton" type="Button" parent="Center/Window/Content/Footer" unique_id=29309916]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(180, 0)
 layout_mode = 2

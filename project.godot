@@ -28,6 +28,7 @@ ProjectUISoundController="*res://addons/maaacks_ui_sound_controller/base/scenes/
 UIPointerFocus="*res://scripts/ui_pointer_focus.gd"
 Localization="*res://scripts/localization.gd"
 PackRuntime="*res://scripts/pack_runtime.gd"
+LanSession="*res://scripts/lan_session.gd"
 
 [display]
 

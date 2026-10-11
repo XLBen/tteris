@@ -94,10 +94,13 @@ static func _forget_choices() -> void:
 			PlayerConfig.erase_section_key(CONFIG_SECTION, key)
 
 
-## A mode select with no remembered choices and its scene changes stubbed.
-static func _spawn_mode_select(forget: bool = true):
+## The versus setup screen on `page` (2026-10-12: the main menu opens it on
+## one of three pages), with no remembered choices and its scene changes
+## stubbed.
+static func _spawn_mode_select(forget: bool = true, page: StringName = &"pve"):
 	if forget:
 		_forget_choices()
+	_session().versus_page = page
 	var scene = (load(MODE_SELECT_PATH) as PackedScene).instantiate()
 	_tree().root.add_child(scene)
 	scene.scene_loader_node = SceneLoaderStub.new()
@@ -112,6 +115,10 @@ static func _button(scene, button_name: String) -> Button:
 
 
 static func _press(scene, button_name: String) -> bool:
+	# The setup page is the whole screen now: there is no Versus entry to
+	# press first.
+	if button_name == "VersusButton":
+		return scene != null
 	var button: Button = _button(scene, button_name)
 	if button == null:
 		return false
@@ -132,7 +139,15 @@ static func _free(scene) -> void:
 static func _case_page_hidden_with_every_choice_built(ctx: Dictionary) -> void:
 	var select = await _spawn_mode_select()
 	var options: BoxContainer = select.find_child("VersusOptionsBoxContainer", true, false) as BoxContainer
-	var ok: bool = options != null and not options.visible
+	var ok: bool = options != null and options.visible
+	# Versus CPU: the opponent's card only. Mode and match are cards of their own.
+	ok = ok and select.page() == &"pve" and not (select.find_child("LeftCard", true, false) as Control).visible \
+		and (select.find_child("RightCard", true, false) as Control).visible \
+		and not (select.find_child("LanCard", true, false) as Control).visible
+	ok = ok and select.find_child("ModeCard", true, false) != null and select.find_child("MatchCard", true, false) != null \
+		and _button(select, "VersusMatchSingleMatch").get_parent().get_parent().name == &"MatchCard" \
+		and _button(select, "VersusSpeedRisingSpeed").get_index() < _button(select, "VersusSpeedFixedSpeed").get_index()
+	ok = ok and _button(select, "VersusButton") == null and _button(select, "ClassicButton") == null
 	var level_total: int = 0
 	for level: int in range(1, 11):
 		var button: Button = _button(select, "VersusLevel%d" % level)
@@ -140,7 +155,7 @@ static func _case_page_hidden_with_every_choice_built(ctx: Dictionary) -> void:
 		if button != null:
 			level_total += 1
 	ok = ok and level_total == 10
-	for button_name: String in ["VersusButton", "ClassicButton", "BackButton",
+	for button_name: String in ["BackButton",
 			"VersusSpeedFixedSpeed", "VersusSpeedRisingSpeed",
 			"VersusCPUEasy", "VersusCPUNormal", "VersusCPUHard", "VersusCPULunatic",
 			"VersusMatchSingleMatch", "VersusMatchBestof3", "VersusStartButton"]:
@@ -161,7 +176,6 @@ static func _case_fixed_choices_start_writes_session_and_loads_versus(ctx: Dicti
 	var stub: SceneLoaderStub = select.scene_loader_node
 	var ok: bool = _press(select, "VersusButton")
 	ok = ok and (select.find_child("VersusOptionsBoxContainer", true, false) as Control).visible
-	ok = ok and not _button(select, "VersusButton").visible and not _button(select, "ClassicButton").visible
 	ok = ok and _press(select, "VersusSpeedFixedSpeed")
 	ok = ok and _press(select, "VersusLevel7")
 	ok = ok and _press(select, "VersusCPUHard")
@@ -230,11 +244,9 @@ static func _case_back_leaves_page_then_returns_to_main_menu(ctx: Dictionary) ->
 	var session = _session()
 	session.start_mode(session.MODE_NONE)
 	var stub: SceneLoaderStub = select.scene_loader_node
-	var ok: bool = _press(select, "VersusButton") and _press(select, "VersusCPUHard")
-	ok = ok and _press(select, "BackButton")
-	ok = ok and not (select.find_child("VersusOptionsBoxContainer", true, false) as Control).visible
-	ok = ok and _button(select, "VersusButton").visible and _button(select, "ClassicButton").visible
+	var ok: bool = _press(select, "VersusCPUHard")
 	ok = ok and stub.loaded_paths.is_empty() and not session.is_versus()
+	# One level only: Back goes straight to the main menu.
 	ok = ok and _press(select, "BackButton")
 	ok = ok and stub.loaded_paths.size() == 1 and stub.loaded_paths[0] == MaaacksGameTemplate.get_main_menu_path()
 	await _free(select)
@@ -270,9 +282,6 @@ static func _case_page_focus_and_description_follow_the_option(ctx: Dictionary) 
 	ok = ok and description.text == select.tr("VERSUS_DESC_LUNATIC") and description.text != "VERSUS_DESC_LUNATIC"
 	_button(select, "VersusLevel6").grab_focus()
 	ok = ok and description.text.contains("6") and not description.text.contains("%d")
-	# Leaving the page hands focus back to the Versus entry.
-	ok = ok and _press(select, "BackButton")
-	ok = ok and viewport.gui_get_focus_owner() == _button(select, "VersusButton")
 	await _free(select)
 	_case(ctx, "page_focus_starts_on_start_and_description_follows_focus", ok)
 
@@ -281,7 +290,7 @@ static func _case_choices_are_remembered(ctx: Dictionary) -> void:
 	var select = await _spawn_mode_select()
 	var session = _session()
 	var ok: bool = _press(select, "VersusButton")
-	ok = ok and _press(select, "VersusLevel5") and _press(select, "VersusCPULunatic") and _press(select, "VersusMatchBestof3")
+	ok = ok and _press(select, "VersusSpeedFixedSpeed") and _press(select, "VersusLevel5") and _press(select, "VersusCPULunatic") and _press(select, "VersusMatchBestof3")
 	ok = ok and _press(select, "VersusStartButton")
 	await _free(select)
 	# A new visit (and a new session of the game) opens on the same setup.
@@ -307,28 +316,35 @@ static func _case_change_settings_reopens_the_page(ctx: Dictionary) -> void:
 	_case(ctx, "change_settings_flag_opens_straight_on_the_page", ok)
 
 
-## CPU vs CPU setup: the Player row defaults to You (empty in the session); a
-## tier there is stored, sent to the session and remembered.
+## The two CPU pages. Versus CPU never puts a CPU on the left board; CPU
+## Battle shows both CPU cards and its left tier is stored, sent to the
+## session and remembered.
 static func _case_left_cpu_choice_reaches_session_and_is_remembered(ctx: Dictionary) -> void:
 	var select = await _spawn_mode_select()
 	var session = _session()
 	session.start_mode(session.MODE_NONE)
-	var ok: bool = _press(select, "VersusButton")
-	ok = ok and _button(select, "VersusPlayerYou").button_pressed and select._versus_left == &"you"
-	ok = ok and _press(select, "VersusStartButton") and session.versus_left_difficulty == &""
+	var ok: bool = _button(select, "VersusPlayerYou") == null
+	ok = ok and _press(select, "VersusStartButton") and session.versus_left_difficulty == &"" and session.versus_lan == &""
+	await _free(select)
+	select = await _spawn_mode_select(true, &"eve")
+	ok = ok and select.page() == &"eve" and (select.find_child("LeftCard", true, false) as Control).visible \
+		and (select.find_child("RightCard", true, false) as Control).visible \
+		and (select.find_child("RightTitle", true, false) as Label).text == "CPU 2"
+	ok = ok and _button(select, "VersusPlayerNormal").button_pressed
 	ok = ok and _press(select, "VersusPlayerHard") and _press(select, "VersusCPUEasy")
-	ok = ok and _button(select, "VersusPlayerHard").button_pressed and not _button(select, "VersusPlayerYou").button_pressed
+	ok = ok and _button(select, "VersusPlayerHard").button_pressed and not _button(select, "VersusPlayerNormal").button_pressed
 	# The two tier rows are independent groups.
 	ok = ok and _button(select, "VersusCPUEasy").button_pressed
 	ok = ok and _press(select, "VersusStartButton")
 	ok = ok and session.versus_left_difficulty == &"hard" and session.versus_difficulty == &"easy"
 	await _free(select)
-	var again = await _spawn_mode_select(false)
+	var again = await _spawn_mode_select(false, &"eve")
 	ok = ok and again._versus_left == &"hard" and _button(again, "VersusPlayerHard").button_pressed
 	await _free(again)
 	_forget_choices()
 	# Leaving versus clears the left-board AI again.
 	session.start_mode(session.MODE_NONE)
+	session.versus_page = &"pve"
 	ok = ok and session.versus_left_difficulty == &""
 	_case(ctx, "left_cpu_choice_reaches_session_and_is_remembered", ok)
 

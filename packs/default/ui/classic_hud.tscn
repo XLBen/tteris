@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/classic_hud.gd" id="1_wt5cd"]
 [ext_resource type="Script" path="res://scripts/piece_preview.gd" id="2_ludgu"]
 
-[node name="ClassicHud" type="Control" unique_id=2146502249]
+[node name="ClassicHud" type="Control" unique_id=1730906169]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1152.0
@@ -11,32 +11,32 @@ offset_bottom = 648.0
 mouse_filter = 2
 script = ExtResource("1_wt5cd")
 
-[node name="Center" type="CenterContainer" parent="." unique_id=1287478938]
+[node name="Center" type="CenterContainer" parent="." unique_id=719464900]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="Row" type="HBoxContainer" parent="Center" unique_id=122100670]
+[node name="Row" type="HBoxContainer" parent="Center" unique_id=678175970]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="InfoCard" type="PanelContainer" parent="Center/Row" unique_id=399638725]
+[node name="InfoCard" type="PanelContainer" parent="Center/Row" unique_id=2145877742]
 custom_minimum_size = Vector2(176, 484)
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"HudCard"
 
-[node name="Content" type="VBoxContainer" parent="Center/Row/InfoCard" unique_id=1497488828]
+[node name="Content" type="VBoxContainer" parent="Center/Row/InfoCard" unique_id=1585139404]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="HoldTitle" type="Label" parent="Center/Row/InfoCard/Content" unique_id=597518113]
+[node name="HoldTitle" type="Label" parent="Center/Row/InfoCard/Content" unique_id=908742409]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "HOLD"
 
-[node name="HoldPreview" type="Control" parent="Center/Row/InfoCard/Content" unique_id=258031860]
+[node name="HoldPreview" type="Control" parent="Center/Row/InfoCard/Content" unique_id=639739571]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(64, 38)
 layout_mode = 2
@@ -44,41 +44,41 @@ size_flags_horizontal = 4
 script = ExtResource("2_ludgu")
 cell_size = 16.0
 
-[node name="Rule" type="HSeparator" parent="Center/Row/InfoCard/Content" unique_id=186114739]
+[node name="Rule" type="HSeparator" parent="Center/Row/InfoCard/Content" unique_id=1297309699]
 layout_mode = 2
 
-[node name="ScoreStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=331232762]
+[node name="ScoreStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=1403280250]
 layout_mode = 2
 theme_override_constants/separation = -2
 
-[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/ScoreStat" unique_id=160424985]
+[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/ScoreStat" unique_id=326819979]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "SCORE"
 
-[node name="ScoreValue" type="Label" parent="Center/Row/InfoCard/Content/ScoreStat" unique_id=1729136321]
+[node name="ScoreValue" type="Label" parent="Center/Row/InfoCard/Content/ScoreStat" unique_id=1239482179]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudValue"
 text = "0"
 
-[node name="LevelStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=1010682042]
+[node name="LevelStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=162311289]
 layout_mode = 2
 theme_override_constants/separation = -2
 
-[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/LevelStat" unique_id=1580332891]
+[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/LevelStat" unique_id=1187564470]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "LEVEL"
 
-[node name="LevelValue" type="Label" parent="Center/Row/InfoCard/Content/LevelStat" unique_id=1262918674]
+[node name="LevelValue" type="Label" parent="Center/Row/InfoCard/Content/LevelStat" unique_id=1309194147]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudValue"
 theme_override_colors/font_color = Color(1, 0.8392157, 0.34901962, 1)
 text = "0"
 
-[node name="LevelBar" type="ProgressBar" parent="Center/Row/InfoCard/Content/LevelStat" unique_id=1638317212]
+[node name="LevelBar" type="ProgressBar" parent="Center/Row/InfoCard/Content/LevelStat" unique_id=399341182]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 4)
 layout_mode = 2
@@ -86,62 +86,62 @@ max_value = 1.0
 step = 0.0
 show_percentage = false
 
-[node name="LinesStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=2072415147]
+[node name="LinesStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=1935796338]
 layout_mode = 2
 theme_override_constants/separation = -2
 
-[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/LinesStat" unique_id=1704832253]
+[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/LinesStat" unique_id=1998319364]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "LINES"
 
-[node name="LinesValue" type="Label" parent="Center/Row/InfoCard/Content/LinesStat" unique_id=103315195]
+[node name="LinesValue" type="Label" parent="Center/Row/InfoCard/Content/LinesStat" unique_id=1980158723]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudValue"
 theme_override_colors/font_color = Color(0.54901963, 0.9490196, 0.6, 1)
 text = "0"
 
-[node name="Spacer" type="Control" parent="Center/Row/InfoCard/Content" unique_id=709601875]
+[node name="Spacer" type="Control" parent="Center/Row/InfoCard/Content" unique_id=78225936]
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="Rule2" type="HSeparator" parent="Center/Row/InfoCard/Content" unique_id=835496182]
+[node name="Rule2" type="HSeparator" parent="Center/Row/InfoCard/Content" unique_id=1082188515]
 layout_mode = 2
 
-[node name="Chain" type="HBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=526786079]
+[node name="Chain" type="HBoxContainer" parent="Center/Row/InfoCard/Content" unique_id=1086480597]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ComboStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content/Chain" unique_id=1024491228]
+[node name="ComboStat" type="VBoxContainer" parent="Center/Row/InfoCard/Content/Chain" unique_id=1540782689]
 layout_mode = 2
 theme_override_constants/separation = -2
 
-[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/Chain/ComboStat" unique_id=1499200455]
+[node name="Title" type="Label" parent="Center/Row/InfoCard/Content/Chain/ComboStat" unique_id=199761262]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "COMBO"
 
-[node name="ComboValue" type="Label" parent="Center/Row/InfoCard/Content/Chain/ComboStat" unique_id=1915471650]
+[node name="ComboValue" type="Label" parent="Center/Row/InfoCard/Content/Chain/ComboStat" unique_id=1804134891]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudValue"
 text = "0"
 
-[node name="Spacer" type="Control" parent="Center/Row/InfoCard/Content/Chain" unique_id=654219404]
+[node name="Spacer" type="Control" parent="Center/Row/InfoCard/Content/Chain" unique_id=636353680]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="B2BLamp" type="Label" parent="Center/Row/InfoCard/Content/Chain" unique_id=1261550935]
+[node name="B2BLamp" type="Label" parent="Center/Row/InfoCard/Content/Chain" unique_id=456288790]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 8
 theme_type_variation = &"HudLamp"
 text = "B2B"
 
-[node name="BoardFrame" type="MarginContainer" parent="Center/Row" unique_id=887594939]
+[node name="BoardFrame" type="MarginContainer" parent="Center/Row" unique_id=1768687622]
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 0
@@ -151,68 +151,68 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
 
-[node name="BoardSlot" type="Control" parent="Center/Row/BoardFrame" unique_id=898042512]
+[node name="BoardSlot" type="Control" parent="Center/Row/BoardFrame" unique_id=557083860]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(240, 480)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="NextCard" type="PanelContainer" parent="Center/Row" unique_id=1095511284]
+[node name="NextCard" type="PanelContainer" parent="Center/Row" unique_id=230428905]
 custom_minimum_size = Vector2(176, 484)
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"HudCard"
 
-[node name="Content" type="VBoxContainer" parent="Center/Row/NextCard" unique_id=1248629179]
+[node name="Content" type="VBoxContainer" parent="Center/Row/NextCard" unique_id=486974368]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="NextTitle" type="Label" parent="Center/Row/NextCard/Content" unique_id=166694149]
+[node name="NextTitle" type="Label" parent="Center/Row/NextCard/Content" unique_id=1065595762]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "NEXT"
 
-[node name="NextPreviews" type="VBoxContainer" parent="Center/Row/NextCard/Content" unique_id=1519796480]
+[node name="NextPreviews" type="VBoxContainer" parent="Center/Row/NextCard/Content" unique_id=1228394708]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Next1" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=181369879]
+[node name="Next1" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=1208452056]
 custom_minimum_size = Vector2(64, 38)
 layout_mode = 2
 size_flags_horizontal = 4
 script = ExtResource("2_ludgu")
 cell_size = 16.0
 
-[node name="Next2" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=1611703352]
+[node name="Next2" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=316291882]
 custom_minimum_size = Vector2(52, 32)
 layout_mode = 2
 size_flags_horizontal = 4
 script = ExtResource("2_ludgu")
 cell_size = 13.0
 
-[node name="Next3" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=158706631]
+[node name="Next3" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=468895999]
 custom_minimum_size = Vector2(52, 32)
 layout_mode = 2
 size_flags_horizontal = 4
 script = ExtResource("2_ludgu")
 cell_size = 13.0
 
-[node name="Next4" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=1115867022]
+[node name="Next4" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=864958794]
 custom_minimum_size = Vector2(52, 32)
 layout_mode = 2
 size_flags_horizontal = 4
 script = ExtResource("2_ludgu")
 cell_size = 13.0
 
-[node name="Next5" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=140138419]
+[node name="Next5" type="Control" parent="Center/Row/NextCard/Content/NextPreviews" unique_id=1164212610]
 custom_minimum_size = Vector2(52, 32)
 layout_mode = 2
 size_flags_horizontal = 4
 script = ExtResource("2_ludgu")
 cell_size = 13.0
 
-[node name="ControlsHint" type="Label" parent="." unique_id=200455650]
+[node name="ControlsHint" type="Label" parent="." unique_id=1872736340]
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 0

@@ -9,7 +9,7 @@ script = ExtResource("2_ms01")
 game_scene_path = "res://scenes/main.tscn"
 
 [node name="SubTitleLabel" parent="MenuContainer/SubTitleMargin/SubTitleContainer" index="0"]
-text = "Select Mode"
+text = "Versus CPU"
 
 [node name="NewGameButton" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer"]
 visible = false
@@ -43,30 +43,17 @@ alignment = 1
 vertical = true
 script = ExtResource("3_cf01")
 
-[node name="ClassicButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="0"]
+[node name="VersusOptionsBoxContainer" type="BoxContainer" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="0"]
 unique_name_in_owner = true
-layout_mode = 2
-text = "Classic"
-
-[node name="VersusButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="1"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Versus"
-
-[node name="VersusOptionsBoxContainer" type="BoxContainer" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="2"]
-unique_name_in_owner = true
-visible = false
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 vertical = true
 script = ExtResource("3_cf01")
 
-[node name="BackButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="3"]
+[node name="BackButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="1"]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Back"
 
-[connection signal="pressed" from="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer/ClassicButton" to="." method="_on_classic_button_pressed"]
-[connection signal="pressed" from="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer/VersusButton" to="." method="_on_versus_button_pressed"]
 [connection signal="pressed" from="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

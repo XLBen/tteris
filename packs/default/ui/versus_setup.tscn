@@ -2,267 +2,309 @@
 
 [ext_resource type="Script" path="res://scripts/ui/versus_setup.gd" id="1_mj647"]
 
-[node name="VersusSetup" type="VBoxContainer" unique_id=1614703926]
+[node name="VersusSetup" type="VBoxContainer" unique_id=1025018857]
+custom_minimum_size = Vector2(600, 0)
 theme_override_constants/separation = 10
 script = ExtResource("1_mj647")
 
-[node name="Players" type="HBoxContainer" parent="." unique_id=232309394]
+[node name="Players" type="HBoxContainer" parent="." unique_id=1781508957]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="LeftCard" type="PanelContainer" parent="Players" unique_id=85978440]
+[node name="LeftCard" type="PanelContainer" parent="Players" unique_id=1295986574]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 theme_type_variation = &"HudCard"
 
-[node name="Content" type="VBoxContainer" parent="Players/LeftCard" unique_id=870061541]
+[node name="Content" type="VBoxContainer" parent="Players/LeftCard" unique_id=1214543238]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="Players/LeftCard/Content" unique_id=907711540]
+[node name="LeftTitle" type="Label" parent="Players/LeftCard/Content" unique_id=374475517]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
-text = "Player"
+text = "CPU 1"
 horizontal_alignment = 1
 
-[node name="VersusPlayerYou" type="Button" parent="Players/LeftCard/Content" unique_id=1914801073]
-unique_name_in_owner = true
+[node name="Tiers" type="HBoxContainer" parent="Players/LeftCard/Content" unique_id=1376117868]
 layout_mode = 2
-toggle_mode = true
-text = "You"
+theme_override_constants/separation = 6
 
-[node name="Tiers" type="GridContainer" parent="Players/LeftCard/Content" unique_id=661138917]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
-columns = 2
-
-[node name="VersusPlayerEasy" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1738606846]
+[node name="VersusPlayerEasy" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1809613979]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Easy"
 
-[node name="VersusPlayerNormal" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=624920273]
+[node name="VersusPlayerNormal" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1263003543]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Normal"
 
-[node name="VersusPlayerHard" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1958490494]
+[node name="VersusPlayerHard" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1323819938]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Hard"
 
-[node name="VersusPlayerLunatic" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1502192280]
+[node name="VersusPlayerLunatic" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=711398831]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Lunatic"
 
-[node name="RightCard" type="PanelContainer" parent="Players" unique_id=1325148796]
+[node name="RightCard" type="PanelContainer" parent="Players" unique_id=1039954027]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 theme_type_variation = &"HudCard"
 
-[node name="Content" type="VBoxContainer" parent="Players/RightCard" unique_id=644657420]
+[node name="Content" type="VBoxContainer" parent="Players/RightCard" unique_id=816681544]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Title" type="Label" parent="Players/RightCard/Content" unique_id=2085932699]
+[node name="RightTitle" type="Label" parent="Players/RightCard/Content" unique_id=516048032]
+unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudTitle"
-text = "CPU"
+text = "Opponent"
 horizontal_alignment = 1
 
-[node name="Tiers" type="GridContainer" parent="Players/RightCard/Content" unique_id=1885140994]
+[node name="Tiers" type="HBoxContainer" parent="Players/RightCard/Content" unique_id=212074606]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/h_separation = 6
-theme_override_constants/v_separation = 6
-columns = 2
+theme_override_constants/separation = 6
 
-[node name="VersusCPUEasy" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=1750018176]
+[node name="VersusCPUEasy" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=1991321614]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Easy"
 
-[node name="VersusCPUNormal" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=624073459]
+[node name="VersusCPUNormal" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=676102836]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Normal"
 
-[node name="VersusCPUHard" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=1023334055]
+[node name="VersusCPUHard" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=1210312384]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Hard"
 
-[node name="VersusCPULunatic" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=882473433]
+[node name="VersusCPULunatic" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=418765901]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
 toggle_mode = true
 text = "Lunatic"
 
-[node name="RulesCard" type="PanelContainer" parent="." unique_id=1201846194]
-custom_minimum_size = Vector2(536, 0)
+[node name="LanCard" type="PanelContainer" parent="." unique_id=1578257721]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_type_variation = &"HudCard"
 
-[node name="Content" type="VBoxContainer" parent="RulesCard" unique_id=1343041948]
+[node name="Content" type="VBoxContainer" parent="LanCard" unique_id=1048656340]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="SpeedAndMatch" type="HBoxContainer" parent="RulesCard/Content" unique_id=971460168]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="SpeedTitle" type="Label" parent="RulesCard/Content/SpeedAndMatch" unique_id=4100892]
+[node name="LanTitle" type="Label" parent="LanCard/Content" unique_id=270172837]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
-text = "Speed"
+text = "Local Network"
+horizontal_alignment = 1
 
-[node name="VersusSpeedFixedSpeed" type="Button" parent="RulesCard/Content/SpeedAndMatch" unique_id=235911105]
+[node name="Connect" type="HBoxContainer" parent="LanCard/Content" unique_id=250341738]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LanHostButton" type="Button" parent="LanCard/Content/Connect" unique_id=477629176]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-text = "Fixed Speed"
+text = "Host Game"
 
-[node name="VersusSpeedRisingSpeed" type="Button" parent="RulesCard/Content/SpeedAndMatch" unique_id=1118782407]
+[node name="LanAddress" type="LineEdit" parent="LanCard/Content/Connect" unique_id=1811116129]
 unique_name_in_owner = true
 layout_mode = 2
-toggle_mode = true
-text = "Classic"
+size_flags_horizontal = 3
+placeholder_text = "Host address"
+max_length = 64
 
-[node name="Spacer" type="Control" parent="RulesCard/Content/SpeedAndMatch" unique_id=1179548757]
+[node name="LanJoinButton" type="Button" parent="LanCard/Content/Connect" unique_id=30254922]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Join Game"
+
+[node name="LanStatus" type="Label" parent="LanCard/Content" unique_id=1449755758]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Rules" type="HBoxContainer" parent="." unique_id=784724848]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ModeCard" type="PanelContainer" parent="Rules" unique_id=36857273]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
+theme_type_variation = &"HudCard"
 
-[node name="MatchTitle" type="Label" parent="RulesCard/Content/SpeedAndMatch" unique_id=1406779161]
+[node name="Content" type="VBoxContainer" parent="Rules/ModeCard" unique_id=1805535203]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ModeTitle" type="Label" parent="Rules/ModeCard/Content" unique_id=832524426]
 layout_mode = 2
 theme_type_variation = &"HudTitle"
-text = "Match"
+text = "Mode"
+horizontal_alignment = 1
 
-[node name="VersusMatchSingleMatch" type="Button" parent="RulesCard/Content/SpeedAndMatch" unique_id=409161867]
+[node name="Modes" type="HBoxContainer" parent="Rules/ModeCard/Content" unique_id=799713747]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="VersusSpeedRisingSpeed" type="Button" parent="Rules/ModeCard/Content/Modes" unique_id=215062738]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 toggle_mode = true
-text = "Single Match"
+text = "Classic"
 
-[node name="VersusMatchBestof3" type="Button" parent="RulesCard/Content/SpeedAndMatch" unique_id=629468894]
+[node name="VersusSpeedFixedSpeed" type="Button" parent="Rules/ModeCard/Content/Modes" unique_id=315826560]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 toggle_mode = true
-text = "Best of 3"
+text = "Fixed Speed"
 
-[node name="VersusLevelRow" type="HBoxContainer" parent="RulesCard/Content" unique_id=276092535]
+[node name="VersusLevelRow" type="HBoxContainer" parent="Rules/ModeCard/Content" unique_id=1131526512]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="LevelTitle" type="Label" parent="RulesCard/Content/VersusLevelRow" unique_id=984958437]
-custom_minimum_size = Vector2(64, 0)
+[node name="LevelTitle" type="Label" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=551092564]
+custom_minimum_size = Vector2(52, 0)
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 text = "Level"
 
-[node name="VersusLevel1" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=1431006828]
+[node name="VersusLevel1" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=1335138393]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "1"
 
-[node name="VersusLevel2" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=1660755777]
+[node name="VersusLevel2" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=1026130846]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "2"
 
-[node name="VersusLevel3" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=1372591808]
+[node name="VersusLevel3" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=1324166556]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "3"
 
-[node name="VersusLevel4" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=178611831]
+[node name="VersusLevel4" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=314151152]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "4"
 
-[node name="VersusLevel5" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=296890607]
+[node name="VersusLevel5" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=706726267]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "5"
 
-[node name="VersusLevel6" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=584619263]
+[node name="VersusLevel6" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=369709042]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "6"
 
-[node name="VersusLevel7" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=2053750202]
+[node name="VersusLevel7" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=1646056284]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "7"
 
-[node name="VersusLevel8" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=421166811]
+[node name="VersusLevel8" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=1740362125]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "8"
 
-[node name="VersusLevel9" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=1951181627]
+[node name="VersusLevel9" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=447560609]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "9"
 
-[node name="VersusLevel10" type="Button" parent="RulesCard/Content/VersusLevelRow" unique_id=1187914002]
+[node name="VersusLevel10" type="Button" parent="Rules/ModeCard/Content/VersusLevelRow" unique_id=251113523]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "10"
 
-[node name="VersusDescription" type="Label" parent="." unique_id=1016158531]
+[node name="MatchCard" type="PanelContainer" parent="Rules" unique_id=520975809]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+mouse_filter = 2
+theme_type_variation = &"HudCard"
+
+[node name="Content" type="VBoxContainer" parent="Rules/MatchCard" unique_id=1776373564]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MatchTitle" type="Label" parent="Rules/MatchCard/Content" unique_id=1883796996]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "Match"
+horizontal_alignment = 1
+
+[node name="VersusMatchSingleMatch" type="Button" parent="Rules/MatchCard/Content" unique_id=221541211]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "Single Match"
+
+[node name="VersusMatchBestof3" type="Button" parent="Rules/MatchCard/Content" unique_id=696700440]
+unique_name_in_owner = true
+layout_mode = 2
+toggle_mode = true
+text = "Best of 3"
+
+[node name="VersusDescription" type="Label" parent="." unique_id=848214765]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(536, 44)
 layout_mode = 2
@@ -271,7 +313,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 3
 
-[node name="VersusStartButton" type="Button" parent="." unique_id=1802265699]
+[node name="VersusStartButton" type="Button" parent="." unique_id=1745851828]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"PrimaryButton"

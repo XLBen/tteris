@@ -303,43 +303,59 @@ func _choice(parent: Node, node_name: String, text: String) -> Button:
 func _versus_setup() -> Control:
 	var root: VBoxContainer = VBoxContainer.new()
 	root.name = "VersusSetup"
+	root.custom_minimum_size = Vector2(600, 0)
 	root.add_theme_constant_override("separation", 10)
 	root.set_script(load("res://scripts/ui/versus_setup.gd"))
-	# Who plays: two cards facing each other.
-	# The two cards share the width of the rules strip under them, and the
-	# tier buttons fill their card: both cards end on the same line.
+	# Who plays. Versus CPU shows the right card, CPU Battle both, LAN Battle
+	# neither (the binding script decides); the tier buttons fill their card.
 	var players: BoxContainer = _box(root, "Players", false, 16)
-	for side: Array in [["Left", "Player", "VersusPlayer", true], ["Right", "CPU", "VersusCPU", false]]:
-		var card: BoxContainer = _box(_card(players, side[0] + "Card", Vector2(260, 0)), "Content", true, 6)
-		card.get_parent().set("size_flags_horizontal", Control.SIZE_EXPAND_FILL)
-		var title: Label = _label(card, "Title", side[1], "HudTitle")
+	for side: Array in [["Left", "CPU 1", "VersusPlayer"], ["Right", "Opponent", "VersusCPU"]]:
+		var card_panel: PanelContainer = _card(players, side[0] + "Card", Vector2(260, 0))
+		card_panel.unique_name_in_owner = true
+		card_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var card: BoxContainer = _box(card_panel, "Content", true, 6)
+		var title: Label = _label(card, side[0] + "Title", side[1], "HudTitle", side[0] == "Right")
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		if side[3]:
-			_choice(card, side[2] + "You", "You")
-		var grid: GridContainer = GridContainer.new()
-		grid.columns = 2
-		grid.add_theme_constant_override("h_separation", 6)
-		grid.add_theme_constant_override("v_separation", 6)
-		grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		_add(card, grid, "Tiers")
+		var tiers: BoxContainer = _box(card, "Tiers", false, 6)
 		for tier: String in ["Easy", "Normal", "Hard", "Lunatic"]:
-			var choice: Button = _choice(grid, side[2] + tier, tier)
-			choice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			choice.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	# The rules in one strip: speed and format on a line, levels under it.
-	var rules: BoxContainer = _box(_card(root, "RulesCard", Vector2(536, 0)), "Content", true, 8)
-	var line: BoxContainer = _box(rules, "SpeedAndMatch", false, 6)
-	_label(line, "SpeedTitle", "Speed", "HudTitle")
-	_choice(line, "VersusSpeedFixedSpeed", "Fixed Speed")
-	_choice(line, "VersusSpeedRisingSpeed", "Classic")
-	_spacer(line, "Spacer", false)
-	_label(line, "MatchTitle", "Match", "HudTitle")
-	_choice(line, "VersusMatchSingleMatch", "Single Match")
-	_choice(line, "VersusMatchBestof3", "Best of 3")
-	var levels: BoxContainer = _box(rules, "VersusLevelRow", false, 4, true)
-	_label(levels, "LevelTitle", "Level", "HudTitle").custom_minimum_size = Vector2(64, 0)
+			_choice(tiers, side[2] + tier, tier).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# LAN Battle: host or join, and what the line is doing.
+	var lan_panel: PanelContainer = _card(root, "LanCard", Vector2(0, 0))
+	lan_panel.unique_name_in_owner = true
+	var lan: BoxContainer = _box(lan_panel, "Content", true, 8)
+	_label(lan, "LanTitle", "Local Network", "HudTitle").horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var line: BoxContainer = _box(lan, "Connect", false, 8)
+	_button(line, "LanHostButton", "Host Game")
+	var address: LineEdit = LineEdit.new()
+	address.placeholder_text = "Host address"
+	address.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	address.max_length = 64
+	_add(line, address, "LanAddress", true)
+	_button(line, "LanJoinButton", "Join Game")
+	var status: Label = _label(lan, "LanStatus", "", "", true)
+	status.custom_minimum_size = Vector2(0, 40)
+	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# The rules, two choices of their own side by side: the mode (Classic
+	# first; the levels belong to the fixed speed) and the match format.
+	var rules: BoxContainer = _box(root, "Rules", false, 16)
+	var mode_panel: PanelContainer = _card(rules, "ModeCard", Vector2(0, 0))
+	mode_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var mode: BoxContainer = _box(mode_panel, "Content", true, 8)
+	_label(mode, "ModeTitle", "Mode", "HudTitle").horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var modes: BoxContainer = _box(mode, "Modes", false, 6)
+	_choice(modes, "VersusSpeedRisingSpeed", "Classic").size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_choice(modes, "VersusSpeedFixedSpeed", "Fixed Speed").size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var levels: BoxContainer = _box(mode, "VersusLevelRow", false, 4, true)
+	_label(levels, "LevelTitle", "Level", "HudTitle").custom_minimum_size = Vector2(52, 0)
 	for level: int in range(1, 11):
 		_choice(levels, "VersusLevel%d" % level, str(level)).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var match_panel: PanelContainer = _card(rules, "MatchCard", Vector2(190, 0))
+	var match_box: BoxContainer = _box(match_panel, "Content", true, 8)
+	_label(match_box, "MatchTitle", "Match", "HudTitle").horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_choice(match_box, "VersusMatchSingleMatch", "Single Match")
+	_choice(match_box, "VersusMatchBestof3", "Best of 3")
 	var description: Label = _label(root, "VersusDescription", "", "", true)
 	description.custom_minimum_size = Vector2(536, 44)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

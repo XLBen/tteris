@@ -12,14 +12,22 @@ Godot 4.7.x on Windows; the project root is the folder with `project.godot`.
 & "<godot>" --path .
 ```
 
-Main menu: New Game, Options, How to Play, Resource Packs, Exit. New Game asks
-for the mode.
+Main menu: Solo, Versus CPU, CPU Battle, LAN Battle, Options, How to Play,
+Resource Packs, Exit.
 
-- **Classic**: one level per 10 lines (up to 15), Perfect Clear bonuses.
-- **Versus**: you or a CPU against a CPU (Easy / Normal / Hard / Lunatic) on two
-  boards, Classic speed (the default: one level per 8 lines cleared between the
-  two) or a fixed speed, single match or best of 3. Garbage follows the Puyo Puyo Tetris table,
-  attacks cancel incoming garbage first. How to Play has the full rules.
+- **Solo**: the classic game. One level per 10 lines (up to 15), Perfect Clear
+  bonuses.
+- **Versus CPU**: you against a CPU (Easy / Normal / Hard / Lunatic).
+- **CPU Battle**: two CPUs against each other; you watch.
+- **LAN Battle**: two players on one local network. One presses Host Game and
+  tells the other the address shown; the other types it and presses Join
+  Game. The host picks the rules and starts. Port 24642 (UDP) must be allowed
+  through the host's firewall.
+
+Every versus page picks a mode - Classic (one level per 8 lines cleared
+between the two boards) or a fixed speed level - and, separately, a single
+match or best of 3. Garbage follows the Puyo Puyo Tetris table, attacks cancel
+incoming garbage first. How to Play has the full rules.
 
 Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,
 `Z` rotate back, `S`/`Down` soft drop, `Space` hard drop, `C`/`Shift` hold,
@@ -31,7 +39,7 @@ Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,
 & "<godot>" --headless --path . --script res://tests/run_all.gd
 ```
 
-Expected: `ALL TESTS PASSED (278)`, exit code 0, about three minutes. One module:
+Expected: `ALL TESTS PASSED (281)`, exit code 0, about three minutes. One module:
 `--script res://tests/test_menu.gd`. After editing a script:
 `--headless --check-only --script res://scripts/<file>.gd`; after editing scenes
 or resources: `--headless --editor --quit`.
@@ -42,12 +50,14 @@ or resources: `--headless --editor --quit`.
 |---|---|
 | `scripts/main.gd`, `scenes/main.tscn` | the classic game |
 | `scripts/versus.gd`, `versus_battle.gd`, `versus_ai.gd` | versus: scene, rules model, AI |
+| `scripts/lan_session.gd` | the LAN link: the host runs the battle and sends it, the guest sends keys |
 | `scripts/board.gd`, `tetromino.gd`, `srs.gd`, `scoring.gd` | the rules of the game |
 | `scripts/board_fx.gd` | board feedback: drawn effects and the pack's sprite effects |
 | `scripts/bgm_director.gd` | music that speeds up with the stack |
 | `scripts/resource_pack.gd`, `pack_runtime.gd` | resource packs |
 | `scripts/ui/` | binding scripts of the pack's screen layouts |
-| `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit) |
+| `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit); `mode_select/` is the versus setup screen |
+| `scripts/ui/main_menu_entries.gd` | the main menu's own entries, attached from outside |
 | `packs/` | `default` (built in), `pixel`, `pixelfx`; format in `packs/README.md` |
 | `tests/` | headless test modules, `run_all.gd` runs them all |
 | `tools/` | generators and labs, below |
@@ -62,6 +72,7 @@ or resources: `--headless --editor --quit`.
 | `tools/make_default_sfx.py`, `make_default_blocks.py` | the default pack's sounds and block atlas |
 | `tools/build_default_layouts.gd` | the default pack's screen layouts (`--headless --script`) |
 | `tools/ai_arena.gd`, `tspin_lab.gd` | AI match statistics and T-spin positions (`--headless --script`) |
+| `tools/lan_smoke.gd` | checks the LAN link with two processes on one machine |
 | `tools/isolated_delivery_check.py` | imports and tests a clean copy of the project |
 | `tools/check_audio_assets.py`, `install_audio_assets.py` | audio records in `assets/assets-*.json` |
 

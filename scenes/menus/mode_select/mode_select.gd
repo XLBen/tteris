@@ -1,17 +1,19 @@
 extends "res://scenes/menus/main_menu/main_menu_with_animations.gd"
-## Mode select menu (Classic / Versus), built on the vendored
-## Maaack animated main-menu variant so the template's Intro / OpenMainMenu
-## entry animation plays when the scene opens.
+## The versus setup screen, built on the vendored Maaack animated menu so the
+## template's entry animation plays when it opens. The main menu sends the
+## player here with one of three pages in GameSession.versus_page:
 ##
-## Classic starts the single-player scene immediately. Versus opens the setup
-## page - the resource pack's "versus_setup" layout (scripts/ui/versus_setup.gd)
-## - where speed, level, who plays each side and the match format are picked;
-## the current choice of each group stays highlighted, a description follows
-## the focused option and Start Match begins the battle. The choices are
-## remembered between sessions through PlayerConfig and written through
-## GameSession.start_versus() before the versus scene is loaded. Back returns
-## from the setup page to the mode buttons, and from there to the main menu.
-## (How to Play and Resource Packs are entries of the main menu.)
+##   pve   Versus CPU: the player against one CPU tier
+##   eve   CPU Battle: two CPU tiers against each other, the player watches
+##   lan   LAN Battle: two players on the local network (scripts/lan_session.gd);
+##         one hosts and picks the rules, the other joins by address
+##
+## The page itself is the resource pack's "versus_setup" layout
+## (scripts/ui/versus_setup.gd). Every page picks the mode - Classic (the speed
+## rises as lines are cleared) or a fixed speed level - and, as a choice of its
+## own, the match format. The choices are remembered between sessions through
+## PlayerConfig and written through GameSession.start_versus() before the
+## versus scene is loaded. Back returns to the main menu.
 
 const VERSUS_SCENE_PATH: String = "res://scenes/versus/versus.tscn"
 const VERSUS_RULES_FIXED: StringName = &"fixed"
@@ -19,15 +21,17 @@ const VERSUS_RULES_RISING: StringName = &"rising"
 const VERSUS_FORMAT_SINGLE: StringName = &"single"
 const VERSUS_FORMAT_BEST_OF_3: StringName = &"best_of_3"
 const VERSUS_DIFFICULTY_NORMAL: StringName = &"normal"
-## Left-board choice that keeps the human on it (the session stores it empty).
-const VERSUS_LEFT_YOU: StringName = &"you"
 const VERSUS_FIXED_LEVEL_MIN: int = 1
 const VERSUS_FIXED_LEVEL_MAX: int = 10
+const PAGE_PVE: StringName = &"pve"
+const PAGE_EVE: StringName = &"eve"
+const PAGE_LAN: StringName = &"lan"
+const PAGE_TITLES: Dictionary = {&"pve": "Versus CPU", &"eve": "CPU Battle", &"lan": "LAN Battle"}
 const CONFIG_SECTION: String = "VersusSettings"
-## Choices per group: [value, button text, description key].
+## Choices per group: [value, button text, description key]. Classic comes first.
 const RULE_OPTIONS: Array = [
-	[&"fixed", "Fixed Speed", "VERSUS_DESC_FIXED"],
 	[&"rising", "Classic", "VERSUS_DESC_RISING"],
+	[&"fixed", "Fixed Speed", "VERSUS_DESC_FIXED"],
 ]
 const DIFFICULTY_OPTIONS: Array = [
 	[&"easy", "Easy", "VERSUS_DESC_EASY"],
@@ -35,52 +39,65 @@ const DIFFICULTY_OPTIONS: Array = [
 	[&"hard", "Hard", "VERSUS_DESC_HARD"],
 	[&"lunatic", "Lunatic", "VERSUS_DESC_LUNATIC"],
 ]
-const LEFT_OPTIONS: Array = [
-	[&"you", "You", "VERSUS_DESC_YOU"],
-	[&"easy", "Easy", "VERSUS_DESC_LEFT_CPU"],
-	[&"normal", "Normal", "VERSUS_DESC_LEFT_CPU"],
-	[&"hard", "Hard", "VERSUS_DESC_LEFT_CPU"],
-	[&"lunatic", "Lunatic", "VERSUS_DESC_LEFT_CPU"],
-]
 const FORMAT_OPTIONS: Array = [
 	[&"single", "Single Match", "VERSUS_DESC_SINGLE"],
 	[&"best_of_3", "Best of 3", "VERSUS_DESC_BEST_OF_3"],
 ]
 
-var _versus_active: bool = false
-## Classic (the speed rises as lines are cleared) unless the player chose otherwise.
+var _page: StringName = PAGE_PVE
+## Classic unless the player chose otherwise.
 var _versus_rules: StringName = VERSUS_RULES_RISING
 var _versus_level: int = VERSUS_FIXED_LEVEL_MIN
 var _versus_difficulty: StringName = VERSUS_DIFFICULTY_NORMAL
-var _versus_left: StringName = VERSUS_LEFT_YOU
+## Tier of the left CPU on the CPU Battle page.
+var _versus_left: StringName = VERSUS_DIFFICULTY_NORMAL
 var _versus_format: StringName = VERSUS_FORMAT_SINGLE
 var _versus_options: BoxContainer
-var _classic_button: Button
-var _versus_button: Button
 var _setup: VersusSetup
 var _description: Label
 var _start_button: Button
 var _level_row: Control
+## LAN page: the link, the last status line (a translation key and its
+## argument) and whether this screen is leaving for the match it started.
+var _link: Node
+var _lan_status: String = "LAN_STATUS_IDLE"
+var _lan_status_arg: String = ""
+var _lan_starting: bool = false
 
 
 func _ready() -> void:
 	super._ready()
+	var session: Node = get_node_or_null(^"/root/GameSession")
+	if session != null:
+		if PAGE_TITLES.has(StringName(session.versus_page)):
+			_page = StringName(session.versus_page)
+		session.open_versus_setup = false
+	var subtitle: Label = find_child("SubTitleLabel", true, false) as Label
+	if subtitle != null:
+		subtitle.text = String(PAGE_TITLES[_page])
 	_versus_options = find_child("VersusOptionsBoxContainer", true, false) as BoxContainer
-	_classic_button = find_child("ClassicButton", true, false) as Button
-	_versus_button = find_child("VersusButton", true, false) as Button
 	_load_versus_choices()
 	_build_versus_page()
-	_versus_options.visible = false
-	# The versus result screen's "Change Settings" lands straight on the page.
-	var session: Node = get_node_or_null(^"/root/GameSession")
-	if session != null and bool(session.open_versus_setup):
-		session.open_versus_setup = false
-		_on_versus_button_pressed.call_deferred()
+	if _page == PAGE_LAN:
+		_open_lan_page(session)
+	# Deferred so the page is laid out before the focus lands on it.
+	_start_button.grab_focus.call_deferred()
+
+
+func _exit_tree() -> void:
+	# Leaving any other way than into the match hangs up.
+	if _link != null and not _lan_starting:
+		_link.close()
+
+
+## The page this screen shows.
+func page() -> StringName:
+	return _page
 
 
 ## Starts `mode` and loads its scene. Optional versus fields override the
 ## defaults so the setup page can pass its selection in one call.
-func select_mode(mode: StringName, scene_path: String = "", versus_rules: StringName = &"", versus_level: int = 0, versus_format: StringName = &"", versus_difficulty: StringName = &"", versus_left: StringName = &"") -> void:
+func select_mode(mode: StringName, scene_path: String = "", versus_rules: StringName = &"", versus_level: int = 0, versus_format: StringName = &"", versus_difficulty: StringName = &"", versus_left: StringName = &"", lan: StringName = &"") -> void:
 	# Resolved by node path (same pattern as scripts/main.gd) so this script
 	# also compiles standalone under --check-only, where autoload names are
 	# not registered as compile-time globals.
@@ -93,7 +110,7 @@ func select_mode(mode: StringName, scene_path: String = "", versus_rules: String
 			var level: int = versus_level if versus_level > 0 else int(session.VERSUS_FIXED_LEVEL_MIN)
 			var match_format: StringName = versus_format if versus_format != &"" else session.VERSUS_FORMAT_SINGLE
 			var difficulty: StringName = versus_difficulty if versus_difficulty != &"" else session.VERSUS_DIFFICULTY_NORMAL
-			session.start_versus(rules, level, match_format, difficulty, versus_left)
+			session.start_versus(rules, level, match_format, difficulty, versus_left, lan)
 		else:
 			session.start_mode(mode)
 	if scene_path.is_empty():
@@ -125,7 +142,7 @@ func _return_to_main_menu() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Versus setup page
+# The setup page
 func _load_versus_choices() -> void:
 	var rules: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Rules", String(VERSUS_RULES_RISING))))
 	if _option_index(RULE_OPTIONS, rules) >= 0:
@@ -134,8 +151,8 @@ func _load_versus_choices() -> void:
 	var difficulty: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Difficulty", String(VERSUS_DIFFICULTY_NORMAL))))
 	if _option_index(DIFFICULTY_OPTIONS, difficulty) >= 0:
 		_versus_difficulty = difficulty
-	var left: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Left", String(VERSUS_LEFT_YOU))))
-	if _option_index(LEFT_OPTIONS, left) >= 0:
+	var left: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Left", String(VERSUS_DIFFICULTY_NORMAL))))
+	if _option_index(DIFFICULTY_OPTIONS, left) >= 0:
 		_versus_left = left
 	var match_format: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Format", String(VERSUS_FORMAT_SINGLE))))
 	if _option_index(FORMAT_OPTIONS, match_format) >= 0:
@@ -160,7 +177,9 @@ static func _option_index(options: Array, value: StringName) -> int:
 func _build_versus_page() -> void:
 	_setup = ResourcePack.layout("versus_setup").instantiate() as VersusSetup
 	_versus_options.add_child(_setup)
+	_versus_options.visible = true
 	_setup.bind()
+	_setup.show_page(_page)
 	_description = _setup.description
 	_start_button = _setup.start_button
 	_level_row = _setup.level_row
@@ -168,6 +187,8 @@ func _build_versus_page() -> void:
 	_setup.option_focused.connect(_on_option_focused)
 	_setup.start_pressed.connect(_on_start_button_pressed)
 	_setup.start_focused.connect(_describe.bind("VERSUS_DESC_START", 0))
+	_setup.lan_host_pressed.connect(_on_lan_host_pressed)
+	_setup.lan_join_pressed.connect(_on_lan_join_pressed)
 	_sync_versus_page()
 
 
@@ -184,6 +205,9 @@ func _on_option_picked(group: String, value: Variant) -> void:
 		"format":
 			_versus_format = value
 	_sync_versus_page()
+	# The joined player sees what the host picks.
+	if _page == PAGE_LAN and _link != null:
+		_link.send_settings(_lan_settings())
 
 
 func _on_option_focused(group: String, value: Variant) -> void:
@@ -192,9 +216,7 @@ func _on_option_focused(group: String, value: Variant) -> void:
 			_describe(String(RULE_OPTIONS[_option_index(RULE_OPTIONS, value)][2]), value)
 		"level":
 			_describe("VERSUS_DESC_LEVEL", value)
-		"left":
-			_describe(String(LEFT_OPTIONS[_option_index(LEFT_OPTIONS, value)][2]), value)
-		"difficulty":
+		"left", "difficulty":
 			_describe(String(DIFFICULTY_OPTIONS[_option_index(DIFFICULTY_OPTIONS, value)][2]), value)
 		"format":
 			_describe(String(FORMAT_OPTIONS[_option_index(FORMAT_OPTIONS, value)][2]), value)
@@ -216,42 +238,123 @@ func _sync_versus_page() -> void:
 		"difficulty": _versus_difficulty,
 		"format": _versus_format,
 	})
-
-
-func _on_classic_button_pressed() -> void:
-	select_mode(GameSession.MODE_CLASSIC)
-
-
-func _on_versus_button_pressed() -> void:
-	_versus_active = true
-	_versus_options.visible = true
-	for button: Button in [_classic_button, _versus_button]:
-		if button != null:
-			button.visible = false
-	_sync_versus_page()
-	# Deferred so the visibility changes above are applied before grabbing.
-	_start_button.grab_focus.call_deferred()
+	if _page == PAGE_LAN:
+		_sync_lan_page()
 
 
 func _on_start_button_pressed() -> void:
-	_save_versus_choices()
 	var level: int = _versus_level if _versus_rules == VERSUS_RULES_FIXED else VERSUS_FIXED_LEVEL_MIN
-	var left: StringName = _versus_left if _versus_left != VERSUS_LEFT_YOU else &""
+	if _page == PAGE_LAN:
+		if _link == null or _link.role() != _link.ROLE_HOST or not _link.has_peer():
+			return
+		_save_versus_choices()
+		_link.send_start(_lan_settings())
+		_begin_lan_match(_link.ROLE_HOST)
+		return
+	_save_versus_choices()
+	var left: StringName = _versus_left if _page == PAGE_EVE else &""
 	select_mode(GameSession.MODE_VERSUS, VERSUS_SCENE_PATH, _versus_rules, level, _versus_format, _versus_difficulty, left)
 
 
 func _on_back_button_pressed() -> void:
-	if _versus_active:
-		_leave_versus_options()
-		return
 	_return_to_main_menu()
 
 
-func _leave_versus_options() -> void:
-	_versus_active = false
-	_versus_options.visible = false
-	for button: Button in [_classic_button, _versus_button]:
-		if button != null:
-			button.visible = true
-	if _versus_button != null and _versus_button.is_inside_tree():
-		_versus_button.grab_focus()
+# ---------------------------------------------------------------------------
+# LAN page
+func _open_lan_page(session: Node) -> void:
+	_link = get_node_or_null(^"/root/LanSession")
+	if _link == null:
+		return
+	# The page always opens with the line down.
+	_link.close()
+	_link.peer_joined.connect(_on_lan_peer_joined)
+	_link.peer_left.connect(_on_lan_peer_left)
+	_link.settings_received.connect(_on_lan_settings_received)
+	_link.start_received.connect(_on_lan_start_received)
+	_setup.set_lan_address(String(PlayerConfig.get_config(CONFIG_SECTION, "Address", "")))
+	if session != null and not String(session.lan_notice).is_empty():
+		_set_lan_status(String(session.lan_notice))
+		session.lan_notice = ""
+	_sync_lan_page()
+
+
+func _set_lan_status(key: String, argument: String = "") -> void:
+	_lan_status = key
+	_lan_status_arg = argument
+	_sync_lan_page()
+
+
+## What the LAN page allows right now: connecting while the line is down, the
+## rules for everybody but a joined player, the start for a host with a guest.
+func _sync_lan_page() -> void:
+	if _link == null:
+		return
+	var role: StringName = _link.role()
+	var text: String = tr(_lan_status)
+	if text.contains("%s"):
+		text = text % _lan_status_arg
+	_setup.show_lan(text, role == _link.ROLE_NONE, role != _link.ROLE_CLIENT, role == _link.ROLE_HOST and _link.has_peer())
+
+
+func _lan_settings() -> Dictionary:
+	return {"rules": _versus_rules, "level": _versus_level, "format": _versus_format}
+
+
+func _apply_lan_settings(settings: Dictionary) -> void:
+	var rules: StringName = StringName(String(settings.get("rules", "")))
+	if _option_index(RULE_OPTIONS, rules) >= 0:
+		_versus_rules = rules
+	_versus_level = clampi(int(settings.get("level", _versus_level)), VERSUS_FIXED_LEVEL_MIN, VERSUS_FIXED_LEVEL_MAX)
+	var match_format: StringName = StringName(String(settings.get("format", "")))
+	if _option_index(FORMAT_OPTIONS, match_format) >= 0:
+		_versus_format = match_format
+	_sync_versus_page()
+
+
+func _on_lan_host_pressed() -> void:
+	if _link.host() != OK:
+		_set_lan_status("LAN_STATUS_FAILED")
+		return
+	_set_lan_status("LAN_STATUS_HOSTING", ", ".join(_link.local_addresses()))
+
+
+func _on_lan_join_pressed(address: String) -> void:
+	if address.strip_edges().is_empty():
+		_set_lan_status("LAN_STATUS_NO_ADDRESS")
+		return
+	PlayerConfig.set_config(CONFIG_SECTION, "Address", address.strip_edges())
+	if _link.join(address) != OK:
+		_set_lan_status("LAN_STATUS_FAILED")
+		return
+	_set_lan_status("LAN_STATUS_CONNECTING", address.strip_edges())
+
+
+func _on_lan_peer_joined() -> void:
+	if _link.role() == _link.ROLE_HOST:
+		_link.send_settings(_lan_settings())
+		_set_lan_status("LAN_STATUS_GUEST_JOINED")
+	else:
+		_set_lan_status("LAN_STATUS_JOINED")
+
+
+func _on_lan_peer_left() -> void:
+	if _link.role() == _link.ROLE_HOST:
+		_set_lan_status("LAN_STATUS_HOSTING", ", ".join(_link.local_addresses()))
+	else:
+		_set_lan_status("LAN_PEER_LEFT")
+
+
+func _on_lan_settings_received(settings: Dictionary) -> void:
+	_apply_lan_settings(settings)
+
+
+func _on_lan_start_received(settings: Dictionary) -> void:
+	_apply_lan_settings(settings)
+	_begin_lan_match(_link.ROLE_CLIENT)
+
+
+func _begin_lan_match(role: StringName) -> void:
+	_lan_starting = true
+	var level: int = _versus_level if _versus_rules == VERSUS_RULES_FIXED else VERSUS_FIXED_LEVEL_MIN
+	select_mode(GameSession.MODE_VERSUS, VERSUS_SCENE_PATH, _versus_rules, level, _versus_format, &"", &"", role)

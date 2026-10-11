@@ -305,6 +305,107 @@ func drain_events() -> Array[Dictionary]:
 	return out
 
 
+# ---------------------------------------------------------------------------
+# LAN play: the host runs the battle and sends what a viewer needs every
+# frame; the other player's battle is a replica that only shows it.
+## Everything a screen needs to show this battle right now.
+func snapshot() -> Dictionary:
+	var sides: Array = []
+	for s: SideState in _sides:
+		var cells: PackedByteArray = PackedByteArray()
+		cells.resize(Board.BOARD_WIDTH * Board.BOARD_HEIGHT)
+		for y: int in Board.BOARD_HEIGHT:
+			for x: int in Board.BOARD_WIDTH:
+				cells[y * Board.BOARD_WIDTH + x] = s.board.get_cell(Vector2i(x, y)) + 1
+		sides.append({
+			"cells": cells,
+			"piece": s.piece.piece_type if s.piece != null else -1,
+			"rotation": s.piece.rotation if s.piece != null else 0,
+			"pos": s.piece_pos,
+			"hold": s.hold_type,
+			"next": s.next_queue.duplicate(),
+			"pending": s.pending_garbage.duplicate(),
+			"score": s.score,
+			"lines": s.lines,
+			"level": s.level,
+			"sent": s.attack_sent_rows,
+			"combo": s.combo,
+			"b2b": s.b2b_active,
+			"placed": s.pieces_placed,
+			"tspins": s.tspin_count,
+			"lost": s.lost,
+		})
+	return {
+		"sides": sides,
+		"phase": _phase,
+		"countdown": _countdown,
+		"elapsed": _elapsed,
+		"round_winner": _round_winner,
+		"match_winner": _match_winner,
+		"draw": _last_round_draw,
+		"wins": _round_wins.duplicate(),
+		"round": _round_index,
+		"format": _match_format,
+		"rules": _rules,
+		"fixed_level": _fixed_level,
+	}
+
+
+## Makes this battle show a snapshot() taken elsewhere. With `mirror` the two
+## sides trade places, so each LAN player has their own board on the left.
+## A replica is never ticked. `events` (the other battle's drain_events()) are
+## queued for this one's drain_events().
+func apply_snapshot(data: Dictionary, events: Array = [], mirror: bool = false) -> void:
+	_phase = int(data["phase"])
+	_countdown = float(data["countdown"])
+	_elapsed = float(data["elapsed"])
+	_round_winner = _mirrored(int(data["round_winner"]), mirror)
+	_match_winner = _mirrored(int(data["match_winner"]), mirror)
+	_last_round_draw = bool(data["draw"])
+	_round_index = int(data["round"])
+	_match_format = int(data["format"])
+	_rules = int(data["rules"])
+	_fixed_level = int(data["fixed_level"])
+	for index: int in 2:
+		var from: Dictionary = data["sides"][_mirrored(index, mirror)]
+		_round_wins[index] = int(data["wins"][_mirrored(index, mirror)])
+		var s: SideState = _side_state(index)
+		var cells: PackedByteArray = from["cells"]
+		for y: int in Board.BOARD_HEIGHT:
+			for x: int in Board.BOARD_WIDTH:
+				s.board.set_cell(Vector2i(x, y), int(cells[y * Board.BOARD_WIDTH + x]) - 1)
+		var type: int = int(from["piece"])
+		if type < 0:
+			s.piece = null
+		elif s.piece == null or s.piece.piece_type != type or s.pieces_placed != int(from["placed"]) or s.hold_type != int(from["hold"]):
+			# A new piece is a new object: the scene tells a move of the same
+			# piece from a spawn by identity.
+			s.piece = Tetromino.new(type)
+		if s.piece != null:
+			s.piece.rotation = int(from["rotation"])
+		s.piece_pos = from["pos"]
+		s.hold_type = int(from["hold"])
+		s.next_queue.assign(from["next"])
+		s.pending_garbage.assign(from["pending"])
+		s.score = int(from["score"])
+		s.lines = int(from["lines"])
+		s.level = int(from["level"])
+		s.attack_sent_rows = int(from["sent"])
+		s.combo = int(from["combo"])
+		s.b2b_active = bool(from["b2b"])
+		s.pieces_placed = int(from["placed"])
+		s.tspin_count = int(from["tspins"])
+		s.lost = bool(from["lost"])
+	for event: Dictionary in events:
+		var copy: Dictionary = event.duplicate()
+		copy["side"] = _mirrored(int(copy["side"]), mirror)
+		_emit(copy)
+
+
+static func _mirrored(side: int, mirror: bool) -> int:
+	return 1 - side if mirror and side >= 0 else side
+
+
 func _emit(event: Dictionary) -> void:
 	_events.append(event)
 	if _events.size() > EVENT_BACKLOG_CAP:

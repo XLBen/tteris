@@ -160,3 +160,28 @@ Enabled,Enabled,已启用
 Open Pack Folder,Open Pack Folder,打开材质包文件夹
 Done,Done,完成
 PACKS_HINT,"Enabled packs are applied from top to bottom: the top one wins, the default pack fills in the rest.",已启用的材质包自上而下生效：最上面的优先，缺的部分由默认包补齐。
+Solo,Solo,单人
+Versus CPU,Versus CPU,人机对战
+CPU Battle,CPU Battle,电脑对战
+LAN Battle,LAN Battle,局域网对战
+Mode,Mode,模式
+Opponent,Opponent,对手
+CPU 1,CPU 1,电脑 1
+CPU 2,CPU 2,电脑 2
+Local Network,Local Network,局域网
+Host Game,Host Game,创建房间
+Join Game,Join Game,加入房间
+Host address,Host address,房主地址
+RIVAL,RIVAL,对手
+YOU WIN ROUND %d,YOU WIN ROUND %d,你赢下第 %d 局
+RIVAL WINS ROUND %d,RIVAL WINS ROUND %d,对手赢下第 %d 局
+YOU WIN THE MATCH,YOU WIN THE MATCH,你赢得比赛
+RIVAL WINS THE MATCH,RIVAL WINS THE MATCH,对手赢得比赛
+LAN_STATUS_IDLE,"Host a game, or join one by the host's address.",创建房间，或输入房主地址加入。
+LAN_STATUS_HOSTING,Hosting on %s. Waiting for a player...,已创建房间，地址 %s，等待玩家加入……
+LAN_STATUS_CONNECTING,Connecting to %s...,正在连接 %s……
+LAN_STATUS_GUEST_JOINED,A player joined. Pick the rules and start the match.,玩家已加入。选好规则后开始对战。
+LAN_STATUS_JOINED,Connected. The host picks the rules and starts the match.,已连接。由房主选择规则并开始对战。
+LAN_STATUS_FAILED,Could not open the connection (is the port in use?).,无法建立连接（端口可能被占用）。
+LAN_STATUS_NO_ADDRESS,Type the host's address first.,请先输入房主地址。
+LAN_PEER_LEFT,"The other player left, or the host could not be reached.",对方已离开，或无法连接到房主。

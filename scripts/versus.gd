@@ -64,6 +64,16 @@ var _difficulty: StringName = &"normal"
 ## Tier of the AI on the left board; empty when the human plays it.
 var _left_difficulty: StringName = &""
 var _left_ai: VersusAI
+## LAN match (GameSession.versus_lan): empty, "host" or "client". The host
+## runs the battle, takes the other player's keys for the right board and
+## sends a snapshot every frame; the client shows what it is sent, mirrored,
+## so each player has their own board on the left.
+var _lan: StringName = &""
+var _lan_link: Node
+## Host: events of this frame, to send. Client: packets not applied yet.
+var _lan_events: Array = []
+var _lan_packets: Array = []
+var _settings_button: Button
 var _rules: int = VersusBattle.Rules.FIXED
 var _fixed_level: int = 1
 var _match_format: int = VersusBattle.MatchFormat.SINGLE
@@ -119,6 +129,16 @@ func _ready() -> void:
 	_refresh_view()
 	if is_inside_tree():
 		get_viewport().size_changed.connect(_fit_hud)
+	if _lan != &"":
+		_lan_link.state_received.connect(_on_lan_state)
+		_lan_link.input_received.connect(_on_lan_input)
+		_lan_link.peer_left.connect(_on_lan_peer_left)
+		# A LAN match cannot be restarted or re-configured from one side.
+		var restart: Control = _pause_menu.find_child("RestartButton", true, false) as Control if _pause_menu != null else null
+		if restart != null:
+			restart.visible = false
+		_settings_button.visible = false
+		_rematch_button.visible = _lan == &"host"
 	# The bus must exist before the player, and both run at the very end of
 	# setup so the whole battle face is ready before the first sound.
 	_ensure_bgm_bus()
@@ -130,12 +150,16 @@ func _process(delta: float) -> void:
 	if _model == null:
 		return
 	_handle_pause_input()
-	if _paused:
+	if _lan == &"client":
+		_process_client()
+		return
+	# A LAN match goes on behind the pause menu: the other player is not paused.
+	if _paused and _lan == &"":
 		_refresh_view()
 		return
 	var phase: int = _model.phase()
 	if phase == VersusBattle.Phase.PLAYING or phase == VersusBattle.Phase.COUNTDOWN:
-		if _left_ai == null:
+		if _left_ai == null and not _paused:
 			_handle_player_input()
 		var side: int = VersusBattle.Side.PLAYER
 		var piece_before: Tetromino = _model.current_piece(side)
@@ -144,7 +168,8 @@ func _process(delta: float) -> void:
 		_model.tick(delta)
 		if _left_ai != null:
 			_left_ai.tick(delta)
-		_ai.tick(delta)
+		if _ai != null:
+			_ai.tick(delta)
 		# The model is signal-free: a same-piece x or rotation change this
 		# frame is the player's move/rotate (gravity only changes y).
 		var piece_after: Tetromino = _model.current_piece(side)
@@ -159,7 +184,76 @@ func _process(delta: float) -> void:
 		_round_over_timer += delta
 		if _round_over_timer >= ROUND_OVER_DELAY:
 			_advance_round()
+	if _lan == &"host":
+		_lan_link.send_state(_model.snapshot(), _lan_events)
+		_lan_events = []
 	_refresh_view()
+
+
+## The joining player's frame: keys go to the host, the host's battle comes
+## back and is shown.
+func _process_client() -> void:
+	if not _paused:
+		for action: StringName in [VersusBattle.ACTION_MOVE_LEFT, VersusBattle.ACTION_MOVE_RIGHT, VersusBattle.ACTION_SOFT_DROP]:
+			if Input.is_action_just_pressed(action):
+				_lan_link.send_input(action, _lan_link.INPUT_PRESS)
+			if Input.is_action_just_released(action):
+				_lan_link.send_input(action, _lan_link.INPUT_RELEASE)
+		for action: StringName in [VersusBattle.ACTION_ROTATE, VersusBattle.ACTION_ROTATE_CCW, VersusBattle.ACTION_HARD_DROP, VersusBattle.ACTION_HOLD]:
+			if Input.is_action_just_pressed(action):
+				_lan_link.send_input(action, _lan_link.INPUT_TAP)
+	var side: int = VersusBattle.Side.PLAYER
+	var piece_before: Tetromino = _model.current_piece(side)
+	var x_before: int = _model.piece_pos(side).x
+	var rotation_before: int = piece_before.rotation if piece_before != null else 0
+	var round_before: int = _model.round_index()
+	var phase_before: int = _model.phase()
+	for packet: Array in _lan_packets:
+		_model.apply_snapshot(packet[0], packet[1], true)
+	_lan_packets.clear()
+	# A new round (or a rematch) starts with clean boards.
+	if _model.phase() == VersusBattle.Phase.COUNTDOWN and (phase_before != VersusBattle.Phase.COUNTDOWN or _model.round_index() != round_before):
+		_countdown_shown = 0
+		for view: SideView in _sides:
+			view.fx.reset()
+	var piece_after: Tetromino = _model.current_piece(side)
+	if piece_after != null and piece_after == piece_before:
+		if piece_after.rotation != rotation_before:
+			_play_sfx("rotate")
+		elif _model.piece_pos(side).x != x_before:
+			_play_sfx("move")
+	_handle_events()
+	_tick_countdown()
+	_refresh_view()
+
+
+func _on_lan_state(snapshot: Dictionary, events: Array) -> void:
+	if _lan == &"client":
+		_lan_packets.append([snapshot, events])
+
+
+## A key of the joining player, played on the right board.
+func _on_lan_input(action: StringName, kind: int) -> void:
+	if _lan != &"host" or _model == null:
+		return
+	var side: int = VersusBattle.Side.AI
+	match kind:
+		_lan_link.INPUT_PRESS:
+			_model.press(side, action)
+		_lan_link.INPUT_RELEASE:
+			_model.release(side, action)
+		_lan_link.INPUT_TAP:
+			_model.tap(side, action)
+
+
+## The other player is gone: back to the LAN page, which says so.
+func _on_lan_peer_left() -> void:
+	if _game_session != null:
+		_game_session.versus_match_in_progress = false
+		_game_session.versus_page = _game_session.PAGE_LAN
+		_game_session.lan_notice = "LAN_PEER_LEFT"
+	_lan_link.close()
+	_change_scene(MODE_SELECT_SCENE)
 
 
 ## The scene file's own background and area nodes take the pack's look.
@@ -180,7 +274,7 @@ func _apply_pack_to_scene() -> void:
 
 
 func _notification(what: int) -> void:
-	if what == MainLoop.NOTIFICATION_APPLICATION_FOCUS_OUT and _model != null and not _paused \
+	if what == MainLoop.NOTIFICATION_APPLICATION_FOCUS_OUT and _model != null and not _paused and _lan == &"" \
 			and _model.phase() != VersusBattle.Phase.MATCH_OVER:
 		_set_paused(true)
 
@@ -204,6 +298,12 @@ func _read_session() -> void:
 	var stored_left: StringName = StringName(_game_session.versus_left_difficulty)
 	if VersusAI.DIFFICULTY_PROFILES.has(stored_left):
 		_left_difficulty = stored_left
+	# A LAN match needs its link; without one this is a match against the CPU.
+	_lan_link = get_tree().root.get_node_or_null(^"LanSession")
+	var role: StringName = StringName(_game_session.versus_lan)
+	if role != &"" and _lan_link != null and _lan_link.role() == role:
+		_lan = role
+		_left_difficulty = &""
 
 
 ## Starts a fresh match at 0:0 (scene start and the result screen's Rematch).
@@ -213,13 +313,14 @@ func _start_match() -> void:
 	_model.setup(_rules, _fixed_level, _match_format, randi())
 	# The AI's decision RNG derives from the battle seed, so one seed
 	# reproduces the whole match.
-	_ai = VersusAI.new(_model, VersusBattle.Side.AI, VersusAI.DIFFICULTY_PROFILES[_difficulty], _model.seed_value())
+	# In a LAN match the right board is the other player's.
+	_ai = null if _lan != &"" else VersusAI.new(_model, VersusBattle.Side.AI, VersusAI.DIFFICULTY_PROFILES[_difficulty], _model.seed_value())
 	_left_ai = null
 	if _left_difficulty != &"":
 		_left_ai = VersusAI.new(_model, VersusBattle.Side.PLAYER, VersusAI.DIFFICULTY_PROFILES[_left_difficulty], _model.seed_value() + 7919)
 	# On screen a plan is spread over frames instead of freezing one (headless
 	# runs drive the scene without frames passing, so they plan in one go).
-	if DisplayServer.get_name() != "headless":
+	if DisplayServer.get_name() != "headless" and _ai != null:
 		_ai.frame_budget_usec = AI_FRAME_BUDGET_USEC
 		if _left_ai != null:
 			_left_ai.frame_budget_usec = AI_FRAME_BUDGET_USEC
@@ -290,7 +391,8 @@ func _set_paused(paused: bool) -> void:
 	if _paused == paused:
 		return
 	_paused = paused
-	_model.set_paused(paused)
+	if _lan == &"":
+		_model.set_paused(paused)
 	_play_sfx("pause" if paused else "resume")
 
 
@@ -311,6 +413,10 @@ func _on_change_settings_pressed() -> void:
 
 
 func _return_to_main_menu() -> void:
+	if _lan != &"":
+		# Hanging up tells the other player.
+		_lan_link.peer_left.disconnect(_on_lan_peer_left)
+		_lan_link.close()
 	if _game_session != null:
 		_save_progress()
 		_game_session.versus_match_in_progress = false
@@ -331,6 +437,8 @@ func _change_scene(path: String) -> void:
 # Model events -> sound and BoardFX
 func _handle_events() -> void:
 	var events: Array[Dictionary] = _model.drain_events()
+	if _lan == &"host":
+		_lan_events.append_array(events)
 	for i: int in events.size():
 		var event: Dictionary = events[i]
 		var side: int = int(event["side"])
@@ -557,6 +665,9 @@ func _set_tags(side: int, view: SideView) -> void:
 	if left and _left_difficulty == &"":
 		view.layout.set_tags(tr("YOU"), ResourcePack.color("player"), "", Color.WHITE)
 		return
+	if _lan != &"":
+		view.layout.set_tags(tr("RIVAL"), ResourcePack.color("opponent"), "", Color.WHITE)
+		return
 	var cpu_text: String = "CPU" if _left_difficulty == &"" else "CPU %d" % (side + 1)
 	var tag: Array = DIFFICULTY_TAGS.get(_left_difficulty if left else _difficulty, DIFFICULTY_TAGS[&"normal"])
 	view.layout.set_tags(cpu_text, ResourcePack.color("player") if left else ResourcePack.color("opponent"),
@@ -606,7 +717,7 @@ func _build_result_panel() -> void:
 	_result_buttons = _result.buttons
 	_result_buttons.name = "ResultButtons"
 	_rematch_button = _result.add_button("Rematch", _on_rematch_pressed)
-	_result.add_button("Change Settings", _on_change_settings_pressed)
+	_settings_button = _result.add_button("Change Settings", _on_change_settings_pressed)
 	_result.add_button("Main Menu", _return_to_main_menu)
 
 
@@ -716,17 +827,20 @@ func _refresh_overlay() -> void:
 			_overlay_title.text = tr("CPU %d WINS ROUND %d") % [_model.round_winner() + 1, _model.round_index()]
 			_overlay_title.add_theme_color_override("font_color", ResourcePack.color("player") if _model.round_winner() == VersusBattle.Side.PLAYER else ResourcePack.color("opponent"))
 		elif _model.round_winner() == VersusBattle.Side.PLAYER:
-			_overlay_title.text = tr("PLAYER WINS ROUND %d") % _model.round_index()
+			_overlay_title.text = (tr("YOU WIN ROUND %d") if _lan != &"" else tr("PLAYER WINS ROUND %d")) % _model.round_index()
 			_overlay_title.add_theme_color_override("font_color", ResourcePack.color("good"))
 		else:
-			_overlay_title.text = tr("AI WINS ROUND %d") % _model.round_index()
+			_overlay_title.text = (tr("RIVAL WINS ROUND %d") if _lan != &"" else tr("AI WINS ROUND %d")) % _model.round_index()
 			_overlay_title.add_theme_color_override("font_color", ResourcePack.color("bad"))
 	elif _left_ai != null:
 		_overlay_title.text = tr("CPU %d WINS MATCH") % (_model.match_winner() + 1)
 		_overlay_title.add_theme_color_override("font_color", ResourcePack.color("player") if _model.match_winner() == VersusBattle.Side.PLAYER else ResourcePack.color("opponent"))
 	else:
 		var human_won: bool = _model.match_winner() == VersusBattle.Side.PLAYER
-		_overlay_title.text = tr("PLAYER WINS MATCH") if human_won else tr("AI WINS MATCH")
+		if _lan != &"":
+			_overlay_title.text = tr("YOU WIN THE MATCH") if human_won else tr("RIVAL WINS THE MATCH")
+		else:
+			_overlay_title.text = tr("PLAYER WINS MATCH") if human_won else tr("AI WINS MATCH")
 		_overlay_title.add_theme_color_override("font_color", ResourcePack.color("good") if human_won else ResourcePack.color("bad"))
 	_overlay_detail.text = tr("LINES SENT %d : %d") % [_model.attack_sent(VersusBattle.Side.PLAYER), _model.attack_sent(VersusBattle.Side.AI)]
 	if best_of_3:

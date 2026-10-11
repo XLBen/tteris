@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ui/result_panel.gd" id="1_mmivk"]
 
-[node name="ResultPanel" type="Control" unique_id=292276072]
+[node name="ResultPanel" type="Control" unique_id=150635085]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 1152.0
@@ -10,46 +10,46 @@ offset_bottom = 648.0
 mouse_filter = 2
 script = ExtResource("1_mmivk")
 
-[node name="Veil" type="ColorRect" parent="." unique_id=829907215]
+[node name="Veil" type="ColorRect" parent="." unique_id=1755338890]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 color = Color(0.019607844, 0.03137255, 0.05882353, 0.6)
 
-[node name="Center" type="CenterContainer" parent="." unique_id=779742288]
+[node name="Center" type="CenterContainer" parent="." unique_id=516744999]
 layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="Window" type="PanelContainer" parent="Center" unique_id=108319100]
+[node name="Window" type="PanelContainer" parent="Center" unique_id=641138918]
 custom_minimum_size = Vector2(400, 0)
 layout_mode = 2
 
-[node name="Content" type="VBoxContainer" parent="Center/Window" unique_id=2141822754]
+[node name="Content" type="VBoxContainer" parent="Center/Window" unique_id=1668576364]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="Center/Window/Content" unique_id=722434304]
+[node name="Title" type="Label" parent="Center/Window/Content" unique_id=1410503036]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"MenuTitle"
 horizontal_alignment = 1
 
-[node name="Detail" type="Label" parent="Center/Window/Content" unique_id=2031213564]
+[node name="Detail" type="Label" parent="Center/Window/Content" unique_id=262366885]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 horizontal_alignment = 1
 
-[node name="Extra" type="Label" parent="Center/Window/Content" unique_id=1023893875]
+[node name="Extra" type="Label" parent="Center/Window/Content" unique_id=1131711422]
 unique_name_in_owner = true
 layout_mode = 2
 theme_type_variation = &"HudTitle"
 horizontal_alignment = 1
 
-[node name="Buttons" type="VBoxContainer" parent="Center/Window/Content" unique_id=980809635]
+[node name="Buttons" type="VBoxContainer" parent="Center/Window/Content" unique_id=1598726917]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2

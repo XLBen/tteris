@@ -48,6 +48,17 @@ var versus_match_in_progress: bool = false
 ## Set by the versus result screen's "Change Settings": the mode select opens
 ## straight on the versus setup page and clears the flag.
 var open_versus_setup: bool = false
+## Which versus setup the menu opens: player vs CPU, CPU vs CPU, or two
+## players over the local network.
+const PAGE_PVE: StringName = &"pve"
+const PAGE_EVE: StringName = &"eve"
+const PAGE_LAN: StringName = &"lan"
+var versus_page: StringName = PAGE_PVE
+## LAN match role of this machine: empty (not a LAN match), "host" (runs the
+## battle) or "client" (shows the host's battle and sends its keys).
+var versus_lan: StringName = &""
+## One line for the LAN page to show when it opens (a lost connection).
+var lan_notice: String = ""
 
 
 func start_mode(new_mode: StringName) -> void:
@@ -60,8 +71,11 @@ func start_classic() -> void:
 	start_mode(MODE_CLASSIC)
 
 
-func start_versus(rules: StringName, fixed_level: int, match_format: StringName, difficulty: StringName = VERSUS_DIFFICULTY_NORMAL, left_difficulty: StringName = &"") -> void:
+## `lan` is this machine's role in a LAN match ("host" / "client"), empty for
+## a match against (or between) CPUs.
+func start_versus(rules: StringName, fixed_level: int, match_format: StringName, difficulty: StringName = VERSUS_DIFFICULTY_NORMAL, left_difficulty: StringName = &"", lan: StringName = &"") -> void:
 	mode = MODE_VERSUS
+	versus_lan = lan
 	versus_left_difficulty = left_difficulty
 	versus_rules = rules
 	versus_fixed_level = fixed_level
@@ -103,3 +117,4 @@ func _reset_versus_config() -> void:
 	versus_round_wins = [0, 0]
 	versus_round_index = 1
 	versus_match_in_progress = false
+	versus_lan = &""

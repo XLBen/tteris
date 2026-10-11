@@ -686,19 +686,68 @@
 	const DOME_TINTS = hexes(['#e8b83a', '#e8b83a', '#2c50b0', '#e8b83a', '#3c9c62', '#e8b83a', '#b02a1a']);
 	const WALL = hexes(['#0c0604', '#160a06', '#26120a']);
 	const RAYS = 24;
+	// The figures: flesh (light, mid, shade), hair, and the robes' colors.
+	const FLESH = hexes(['#d8a878', '#b88458', '#7a4e30']);
+	const HAIR = hexes(['#3a2010', '#22120a']);
+	const ROBES = { red: hexes(['#a83020', '#7a1e14', '#4e120c']), blue: hexes(['#3a58b8', '#263c8a', '#16245a']), green: hexes(['#3c9c62', '#286e44', '#18442a']) };
+
+	// A filled ellipse; `tone(dx, dy)` (both -1..1) picks each pixel's color.
+	function oval(layer, cx, cy, rx, ry, tone) {
+		for (let y = Math.ceil(cy - ry); y <= cy + ry; y++) {
+			for (let x = Math.ceil(cx - rx); x <= cx + rx; x++) {
+				const dx = (x - cx) / rx, dy = (y - cy) / ry;
+				if (dx * dx + dy * dy <= 1) layer.px(x, y, tone(dx, dy));
+			}
+		}
+	}
+
+	// A robe: a body widening from the shoulders (`top`) to `bottom`, folds
+	// falling as darker lines, a lighter edge on the lit side.
+	function robe(layer, cx, top, bottom, shoulders, hem, cloth, fold) {
+		for (let y = top; y <= bottom; y++) {
+			const k = (y - top) / Math.max(1, bottom - top);
+			const half = Math.round(lerp(shoulders, hem, Math.pow(k, 0.7)));
+			for (let x = -half; x <= half; x++) {
+				const crease = ((x - Math.floor(y / 4)) % fold + fold) % fold === 0 && Math.abs(x) < half - 1;
+				layer.px(cx + x, y, x <= -half + 1 ? cloth[0] : crease || x >= half - 1 ? cloth[2] : cloth[1]);
+			}
+		}
+	}
+
+	// A standing saint in an icon's manner: halo, head, a long robe with a
+	// gold stole, and a cross held before the breast.
+	function saint(layer, cx, top, cloth, glow) {
+		oval(layer, cx, top + 5, 6.4, 6.4, (dx, dy) => (dx * dx + dy * dy > 0.72 ? LEAF[4] : mixColor(LEAF[2], LEAF[3], glow)));
+		robe(layer, cx, top + 10, top + 46, 5, 8, cloth, 5);
+		for (let y = top + 12; y <= top + 46; y++) layer.px(cx, y, y % 6 === 0 ? LEAF[4] : LEAF[2]);
+		oval(layer, cx, top + 5, 2.6, 3.4, (dx) => (dx > 0.35 ? FLESH[2] : dx < -0.4 ? FLESH[0] : FLESH[1]));
+		for (let x = -3; x <= 3; x++) layer.px(cx + x, top + 2 + (Math.abs(x) === 3 ? 2 : Math.abs(x) === 2 ? 1 : 0), HAIR[0]);
+		layer.px(cx - 3, top + 5, HAIR[0]);
+		layer.px(cx + 3, top + 5, HAIR[1]);
+		layer.px(cx - 1, top + 5, HAIR[1]);
+		layer.px(cx + 1, top + 5, HAIR[1]);
+		layer.px(cx, top + 8, HAIR[0]);
+		// The hand and its cross.
+		layer.px(cx - 3, top + 19, FLESH[0]);
+		layer.px(cx - 3, top + 20, FLESH[1]);
+		for (let y = top + 12; y <= top + 19; y++) layer.px(cx - 3, y, LEAF[4]);
+		layer.px(cx - 4, top + 14, LEAF[4]);
+		layer.px(cx - 2, top + 14, LEAF[4]);
+	}
 
 	define({
 		name: 'backdrop_icon',
 		kind: 'backdrop',
 		pack: 'icon',
 		title: 'Backdrop (Icon)',
-		note: 'The background of the Icon pack, one seamless six-second loop: a dithered dusk, a nimbus of gold rays turning behind two breathing rings, small crosses twinkling, incense drifting up, and a skyline of onion domes with candle-lit windows.',
+		note: 'The background of the Icon pack, one seamless six-second loop: a dithered dusk, a nimbus of gold rays turning behind two breathing rings that halo a blessing figure, two standing saints beside it, small crosses twinkling, incense drifting up, and a skyline of onion domes with candle-lit windows.',
 		w: NIGHT.w, h: NIGHT.h, fps: NIGHT.fps, frames: NIGHT.loop * NIGHT.fps, loopFrom: 0, anchor: 'center', seed: 733,
 		phases: [{ name: 'the nimbus turns one ray', at: 0 }, { name: 'back to the start', at: 5 }],
 		setup(sim) {
 			sim.layer('sky', { kind: 'color' });
 			sim.layer('nimbus', { kind: 'color' });
 			sim.layer('crosses', { kind: 'color' });
+			sim.layer('saints', { kind: 'color' });
 			sim.layer('incense', { kind: 'color' });
 			sim.layer('skyline', { kind: 'color' });
 			const r = makeRng(1054);
@@ -762,6 +811,49 @@
 					for (const [ox, oy] of [[1, 0], [-1, 0], [0, -1], [0, 1], [0, 2]]) L.crosses.px(cross.x + ox, cross.y + oy, LEAF[3], 0.5 * glow);
 				}
 			}
+			// The figures. In the middle, inside the nimbus's rings (they are
+			// the halo), a bearded figure in the manner of an icon: one hand
+			// raised in blessing, the other holding a jewelled book. Beside
+			// it, lower, two standing saints.
+			const mx = Math.round(cx), my = cy;
+			oval(L.saints, cx, cy, 15.6, 15.6 / 1.05, (dx, dy) => mixColor(LEAF[1], LEAF[2], 0.35 + 0.3 * breath - 0.3 * (dx * dx + dy * dy)));
+			// Mantle and tunic: the mantle falls over the shoulder on the right.
+			robe(L.saints, mx, my + 12, 88, 11, 30, ROBES.red, 6);
+			for (let y = my + 12; y <= 88; y++) {
+				const k = (y - my - 12) / (88 - my - 12);
+				const half = Math.round(lerp(11, 30, Math.pow(k, 0.7)));
+				for (let x = Math.round(lerp(2, -8, k)); x <= half; x++) {
+					const crease = ((x + Math.floor(y / 3)) % 6 + 6) % 6 === 0 && x < half - 1;
+					L.saints.px(mx + x, y, x >= half - 1 || crease ? ROBES.blue[2] : x <= Math.round(lerp(2, -8, k)) + 1 ? ROBES.blue[0] : ROBES.blue[1]);
+				}
+			}
+			// The neck's gold band.
+			for (let x = -5; x <= 5; x++) L.saints.px(mx + x, my + 11 + (Math.abs(x) > 3 ? -1 : 0), x % 2 === 0 ? LEAF[4] : LEAF[2]);
+			// Hair to the shoulders, the face, the beard.
+			oval(L.saints, cx, cy + 1, 8.2, 10.5, (dx) => (dx > 0.2 ? HAIR[1] : HAIR[0]));
+			oval(L.saints, cx, cy + 0.5, 5.2, 7.2, (dx, dy) => (dx > 0.45 ? FLESH[2] : dx < -0.35 && dy < 0.3 ? FLESH[0] : FLESH[1]));
+			for (let y = 4; y <= 9; y++) {
+				const half = y < 7 ? 4 : 9 - y + 1;
+				for (let x = -half; x <= half; x++) if (y > 5 || Math.abs(x) >= 2) L.saints.px(mx + x, my + y, x > 1 ? HAIR[1] : HAIR[0]);
+			}
+			for (const [x, y, c] of [[-3, -2, HAIR[1]], [-2, -2, HAIR[1]], [2, -2, HAIR[1]], [3, -2, HAIR[1]], [-2, -1, HAIR[1]], [2, -1, HAIR[1]],
+				[0, -1, FLESH[2]], [0, 0, FLESH[2]], [0, 1, FLESH[2]], [0, 2, FLESH[2]], [-1, 3, FLESH[2]], [1, 3, FLESH[2]], [-1, 5, ROBES.red[1]], [0, 5, ROBES.red[1]], [1, 5, ROBES.red[1]],
+				[-4, -4, HAIR[0]], [-3, -5, HAIR[0]], [3, -5, HAIR[0]], [4, -4, HAIR[1]], [0, -6, HAIR[0]], [-1, -6, HAIR[0]], [1, -6, HAIR[1]]]) L.saints.px(mx + x, my + y, c);
+			// The blessing hand, and the book with its cover of gold and gems.
+			for (const [x, y, c] of [[-13, 27, FLESH[0]], [-12, 27, FLESH[1]], [-13, 28, FLESH[0]], [-12, 28, FLESH[1]], [-11, 28, FLESH[2]], [-13, 29, FLESH[1]], [-12, 29, FLESH[1]], [-11, 29, FLESH[2]],
+				[-13, 24, FLESH[0]], [-13, 25, FLESH[0]], [-13, 26, FLESH[0]], [-12, 25, FLESH[1]], [-12, 26, FLESH[1]], [-11, 27, FLESH[2]], [-13, 30, ROBES.red[0]], [-12, 30, ROBES.red[0]]]) L.saints.px(mx + x, my + y, c);
+			for (let y = 24; y <= 38; y++) {
+				for (let x = 5; x <= 15; x++) {
+					const rim = y === 24 || y === 38 || x === 5 || x === 15;
+					const gem = (x === 10 && (y === 27 || y === 31 || y === 35)) || (y === 31 && (x === 7 || x === 13));
+					L.saints.px(mx + x, my + y, rim ? LEAF[1] : gem ? (y === 31 && x === 10 ? ROBES.red[0] : ROBES.blue[0]) : (x + y) % 5 === 0 ? LEAF[4] : LEAF[3]);
+				}
+			}
+			L.saints.px(mx + 4, my + 33, FLESH[1]);
+			L.saints.px(mx + 4, my + 34, FLESH[1]);
+			L.saints.px(mx + 5, my + 34, FLESH[2]);
+			saint(L.saints, 34, 34, ROBES.green, breath);
+			saint(L.saints, w - 35, 34, ROBES.red, breath);
 			// Incense: motes swaying upward, fading in and out along the way.
 			for (const mote of S.motes) {
 				const along = ((mote.start + p * mote.rises) % 1 + 1) % 1;

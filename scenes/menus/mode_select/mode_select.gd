@@ -27,7 +27,7 @@ const CONFIG_SECTION: String = "VersusSettings"
 ## Choices per group: [value, button text, description key].
 const RULE_OPTIONS: Array = [
 	[&"fixed", "Fixed Speed", "VERSUS_DESC_FIXED"],
-	[&"rising", "Rising Speed", "VERSUS_DESC_RISING"],
+	[&"rising", "Classic", "VERSUS_DESC_RISING"],
 ]
 const DIFFICULTY_OPTIONS: Array = [
 	[&"easy", "Easy", "VERSUS_DESC_EASY"],
@@ -48,7 +48,8 @@ const FORMAT_OPTIONS: Array = [
 ]
 
 var _versus_active: bool = false
-var _versus_rules: StringName = VERSUS_RULES_FIXED
+## Classic (the speed rises as lines are cleared) unless the player chose otherwise.
+var _versus_rules: StringName = VERSUS_RULES_RISING
 var _versus_level: int = VERSUS_FIXED_LEVEL_MIN
 var _versus_difficulty: StringName = VERSUS_DIFFICULTY_NORMAL
 var _versus_left: StringName = VERSUS_LEFT_YOU
@@ -126,7 +127,7 @@ func _return_to_main_menu() -> void:
 # ---------------------------------------------------------------------------
 # Versus setup page
 func _load_versus_choices() -> void:
-	var rules: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Rules", String(VERSUS_RULES_FIXED))))
+	var rules: StringName = StringName(String(PlayerConfig.get_config(CONFIG_SECTION, "Rules", String(VERSUS_RULES_RISING))))
 	if _option_index(RULE_OPTIONS, rules) >= 0:
 		_versus_rules = rules
 	_versus_level = clampi(int(PlayerConfig.get_config(CONFIG_SECTION, "Level", VERSUS_FIXED_LEVEL_MIN)), VERSUS_FIXED_LEVEL_MIN, VERSUS_FIXED_LEVEL_MAX)

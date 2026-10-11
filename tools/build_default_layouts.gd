@@ -331,7 +331,7 @@ func _versus_setup() -> Control:
 	var line: BoxContainer = _box(rules, "SpeedAndMatch", false, 6)
 	_label(line, "SpeedTitle", "Speed", "HudTitle")
 	_choice(line, "VersusSpeedFixedSpeed", "Fixed Speed")
-	_choice(line, "VersusSpeedRisingSpeed", "Rising Speed")
+	_choice(line, "VersusSpeedRisingSpeed", "Classic")
 	_spacer(line, "Spacer", false)
 	_label(line, "MatchTitle", "Match", "HudTitle")
 	_choice(line, "VersusMatchSingleMatch", "Single Match")

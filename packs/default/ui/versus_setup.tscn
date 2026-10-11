@@ -157,7 +157,7 @@ text = "Fixed Speed"
 unique_name_in_owner = true
 layout_mode = 2
 toggle_mode = true
-text = "Rising Speed"
+text = "Classic"
 
 [node name="Spacer" type="Control" parent="RulesCard/Content/SpeedAndMatch" unique_id=1179548757]
 layout_mode = 2

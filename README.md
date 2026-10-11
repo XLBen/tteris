@@ -17,8 +17,8 @@ for the mode.
 
 - **Classic**: one level per 10 lines (up to 15), Perfect Clear bonuses.
 - **Versus**: you or a CPU against a CPU (Easy / Normal / Hard / Lunatic) on two
-  boards, fixed speed or rising speed (one level per 8 lines cleared between the
-  two), single match or best of 3. Garbage follows the Puyo Puyo Tetris table,
+  boards, Classic speed (the default: one level per 8 lines cleared between the
+  two) or a fixed speed, single match or best of 3. Garbage follows the Puyo Puyo Tetris table,
   attacks cancel incoming garbage first. How to Play has the full rules.
 
 Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,

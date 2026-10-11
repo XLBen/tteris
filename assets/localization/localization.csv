@@ -128,7 +128,7 @@ YOU,YOU,你
 LEVEL %d,LEVEL %d,等级 %d
 LINES SENT %d : %d,LINES SENT %d : %d,送出行数 %d : %d
 VERSUS_DESC_FIXED,Both sides play at one speed level for the whole match.,整场比赛双方都保持同一个速度等级。
-VERSUS_DESC_RISING,Starts at level 1; both sides speed up one level for every 8 lines cleared between them.,从 1 级开始，双方合计每消 8 行同时加快一级。
+VERSUS_DESC_RISING,Classic: starts at level 1; both sides speed up one level for every 8 lines cleared between them.,经典模式：从 1 级开始，双方合计每消 8 行同时加快一级。
 VERSUS_DESC_LEVEL,Speed level %d of 10. Higher levels fall faster.,速度等级 %d（共 10 级），等级越高下落越快。
 VERSUS_DESC_EASY,Easy: slow and careless. Leaves holes and never attacks on purpose.,Easy：动作慢、会留洞，不会主动进攻。
 VERSUS_DESC_NORMAL,Normal: a steady stacker that clears what it can and lands the odd Tetris.,Normal：稳定堆叠，能消就消，偶尔打出 Tetris。

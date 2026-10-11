@@ -145,8 +145,10 @@ static func _case_page_hidden_with_every_choice_built(ctx: Dictionary) -> void:
 			"VersusCPUEasy", "VersusCPUNormal", "VersusCPUHard", "VersusCPULunatic",
 			"VersusMatchSingleMatch", "VersusMatchBestof3", "VersusStartButton"]:
 		ok = ok and _button(select, button_name) != null
-	# Defaults: fixed speed, level 1, normal, single match.
-	ok = ok and select._versus_rules == &"fixed" and select._versus_level == 1 \
+	# Defaults (2026-10-12, owner: versus opens on Classic): classic speed,
+	# level 1, normal, single match.
+	ok = ok and select._versus_rules == &"rising" and select._versus_level == 1 \
+		and _button(select, "VersusSpeedRisingSpeed").text == "Classic" \
 		and select._versus_difficulty == &"normal" and select._versus_format == &"single"
 	await _free(select)
 	_case(ctx, "versus_page_hidden_with_all_rows_and_10_level_buttons", ok)
@@ -188,6 +190,9 @@ static func _case_rising_hides_level_row_and_starts_at_level_1(ctx: Dictionary) 
 	session.start_mode(session.MODE_NONE)
 	var stub: SceneLoaderStub = select.scene_loader_node
 	var ok: bool = _press(select, "VersusButton")
+	# Classic is the default, so the level row only shows for a fixed speed.
+	ok = ok and not _button(select, "VersusLevel9").is_visible_in_tree()
+	ok = ok and _press(select, "VersusSpeedFixedSpeed")
 	ok = ok and _press(select, "VersusLevel9")
 	ok = ok and _button(select, "VersusLevel9").is_visible_in_tree()
 	ok = ok and _press(select, "VersusSpeedRisingSpeed")
@@ -207,8 +212,9 @@ static func _case_picked_option_stays_highlighted(ctx: Dictionary) -> void:
 	var select = await _spawn_mode_select()
 	var ok: bool = _press(select, "VersusButton")
 	# Defaults are shown as pressed toggles.
-	for name: String in ["VersusSpeedFixedSpeed", "VersusLevel1", "VersusCPUNormal", "VersusMatchSingleMatch"]:
+	for name: String in ["VersusSpeedRisingSpeed", "VersusLevel1", "VersusCPUNormal", "VersusMatchSingleMatch"]:
 		ok = ok and _button(select, name).button_pressed
+	ok = ok and _press(select, "VersusSpeedFixedSpeed")
 	ok = ok and _press(select, "VersusLevel4") and _press(select, "VersusCPULunatic")
 	ok = ok and _button(select, "VersusLevel4").button_pressed and not _button(select, "VersusLevel1").button_pressed
 	ok = ok and _button(select, "VersusCPULunatic").button_pressed and not _button(select, "VersusCPUNormal").button_pressed

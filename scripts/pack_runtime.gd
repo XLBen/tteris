@@ -6,8 +6,9 @@ extends Node
 ## - a backdrop behind the menu scenes (the game scenes cover it with their
 ##   own background layer),
 ## - the interface sounds of the template's UI sound controller,
-## - the game's own entries of the main menu (scripts/ui/main_menu_entries.gd),
-##   added whenever the menu scene appears.
+## - the game's own entries of the main menu (scripts/ui/main_menu_entries.gd)
+##   and the pack's animated title (scripts/ui/pack_title.gd), added whenever
+##   a menu scene appears.
 ## apply() runs at startup and again after the pack was switched.
 
 const BACKDROP_LAYER: int = -100
@@ -26,13 +27,21 @@ func _ready() -> void:
 	get_tree().node_added.connect(_on_node_added)
 	# The first scene entered the tree before this autoload was ready.
 	for child: Node in get_tree().root.get_children():
-		if MainMenuEntries.is_main_menu(child):
-			MainMenuEntries.attach.call_deferred(child)
+		if child is MainMenu:
+			_dress_menu.call_deferred(child)
 
 
 func _on_node_added(node: Node) -> void:
-	if MainMenuEntries.is_main_menu(node):
-		node.ready.connect(MainMenuEntries.attach.bind(node), CONNECT_ONE_SHOT)
+	if node is MainMenu:
+		node.ready.connect(_dress_menu.bind(node), CONNECT_ONE_SHOT)
+
+
+## Every menu built on the template's main menu gets the animated title; the
+## main menu itself also gets the game's entries.
+func _dress_menu(menu: Node) -> void:
+	PackTitle.attach(menu)
+	if MainMenuEntries.is_main_menu(menu):
+		MainMenuEntries.attach(menu)
 
 
 func apply() -> void:

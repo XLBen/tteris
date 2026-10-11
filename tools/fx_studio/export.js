@@ -2,7 +2,8 @@
 // Renders every effect of effects.js into a sprite sheet and writes the
 // "Pixel FX" resource pack around them:
 //
-//   node tools/fx_studio/export.js            -> packs/pixelfx/
+//   node tools/fx_studio/export.js            -> packs/pixelfx/ (and the title
+//                                                into packs/default/)
 //   node tools/fx_studio/export.js <folder>   -> another pack folder
 //
 // Output: fx/<event>.png (frames left to right, top to bottom), pack.png (the
@@ -69,6 +70,27 @@ function icon(def, frames) {
 	return png(size, size, out);
 }
 
+// The title belongs to the default pack (every pack may bring its own): the
+// sheet goes there and its "title" entry in pack.json is rewritten in place.
+// Exporting anywhere else just writes the sheet next to the effects.
+function writeTitle(target, def, made, stats) {
+	const entry = { sheet: 'title.png', frame: [def.w, def.h], frames: def.frames, fps: def.fps, scale: def.scale, loop_from: def.loopFrom, glow: 0.3 };
+	const line = '"title": ' + JSON.stringify(entry).replace(/,"/g, ', "').replace(/":/g, '": ');
+	const home = path.join(target, '..', 'default');
+	const manifest = path.join(home, 'pack.json');
+	let where = target;
+	if (path.basename(target) === 'pixelfx' && fs.existsSync(manifest)) {
+		where = home;
+		let text = fs.readFileSync(manifest, 'utf8');
+		const old = /\n\t"title": \{.*\}(,?)\n/;
+		text = old.test(text) ? text.replace(old, '\n\t' + line + '$1\n') : text.replace('\n\t"fonts": {', '\n\t' + line + ',\n\t"fonts": {');
+		fs.writeFileSync(manifest, text);
+	}
+	fs.writeFileSync(path.join(where, 'title.png'), png(made.width, made.height, made.data));
+	console.log('%s  %dx%d  %d frames, loops from %d  sheet %dx%d  particles born %d, peak %d  -> %s',
+		def.name.padEnd(14), def.w, def.h, def.frames, def.loopFrom, made.width, made.height, stats.born, stats.peak, where);
+}
+
 function main() {
 	const target = path.resolve(process.argv[2] || path.join(__dirname, '..', '..', 'packs', 'pixelfx'));
 	fs.mkdirSync(path.join(target, 'fx'), { recursive: true });
@@ -77,6 +99,10 @@ function main() {
 	for (const def of FX.effectList) {
 		const { frames, stats } = FX.renderFrames(def);
 		const made = sheet(def, frames);
+		if (def.kind === 'title') {
+			writeTitle(target, def, made, stats);
+			continue;
+		}
 		fs.writeFileSync(path.join(target, 'fx', def.name + '.png'), png(made.width, made.height, made.data));
 		effects[def.name] = { sheet: 'fx/' + def.name + '.png', frame: [def.w, def.h], frames: def.frames, fps: def.fps, scale: def.scale, anchor: def.anchor, glow: 0.35, replace: true };
 		const left = coverage(frames[frames.length - 1]), first = coverage(frames[0]);

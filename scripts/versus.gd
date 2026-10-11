@@ -252,6 +252,7 @@ func _on_lan_peer_left() -> void:
 		_game_session.versus_match_in_progress = false
 		_game_session.versus_page = _game_session.PAGE_LAN
 		_game_session.lan_notice = "LAN_PEER_LEFT"
+		_game_session.open_versus_setup = true
 	_lan_link.close()
 	_change_scene(MODE_SELECT_SCENE)
 

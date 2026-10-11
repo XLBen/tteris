@@ -30,7 +30,7 @@ const CSV_PATH: String = "res://assets/localization/localization.csv"
 # Seed keys (snake contract family): [en text, zh text].
 const SEED_KEYS: Dictionary = {
 	"MENU_SELECT_MODE": ["Select Mode", "选择模式"],
-	"MENU_NEW_GAME": ["New Game", "新游戏"],
+	"MENU_NEW_GAME": ["New Game", "开始游戏"],
 	"MENU_OPTIONS": ["Options", "选项"],
 	"MENU_EXIT": ["Exit", "退出"],
 	"MENU_BACK": ["Back", "返回"],

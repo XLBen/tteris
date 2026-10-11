@@ -1,4 +1,5 @@
-// The effects of the "Pixel FX" resource pack, one per game event.
+// The effects of the "Pixel FX" resource pack, one per game event, and the
+// game's animated title (the last one, kind 'title': it loops).
 //
 // Sizes are art pixels: a board cell is CELL (11) of them, so a sheet drawn at
 // scale 2 lines up with the game's 22-pixel cells. Every effect is a timeline
@@ -534,6 +535,183 @@
 			}
 			const k = sim.k(0.2, 0.62);
 			if (k < 1) L.ring.ring(88, 150, lerp(10, 128, ease.outCubic(k)), lerp(9, 1.5, k), 1 - k, 0.5);
+		},
+	});
+
+	// ---------------------------------------------------------------- title
+	// The game's title, built out of falling blocks and then kept alive. Unlike
+	// the board effects it does not end: an intro plays once (blocks rain down
+	// and lock into the five characters, each finished character flashes, a
+	// beam sweeps the line and leaves an underline), then the frames from
+	// `loopFrom` on repeat for ever - a shine crossing the letters, the
+	// characters bobbing like a wave, sparkles, embers, small tetrominoes
+	// falling behind. Everything in the loop is a function of the loop's phase
+	// and nothing is alive where it wraps, so it goes round without a seam.
+	const GLYPHS = FX.titleGlyphs || require('./title_glyphs.js');
+	const TITLE = { w: 224, h: 60, block: 3, x0: 22, y0: 9, intro: 2.2, loop: 3.0, fall: 0.26, drop: 70, sweep: [1.45, 1.8] };
+	const TITLE_COLORS = hexes(['#33d9f2', '#f2cc40', '#bf66f2', '#66e680', '#f27373']);
+	const MINOS = [
+		[[0, 0], [1, 0], [2, 0], [3, 0]], [[0, 0], [1, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [2, 0], [1, 1]],
+		[[1, 0], [2, 0], [0, 1], [1, 1]], [[0, 0], [1, 0], [1, 1], [2, 1]], [[0, 0], [0, 1], [1, 1], [2, 1]], [[2, 0], [0, 1], [1, 1], [2, 1]],
+	];
+	const mixColor = (a, b, k) => [lerp(a[0], b[0], k), lerp(a[1], b[1], k), lerp(a[2], b[2], k)];
+	const BLACK = [0, 0, 0];
+
+	// Every lit pixel of the title: where its block ends up and when it lands.
+	function titleBlocks() {
+		const blocks = [];
+		const done = [];
+		GLYPHS.glyphs.forEach((rows, c) => {
+			let last = 0;
+			rows.forEach((line, row) => {
+				for (let col = 0; col < line.length; col++) {
+					if (line[col] !== '#') continue;
+					// Bottom rows first, each column a touch out of step.
+					const delay = 0.14 * c + (GLYPHS.size - 1 - row) * 0.04 + FX.noise3(col * 7.3, row * 3.1, c * 5.7) * 0.06;
+					const land = delay + TITLE.fall;
+					last = Math.max(last, land);
+					blocks.push({ c, col, row, x: TITLE.x0 + (c * GLYPHS.size + col) * TITLE.block, y: TITLE.y0 + row * TITLE.block, delay, land,
+						foot: row === GLYPHS.size - 1 || rows[row + 1][col] !== '#' });
+				}
+			});
+			done.push(last);
+		});
+		return { blocks, done };
+	}
+
+	define({
+		name: 'title',
+		kind: 'title',
+		title: 'Title',
+		note: 'The title screen: blocks rain down and lock into the five characters, each finished character flashes with a ring, a plasma beam sweeps the line and leaves a glowing underline - then it idles for ever: a shine crosses the letters, they bob like a wave, sparkles and embers come and go, small tetrominoes fall behind. The loop starts where the timeline is marked.',
+		w: TITLE.w, h: TITLE.h, frames: Math.round((TITLE.intro + TITLE.loop) * 30), loopFrom: Math.round(TITLE.intro * 30), anchor: 'center', seed: 131,
+		phases: [{ name: 'rain', at: 0 }, { name: 'lock', at: 0.55 }, { name: 'sweep', at: TITLE.sweep[0] }, { name: 'settle', at: TITLE.sweep[1] },
+			{ name: 'idle: shine', at: TITLE.intro }, { name: 'idle: sparkle', at: TITLE.intro + TITLE.loop * 0.45 }],
+		setup(sim) {
+			sim.layer('rain', { kind: 'color' });
+			sim.layer('dust', { ramp: 'dust', erode: { amount: 0.35, scale: 0.25, speed: 3 } });
+			sim.layer('underline', { ramp: 'gold' });
+			sim.layer('letters', { kind: 'color', outline: '#060a18e6' });
+			sim.layer('ring', { ramp: 'white' });
+			sim.layer('beam', { ramp: 'plasma', outline: '#061040c0', erode: { amount: 0.3, scale: 0.22, speed: 5 } });
+			sim.layer('sparks', { ramp: 'gold' });
+			sim.layer('stars', { kind: 'color' });
+			sim.layer('flash', { ramp: 'white' });
+			Object.assign(sim.state, titleBlocks());
+		},
+		// Phase of the idle loop, continuous through the end of the intro.
+		phaseOf(t) {
+			return ((((t - TITLE.intro) / TITLE.loop) % 1) + 1) % 1;
+		},
+		// The vertical bob of character `c`: a wave running along the title.
+		bob(t, c) {
+			const strength = clamp01((t - (TITLE.intro - 0.3)) / 0.3);
+			return Math.round(Math.sin((this.phaseOf(t) - c * 0.13) * TAU) * 1.3 * strength);
+		},
+		update(sim, t) {
+			const L = sim.byName, r = sim.rng, S = sim.state;
+			const half = TITLE.block / 2;
+			for (const b of S.blocks) {
+				if (b.fired || t < b.land) continue;
+				b.fired = true;
+				// A block lands: now and then a spark, and dust under the feet.
+				if (r() < 0.22) sparks(sim, L.sparks, b.x + half, b.y, 1, { angle: [-2.6, -0.5], speed: [30, 80], gravity: 260, life: [0.12, 0.25] });
+				if (b.foot && r() < 0.5) {
+					puffs(sim, L.dust, 1, (i, rr) => ({ x: b.x + half, y: b.y + TITLE.block, vx: rr.range(-30, 30), vy: -rr.range(4, 16), drag: 5, life: rr.range(0.2, 0.32), size: [1.2, rr.range(2.5, 4)], heat: [0.9, 0.2] }));
+				}
+			}
+			S.done.forEach((time, c) => {
+				if (!sim.once('done' + c, time)) return;
+				const cx = TITLE.x0 + (c + 0.5) * GLYPHS.size * TITLE.block - 1.5, cy = TITLE.y0 + 7.5 * TITLE.block;
+				sparks(sim, L.sparks, cx, cy, 12, { speed: [40, 120], life: [0.15, 0.35], spread: 10, spreadY: 8 });
+				stars(sim, L.stars, 3, [cx - 16, cy - 16, cx + 16, cy + 12], { delay: 0.12, colors: [TITLE_COLORS[c], WHITE] });
+			});
+			if (sim.during(TITLE.sweep[0], TITLE.sweep[1])) {
+				const head = lerp(6, TITLE.w - 6, ease.inOut(sim.k(TITLE.sweep[0], TITLE.sweep[1])));
+				sparks(sim, L.sparks, head, 30, 2, { angle: [Math.PI * 0.5, Math.PI * 1.5], speed: [20, 110], life: [0.12, 0.3], spreadY: 12 });
+			}
+			if (sim.once('settle', TITLE.sweep[1])) stars(sim, L.stars, 9, [16, 8, TITLE.w - 16, 50], { delay: 0.18, colors: GOLDS });
+			if (t < TITLE.intro) return;
+			// The idle loop. Whatever is born here is gone before it wraps.
+			const p = this.phaseOf(t);
+			if (p > 0.08 && p < 0.42 && sim.ticks % 2 === 0) {
+				const band = lerp(-30, TITLE.w + 30, (p - 0.08) / 0.34);
+				const lit = S.blocks.filter((b) => Math.abs(b.x + (b.y - 30) * 0.8 - band) < 6);
+				if (lit.length) {
+					const b = r.pick(lit);
+					sim.emit({ layer: L.stars, shape: 'star', x: b.x + 1, y: b.y + 1 + this.bob(t, b.c), life: r.range(0.14, 0.24), color: WHITE, size: (k) => 2 * ease.bell(k) });
+				}
+			}
+			if (p > 0.45 && p < 0.85) {
+				if (sim.ticks % 5 === 0) embers(sim, L.sparks, 1, [TITLE.x0, 44, TITLE.x0 + 180, 50], { life: [0.3, 0.42] });
+				if (sim.ticks % 12 === 0) stars(sim, L.stars, 1, [14, 6, TITLE.w - 14, 46], { delay: 0.02, colors: GOLDS.concat(TITLE_COLORS) });
+			}
+		},
+		draw(sim, t) {
+			const L = sim.byName, S = sim.state;
+			const p = this.phaseOf(t);
+			const size = TITLE.block;
+			// Behind everything: small tetrominoes falling, one loop = whole falls.
+			const veil = 0.42 * clamp01((t - 0.9) / 1.0);
+			if (veil > 0) {
+				for (let i = 0; i < 9; i++) {
+					const shape = MINOS[i % 7], color = PIECES[i % 7];
+					const x = 8 + ((i * 53) % (TITLE.w - 20));
+					const y = ((i * 23 + p * (TITLE.h + 16) * (1 + (i % 2))) % (TITLE.h + 16)) - 8;
+					for (const [cx, cy] of shape) for (let d = 0; d < 4; d++) L.rain.px(x + cx * 2 + (d & 1), y + cy * 2 + (d >> 1), color, veil);
+				}
+			}
+			// The underline the beam leaves, breathing with the loop.
+			const drawn = sim.k(TITLE.sweep[0] + 0.05, TITLE.sweep[1] + 0.05);
+			if (drawn > 0) {
+				const glow = t < TITLE.intro ? 0.72 : 0.72 + 0.2 * Math.sin(p * TAU);
+				L.underline.beam(TITLE.x0 - 8, lerp(TITLE.x0 - 8, TITLE.x0 + 188, ease.inOut(drawn)), 50, 1.6, glow);
+			}
+			// The letters.
+			const sweeping = sim.during(TITLE.sweep[0], TITLE.sweep[1] + 0.1);
+			const head = lerp(6, TITLE.w - 6, ease.inOut(sim.k(TITLE.sweep[0], TITLE.sweep[1])));
+			const shining = t >= TITLE.intro && p > 0.08 && p < 0.42;
+			const band = lerp(-30, TITLE.w + 30, (p - 0.08) / 0.34);
+			for (const b of S.blocks) {
+				if (t < b.delay) continue;
+				let y = b.y;
+				const u = (t - b.delay) / TITLE.fall;
+				if (u < 1) {
+					y = b.y - TITLE.drop * (1 - u * u);
+				} else {
+					const since = t - b.land;
+					if (since < 0.25) y = b.y - Math.round(2.4 * Math.abs(Math.sin(since * 38)) * Math.exp(-since * 15));
+					y += this.bob(t, b.c);
+				}
+				let white = 0;
+				if (u >= 1 && t - b.land < 0.07) white = 1;
+				const since = t - S.done[b.c];
+				if (since >= 0 && since < 0.2) white = Math.max(white, 1 - since / 0.2);
+				if (sweeping) white = Math.max(white, 1 - Math.abs(b.x - head) / 14);
+				if (shining) {
+					const off = Math.abs(b.x + (b.y - 30) * 0.8 - band);
+					white = Math.max(white, off < 5 ? 0.8 : off < 9 ? 0.35 : 0);
+				}
+				const base = mixColor(TITLE_COLORS[b.c], WHITE, clamp01(white));
+				const light = mixColor(base, WHITE, 0.5), dark = mixColor(base, BLACK, 0.38);
+				for (let j = 0; j < size; j++) {
+					for (let i = 0; i < size; i++) {
+						L.letters.px(b.x + i, y + j, j === 0 || (i === 0 && j < size - 1) ? light : j === size - 1 || i === size - 1 ? dark : base);
+					}
+				}
+			}
+			// A ring off every finished character.
+			S.done.forEach((time, c) => {
+				const k = (t - time) / 0.36;
+				if (k < 0 || k >= 1) return;
+				L.ring.ring(TITLE.x0 + (c + 0.5) * GLYPHS.size * size - 1.5, TITLE.y0 + 7.5 * size, lerp(5, 24, ease.outCubic(k)), lerp(4, 1.2, k), 1 - k);
+			});
+			// The sweep: a beam with a hot head.
+			if (sim.during(TITLE.sweep[0], TITLE.sweep[1])) {
+				const k = sim.k(TITLE.sweep[0], TITLE.sweep[1]);
+				L.beam.beam(head - 60, head + 4, 30.5, 2 + 9 * ease.bell(k), 1);
+				L.flash.disc(head, 30, 6, 1, 0.5);
+			}
 		},
 	});
 

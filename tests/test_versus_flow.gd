@@ -100,7 +100,10 @@ static func _forget_choices() -> void:
 static func _spawn_mode_select(forget: bool = true, page: StringName = &"pve"):
 	if forget:
 		_forget_choices()
+	# Opened the way a match's "Change Settings" does: straight on the page
+	# (from the main menu the screen starts on the list of ways to play).
 	_session().versus_page = page
+	_session().open_versus_setup = true
 	var scene = (load(MODE_SELECT_PATH) as PackedScene).instantiate()
 	_tree().root.add_child(scene)
 	scene.scene_loader_node = SceneLoaderStub.new()
@@ -148,6 +151,9 @@ static func _case_page_hidden_with_every_choice_built(ctx: Dictionary) -> void:
 		and _button(select, "VersusMatchSingleMatch").get_parent().get_parent().name == &"MatchCard" \
 		and _button(select, "VersusSpeedRisingSpeed").get_index() < _button(select, "VersusSpeedFixedSpeed").get_index()
 	ok = ok and _button(select, "VersusButton") == null and _button(select, "ClassicButton") == null
+	# The list of ways to play is behind the page.
+	for entry: String in ["SoloButton", "PveButton", "EveButton", "LanButton"]:
+		ok = ok and _button(select, entry) != null and not _button(select, entry).visible
 	var level_total: int = 0
 	for level: int in range(1, 11):
 		var button: Button = _button(select, "VersusLevel%d" % level)
@@ -246,7 +252,12 @@ static func _case_back_leaves_page_then_returns_to_main_menu(ctx: Dictionary) ->
 	var stub: SceneLoaderStub = select.scene_loader_node
 	var ok: bool = _press(select, "VersusCPUHard")
 	ok = ok and stub.loaded_paths.is_empty() and not session.is_versus()
-	# One level only: Back goes straight to the main menu.
+	# Back leaves the page for the list of ways to play, and from there the
+	# screen for the main menu.
+	ok = ok and _press(select, "BackButton")
+	ok = ok and select.page() == &"menu" and not (select.find_child("VersusOptionsBoxContainer", true, false) as Control).visible \
+		and _button(select, "PveButton").visible and _button(select, "SoloButton").visible
+	ok = ok and stub.loaded_paths.is_empty() and not session.is_versus()
 	ok = ok and _press(select, "BackButton")
 	ok = ok and stub.loaded_paths.size() == 1 and stub.loaded_paths[0] == MaaacksGameTemplate.get_main_menu_path()
 	await _free(select)

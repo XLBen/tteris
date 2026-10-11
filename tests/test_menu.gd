@@ -24,7 +24,7 @@ const MODE_BUTTON_SCENES: Dictionary = {
 }
 # 2026-10-12 (owner): the main menu picks the way to play; this screen is the
 # versus setup page.
-const MODE_SELECT_BUTTONS: Array[String] = ["VersusStartButton", "BackButton"]
+const MODE_SELECT_BUTTONS: Array[String] = ["SoloButton", "PveButton", "EveButton", "LanButton", "BackButton"]
 const REMOVED_MODE_BUTTONS: Array[String] = [
 	"EasyButton",
 	"NormalButton",
@@ -35,9 +35,9 @@ const REMOVED_MODE_BUTTONS: Array[String] = [
 	"VersusButton",
 ]
 # 2026-10-11 (owner): How to Play and Resource Packs are main menu entries.
-# 2026-10-12 (owner): four ways to play replace New Game.
-const VISIBLE_ENTRY_BUTTONS: Array[String] = ["SoloButton", "PveButton", "EveButton", "LanButton", "OptionsButton", "HowToPlayButton", "ResourcePackButton", "ExitButton"]
-const HIDDEN_ENTRY_BUTTONS: Array[String] = ["NewGameButton", "CreditsButton", "ContinueGameButton", "LevelSelectButton"]
+# 2026-10-12 (owner): the ways to play are on the screen behind New Game.
+const VISIBLE_ENTRY_BUTTONS: Array[String] = ["NewGameButton", "OptionsButton", "HowToPlayButton", "ResourcePackButton", "ExitButton"]
+const HIDDEN_ENTRY_BUTTONS: Array[String] = ["CreditsButton", "ContinueGameButton", "LevelSelectButton"]
 const OPTIONS_TAB_COUNT: int = 4
 const EXPECTED_CASES: int = 7
 
@@ -178,21 +178,25 @@ static func _case_menu_entries(ctx: Dictionary) -> void:
 	var sorted: Array[int] = order.duplicate()
 	sorted.sort()
 	ok = ok and order == sorted
-	# Solo starts the classic game at once; each versus entry opens the setup
-	# screen on its own page.
-	var session = _tree().root.get_node_or_null(^"GameSession")
-	var stub: SceneLoaderStub = SceneLoaderStub.new()
-	menu.scene_loader_node = stub
-	session.start_mode(session.MODE_NONE)
-	(menu.find_child("SoloButton", true, false) as Button).pressed.emit()
-	ok = ok and session.is_classic() and stub.loaded_paths == [GAME_SCENE_PATH]
-	session.start_mode(session.MODE_NONE)
-	var pages: Dictionary = {"PveButton": &"pve", "EveButton": &"eve", "LanButton": &"lan"}
-	for button_name: String in pages:
-		(menu.find_child(button_name, true, false) as Button).pressed.emit()
-		ok = ok and session.versus_page == pages[button_name] and stub.loaded_paths[-1] == MODE_SELECT_PATH \
-			and not session.is_versus()
-	session.versus_page = &"pve"
+	# New Game opens the play screen, where the ways to play are; none of
+	# them sits on the main menu itself.
+	ok = ok and String(menu.get_game_scene_path()) == MODE_SELECT_PATH
+	for button_name: String in ["SoloButton", "PveButton", "EveButton", "LanButton"]:
+		ok = ok and menu.find_child(button_name, true, false) == null
+	# The pack's animated title stands in for the text title.
+	var title: PackTitle = menu.find_child("PackTitle", true, false) as PackTitle
+	var label: Label = menu.find_child("TitleLabel", true, false) as Label
+	ok = ok and title != null and label != null and label.self_modulate.a == 0.0
+	if title != null:
+		var pack_title: Dictionary = ResourcePack.title()
+		var frames: int = int(pack_title["frames"])
+		var loop_from: int = int(pack_title["loop_from"])
+		var fps: float = float(pack_title["fps"])
+		# The intro plays once, then the loop goes round.
+		ok = ok and loop_from > 0 and loop_from < frames and title.frame_at(0.0) == 0
+		ok = ok and title.frame_at((float(frames) - 0.5) / fps) == frames - 1 and title.frame_at((float(frames) + 0.5) / fps) == loop_from
+		ok = ok and title.frame_at((float(frames + (frames - loop_from)) + 0.5) / fps) == loop_from
+		ok = ok and int(pack_title["columns"]) * (pack_title["frame"] as Vector2i).x <= (pack_title["texture"] as Texture2D).get_width()
 	menu.free()
 	_case(ctx, "menu_entries_new_game_options_exit", ok)
 
@@ -282,9 +286,21 @@ static func _case_mode_buttons_map_to_session(ctx: Dictionary) -> void:
 	ok = ok and session.versus_match_in_progress == false and _wins_are(session, 0, 0)
 	ok = ok and stub.loaded_paths.size() == 1 \
 		and stub.loaded_paths[0] == MODE_BUTTON_SCENES["ClassicButton"]
-	# The setup page is open from the start: nothing is written to the session
-	# and no scene is loaded until Start Match.
+	# The list comes first: Solo is the same way out, each versus entry opens
+	# its setup page in place. Nothing is written to the session and no scene
+	# is loaded until Start Match.
 	var options: Node = select.find_child("VersusOptionsBoxContainer", true, false)
+	ok = ok and select.page() == &"menu" and options is BoxContainer and not (options as BoxContainer).visible
+	session.start_mode(session.MODE_NONE)
+	(select.find_child("SoloButton", true, false) as Button).pressed.emit()
+	ok = ok and session.is_classic() and stub.loaded_paths.size() == 2 and stub.loaded_paths[1] == MODE_BUTTON_SCENES["ClassicButton"]
+	stub.loaded_paths.remove_at(1)
+	for entry: Array in [["EveButton", &"eve"], ["LanButton", &"lan"], ["PveButton", &"pve"]]:
+		if select.page() != &"menu":
+			(select.find_child("BackButton", true, false) as Button).pressed.emit()
+		(select.find_child(String(entry[0]), true, false) as Button).pressed.emit()
+		ok = ok and select.page() == entry[1] and session.versus_page == entry[1] and (options as BoxContainer).visible \
+			and not (select.find_child("SoloButton", true, false) as Button).visible
 	ok = ok and options is BoxContainer and (options as BoxContainer).visible
 	ok = ok and session.mode == MODE_BUTTONS["ClassicButton"] \
 		and session.is_versus() == false and stub.loaded_paths.size() == 1

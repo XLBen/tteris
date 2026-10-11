@@ -250,6 +250,10 @@ static func _case_versus_clear_drives_attacker_fx_and_sends_orb(ctx: Dictionary)
 	await _skip_countdown(scene)
 	var model: VersusBattle = scene._model
 	var board: Board = model.board(SIDE_PLAYER)
+	# The CPU's board holds still: a lock of its own would take the queued
+	# rows in before the meter is read below (2026-10-12: this made the case
+	# fail now and then, depending on how fast the frames went by).
+	model.debug_freeze_side(SIDE_AI, true)
 	# Four rows full except column 6; a vertical I finishes the Tetris.
 	for row: int in range(20, 24):
 		for col: int in Board.BOARD_WIDTH:

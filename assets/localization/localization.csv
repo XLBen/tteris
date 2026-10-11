@@ -1,5 +1,5 @@
 keys,en,zh
-MENU_NEW_GAME,New Game,新游戏
+MENU_NEW_GAME,New Game,开始游戏
 MENU_OPTIONS,Options,选项
 MENU_EXIT,Exit,退出
 MENU_SELECT_MODE,Select Mode,选择模式
@@ -10,7 +10,7 @@ VERSUS_RULES_FIXED,Fixed Speed,固定速度
 VERSUS_FORMAT_SINGLE,Single Match,单局比赛
 VERSUS_FORMAT_BEST_OF_3,Best of 3,三局两胜
 OPTIONS_LANGUAGE,Language,语言
-New Game,New Game,新游戏
+New Game,New Game,开始游戏
 Options,Options,选项
 Exit,Exit,退出
 Select Mode,Select Mode,选择模式

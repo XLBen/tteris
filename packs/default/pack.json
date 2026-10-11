@@ -45,6 +45,7 @@
 		"shards_per_cell": 2,
 		"sparks_per_drop": 10
 	},
+	"title": {"sheet": "title.png", "frame": [224,60], "frames": 156, "fps": 30, "scale": 2, "loop_from": 66, "glow": 0.3},
 	"fonts": {
 		"main": "res://assets/fonts/Kenney Future.ttf",
 		"mini": "res://assets/fonts/Kenney Mini.ttf",

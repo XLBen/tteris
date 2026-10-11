@@ -9,7 +9,7 @@ script = ExtResource("2_ms01")
 game_scene_path = "res://scenes/main.tscn"
 
 [node name="SubTitleLabel" parent="MenuContainer/SubTitleMargin/SubTitleContainer" index="0"]
-text = "Versus CPU"
+text = "Select Mode"
 
 [node name="NewGameButton" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer"]
 visible = false

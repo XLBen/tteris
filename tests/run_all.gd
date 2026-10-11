@@ -62,6 +62,12 @@ func _initialize() -> void:
 	# Some modules enable packs the way the pack screen does, which is saved:
 	# the player's own choice is put back when the run is over.
 	var player_packs: Array[String] = ResourcePack.enabled_ids()
+	# The same for the versus setup the player last used.
+	var versus_keys: Array[String] = ["Rules", "Level", "Difficulty", "Left", "Format", "Address"]
+	var player_versus: Dictionary = {}
+	for key: String in versus_keys:
+		if PlayerConfig.has_section_key("VersusSettings", key):
+			player_versus[key] = PlayerConfig.get_config("VersusSettings", key)
 	for path: String in MODULE_PATHS:
 		var script: GDScript = load(path) as GDScript
 		if script == null:
@@ -77,6 +83,11 @@ func _initialize() -> void:
 		for line: String in (result["lines"] as Array):
 			lines.append(line)
 	ResourcePack.set_enabled(player_packs)
+	for key: String in versus_keys:
+		if player_versus.has(key):
+			PlayerConfig.set_config("VersusSettings", key, player_versus[key])
+		elif PlayerConfig.has_section_key("VersusSettings", key):
+			PlayerConfig.erase_section_key("VersusSettings", key)
 	for line: String in lines:
 		print(line)
 	if failed > 0:

@@ -27,6 +27,9 @@ extends RefCounted
 ##             {"sheet": file, "frame": [w, h], "frames": n, "fps": n,
 ##             "scale": n, "anchor": "center" / "bottom", "glow": 0..1,
 ##             "replace": bool}. See effect() and scripts/board_fx.gd.
+##   title     the animated title of the menus, a sprite sheet:
+##             {"sheet": file, "frame": [w, h], "frames": n, "fps": n,
+##             "scale": n, "loop_from": frame, "glow": 0..1}. See title().
 ##   fx        numbers that tune the built-in drawn effects (shake,
 ##             shards_per_cell, sparks_per_drop): see fx_number().
 ##
@@ -278,6 +281,43 @@ static func effect(key: String) -> Dictionary:
 		}
 		break
 	_cache[cache_key] = found
+	return found
+
+
+## The animated title, from the top-most pack that has a usable one; empty
+## when none does (the menus then keep their text title). Keys: texture, frame
+## (Vector2i), frames, columns, fps, scale (screen pixels per sheet pixel),
+## loop_from (the frames before it play once, the rest repeat) and glow.
+static func title() -> Dictionary:
+	ensure_loaded()
+	if _cache.has("title"):
+		return _cache["title"]
+	var found: Dictionary = {}
+	for pack: Dictionary in _stack:
+		var entry: Variant = (pack["manifest"] as Dictionary).get("title")
+		if not (entry is Dictionary):
+			continue
+		var sheet: Texture2D = _load_file(_resolve(String(entry.get("sheet", "")), String(pack["dir"]))) as Texture2D
+		var frame: Variant = entry.get("frame")
+		if sheet == null or not (frame is Array) or (frame as Array).size() != 2:
+			continue
+		var size: Vector2i = Vector2i(int(frame[0]), int(frame[1]))
+		if size.x <= 0 or size.y <= 0 or size.x > sheet.get_width() or size.y > sheet.get_height():
+			continue
+		var columns: int = sheet.get_width() / size.x
+		var frames: int = clampi(int(entry.get("frames", 1)), 1, columns * (sheet.get_height() / size.y))
+		found = {
+			"texture": sheet,
+			"frame": size,
+			"columns": columns,
+			"frames": frames,
+			"fps": clampf(float(entry.get("fps", 30.0)), 1.0, 120.0),
+			"scale": maxf(0.1, float(entry.get("scale", 1.0))),
+			"loop_from": clampi(int(entry.get("loop_from", 0)), 0, frames - 1),
+			"glow": clampf(float(entry.get("glow", 0.0)), 0.0, 1.0),
+		}
+		break
+	_cache["title"] = found
 	return found
 
 

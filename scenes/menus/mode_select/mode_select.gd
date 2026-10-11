@@ -1,19 +1,23 @@
 extends "res://scenes/menus/main_menu/main_menu_with_animations.gd"
-## The versus setup screen, built on the vendored Maaack animated menu so the
-## template's entry animation plays when it opens. The main menu sends the
-## player here with one of three pages in GameSession.versus_page:
+## The play screen behind the main menu's New Game, built on the vendored
+## Maaack animated menu so the template's entry animation plays when it opens.
+## It starts on the list of ways to play:
 ##
-##   pve   Versus CPU: the player against one CPU tier
-##   eve   CPU Battle: two CPU tiers against each other, the player watches
-##   lan   LAN Battle: two players on the local network (scripts/lan_session.gd);
-##         one hosts and picks the rules, the other joins by address
+##   Solo         the classic game, started at once
+##   Versus CPU   page "pve": the player against one CPU tier
+##   CPU Battle   page "eve": two CPU tiers against each other, the player watches
+##   LAN Battle   page "lan": two players on the local network
+##                (scripts/lan_session.gd); one hosts and picks the rules, the
+##                other joins by address
 ##
-## The page itself is the resource pack's "versus_setup" layout
-## (scripts/ui/versus_setup.gd). Every page picks the mode - Classic (the speed
-## rises as lines are cleared) or a fixed speed level - and, as a choice of its
-## own, the match format. The choices are remembered between sessions through
-## PlayerConfig and written through GameSession.start_versus() before the
-## versus scene is loaded. Back returns to the main menu.
+## A versus entry opens its setup page in place - the resource pack's
+## "versus_setup" layout (scripts/ui/versus_setup.gd). Every page picks the
+## mode - Classic (the speed rises as lines are cleared) or a fixed speed level
+## - and, as a choice of its own, the match format. The choices are remembered
+## between sessions through PlayerConfig and written through
+## GameSession.start_versus() before the versus scene is loaded. Back returns
+## from a page to the list, and from the list to the main menu. A match's
+## "Change Settings" comes straight back to its page (GameSession.open_versus_setup).
 
 const VERSUS_SCENE_PATH: String = "res://scenes/versus/versus.tscn"
 const VERSUS_RULES_FIXED: StringName = &"fixed"
@@ -23,10 +27,18 @@ const VERSUS_FORMAT_BEST_OF_3: StringName = &"best_of_3"
 const VERSUS_DIFFICULTY_NORMAL: StringName = &"normal"
 const VERSUS_FIXED_LEVEL_MIN: int = 1
 const VERSUS_FIXED_LEVEL_MAX: int = 10
+const PAGE_MENU: StringName = &"menu"
 const PAGE_PVE: StringName = &"pve"
 const PAGE_EVE: StringName = &"eve"
 const PAGE_LAN: StringName = &"lan"
-const PAGE_TITLES: Dictionary = {&"pve": "Versus CPU", &"eve": "CPU Battle", &"lan": "LAN Battle"}
+const PAGE_TITLES: Dictionary = {&"menu": "Select Mode", &"pve": "Versus CPU", &"eve": "CPU Battle", &"lan": "LAN Battle"}
+## The list: button name -> [text, page ("" = the solo game)].
+const PLAY_ENTRIES: Array = [
+	["SoloButton", "Solo", &""],
+	["PveButton", "Versus CPU", &"pve"],
+	["EveButton", "CPU Battle", &"eve"],
+	["LanButton", "LAN Battle", &"lan"],
+]
 const CONFIG_SECTION: String = "VersusSettings"
 ## Choices per group: [value, button text, description key]. Classic comes first.
 const RULE_OPTIONS: Array = [
@@ -44,7 +56,9 @@ const FORMAT_OPTIONS: Array = [
 	[&"best_of_3", "Best of 3", "VERSUS_DESC_BEST_OF_3"],
 ]
 
-var _page: StringName = PAGE_PVE
+var _page: StringName = PAGE_MENU
+var _play_buttons: Dictionary = {}
+var _subtitle: Label
 ## Classic unless the player chose otherwise.
 var _versus_rules: StringName = VERSUS_RULES_RISING
 var _versus_level: int = VERSUS_FIXED_LEVEL_MIN
@@ -63,24 +77,73 @@ var _link: Node
 var _lan_status: String = "LAN_STATUS_IDLE"
 var _lan_status_arg: String = ""
 var _lan_starting: bool = false
+var _lan_wired: bool = false
 
 
 func _ready() -> void:
 	super._ready()
 	var session: Node = get_node_or_null(^"/root/GameSession")
+	var page: StringName = PAGE_MENU
 	if session != null:
-		if PAGE_TITLES.has(StringName(session.versus_page)):
-			_page = StringName(session.versus_page)
+		# "Change Settings" of a match comes back to that match's page.
+		if bool(session.open_versus_setup) and PAGE_TITLES.has(StringName(session.versus_page)):
+			page = StringName(session.versus_page)
 		session.open_versus_setup = false
-	var subtitle: Label = find_child("SubTitleLabel", true, false) as Label
-	if subtitle != null:
-		subtitle.text = String(PAGE_TITLES[_page])
+	_subtitle = find_child("SubTitleLabel", true, false) as Label
 	_versus_options = find_child("VersusOptionsBoxContainer", true, false) as BoxContainer
+	_build_play_buttons()
 	_load_versus_choices()
 	_build_versus_page()
-	if _page == PAGE_LAN:
+	_show_page(page)
+
+
+## The list of ways to play, above the setup page's place.
+func _build_play_buttons() -> void:
+	var last: Node = null
+	for entry: Array in PLAY_ENTRIES:
+		var button: Button = Button.new()
+		button.name = String(entry[0])
+		button.text = String(entry[1])
+		button.pressed.connect(_on_play_pressed.bind(StringName(entry[2])))
+		if last == null:
+			_versus_options.add_sibling(button)
+			_versus_options.get_parent().move_child(button, 0)
+		else:
+			last.add_sibling(button)
+		last = button
+		_play_buttons[StringName(entry[2])] = button
+
+
+func _on_play_pressed(page: StringName) -> void:
+	if page == &"":
+		select_mode(GameSession.MODE_CLASSIC)
+	else:
+		_show_page(page)
+
+
+## Shows the list ("menu") or one setup page.
+func _show_page(page: StringName) -> void:
+	if _page == PAGE_LAN and page != PAGE_LAN and _link != null:
+		_link.close()
+	_page = page
+	var listing: bool = page == PAGE_MENU
+	for key: StringName in _play_buttons:
+		(_play_buttons[key] as Button).visible = listing
+	_versus_options.visible = not listing
+	if _subtitle != null:
+		_subtitle.text = String(PAGE_TITLES[page])
+	var session: Node = get_node_or_null(^"/root/GameSession")
+	if listing:
+		# Deferred so the visibility changes are applied before the focus moves.
+		var back_to: StringName = StringName(session.versus_page) if session != null else PAGE_PVE
+		(_play_buttons.get(back_to, _play_buttons[&""]) as Button).grab_focus.call_deferred()
+		return
+	if session != null:
+		session.versus_page = page
+	_setup.show_page(page)
+	_sync_versus_page()
+	if page == PAGE_LAN:
 		_open_lan_page(session)
-	# Deferred so the page is laid out before the focus lands on it.
 	_start_button.grab_focus.call_deferred()
 
 
@@ -177,9 +240,7 @@ static func _option_index(options: Array, value: StringName) -> int:
 func _build_versus_page() -> void:
 	_setup = ResourcePack.layout("versus_setup").instantiate() as VersusSetup
 	_versus_options.add_child(_setup)
-	_versus_options.visible = true
 	_setup.bind()
-	_setup.show_page(_page)
 	_description = _setup.description
 	_start_button = _setup.start_button
 	_level_row = _setup.level_row
@@ -240,6 +301,8 @@ func _sync_versus_page() -> void:
 	})
 	if _page == PAGE_LAN:
 		_sync_lan_page()
+	else:
+		_setup.show_lan("", false, true, true)
 
 
 func _on_start_button_pressed() -> void:
@@ -257,6 +320,9 @@ func _on_start_button_pressed() -> void:
 
 
 func _on_back_button_pressed() -> void:
+	if _page != PAGE_MENU:
+		_show_page(PAGE_MENU)
+		return
 	_return_to_main_menu()
 
 
@@ -268,10 +334,13 @@ func _open_lan_page(session: Node) -> void:
 		return
 	# The page always opens with the line down.
 	_link.close()
-	_link.peer_joined.connect(_on_lan_peer_joined)
-	_link.peer_left.connect(_on_lan_peer_left)
-	_link.settings_received.connect(_on_lan_settings_received)
-	_link.start_received.connect(_on_lan_start_received)
+	_lan_status = "LAN_STATUS_IDLE"
+	if not _lan_wired:
+		_lan_wired = true
+		_link.peer_joined.connect(_on_lan_peer_joined)
+		_link.peer_left.connect(_on_lan_peer_left)
+		_link.settings_received.connect(_on_lan_settings_received)
+		_link.start_received.connect(_on_lan_start_received)
 	_setup.set_lan_address(String(PlayerConfig.get_config(CONFIG_SECTION, "Address", "")))
 	if session != null and not String(session.lan_notice).is_empty():
 		_set_lan_status(String(session.lan_notice))

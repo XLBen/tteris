@@ -12,8 +12,8 @@ Godot 4.7.x on Windows; the project root is the folder with `project.godot`.
 & "<godot>" --path .
 ```
 
-Main menu: Solo, Versus CPU, CPU Battle, LAN Battle, Options, How to Play,
-Resource Packs, Exit.
+Main menu: New Game, Options, How to Play, Resource Packs, Exit, under the
+animated title. New Game lists the ways to play:
 
 - **Solo**: the classic game. One level per 10 lines (up to 15), Perfect Clear
   bonuses.
@@ -56,8 +56,8 @@ or resources: `--headless --editor --quit`.
 | `scripts/bgm_director.gd` | music that speeds up with the stack |
 | `scripts/resource_pack.gd`, `pack_runtime.gd` | resource packs |
 | `scripts/ui/` | binding scripts of the pack's screen layouts |
-| `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit); `mode_select/` is the versus setup screen |
-| `scripts/ui/main_menu_entries.gd` | the main menu's own entries, attached from outside |
+| `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit); `mode_select/` is the play screen behind New Game |
+| `scripts/ui/main_menu_entries.gd`, `pack_title.gd` | the main menu's own entries and the pack's animated title, attached from outside |
 | `packs/` | `default` (built in), `pixel`, `pixelfx`; format in `packs/README.md` |
 | `tests/` | headless test modules, `run_all.gd` runs them all |
 | `tools/` | generators and labs, below |
@@ -67,7 +67,7 @@ or resources: `--headless --editor --quit`.
 
 | Tool | Makes |
 |---|---|
-| `tools/fx_studio/` | the Pixel FX pack: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
+| `tools/fx_studio/` | the Pixel FX pack and the animated title: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
 | `tools/make_coldwar_bgm.py` | the six BGM tracks (numpy, scipy, ffmpeg) |
 | `tools/make_default_sfx.py`, `make_default_blocks.py` | the default pack's sounds and block atlas |
 | `tools/build_default_layouts.gd` | the default pack's screen layouts (`--headless --script`) |

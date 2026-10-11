@@ -224,6 +224,21 @@ Or give an event its own animation, a sprite sheet:
 - `replace`: leave out the game's own drawn effect for this event. Shake, the
   garbage shove, the danger border, the K.O. veil and the call-out text stay.
 
+### Title
+
+The menus' title is an animation too, a sprite sheet like the effects:
+
+```json
+"title": {"sheet": "title.png", "frame": [224, 60], "frames": 156, "fps": 30, "scale": 2, "loop_from": 66, "glow": 0.3}
+```
+
+The frames before `loop_from` play once when a menu opens, the rest repeat
+for ever (make the last frame lead back into frame `loop_from`). It is drawn
+centered at the top of the menu, `scale` screen pixels per sheet pixel. A
+pack without a title falls back to the next pack's, ending at the default
+pack's 俄罗斯方块, which is rendered by `tools/fx_studio` (the `title`
+effect; its characters come from `make_title_glyphs.py`).
+
 `packs/pixelfx/` is a pack made only of effects. Its sheets are rendered by
 `tools/fx_studio`: open `tools/fx_studio/index.html` in a browser to play,
 scrub and take apart every effect (timeline phases, layers, particle counts),

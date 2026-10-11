@@ -271,6 +271,18 @@
 					const a = f[i * 4 + 3];
 					if (a > 0) blendPixel(acc, i, f[i * 4], f[i * 4 + 1], f[i * 4 + 2], a, this.blend);
 				}
+				if (this.outline) {
+					const o = this.outline;
+					for (let y = 0; y < h; y++) {
+						for (let x = 0; x < w; x++) {
+							const i = y * w + x;
+							if (f[i * 4 + 3] > 0) continue;
+							if ((x > 0 && f[i * 4 - 1] > 0) || (x < w - 1 && f[i * 4 + 7] > 0) || (y > 0 && f[(i - w) * 4 + 3] > 0) || (y < h - 1 && f[(i + w) * 4 + 3] > 0)) {
+								blendUnder(acc, i, o[0], o[1], o[2], o[3]);
+							}
+						}
+					}
+				}
 				return;
 			}
 			const steps = this.ramp.length;
@@ -391,8 +403,11 @@
 			p.age = 0;
 			p.vx = p.vx || 0;
 			p.vy = p.vy || 0;
-			// Nothing outlives the timeline: the last frame is always empty.
-			p.life = Math.min(p.life || 0.5, this.duration - this.t - 3 * TICK);
+			// Nothing outlives the timeline: the last frame is always empty. An
+			// effect that loops (def.loopFrom) is as clean where its loop starts.
+			const loopStart = (this.def.loopFrom || 0) / this.fps;
+			const limit = this.t < loopStart - 3 * TICK ? loopStart : this.duration;
+			p.life = Math.min(p.life || 0.5, limit - this.t - 3 * TICK);
 			if (p.life <= 0) return p;
 			this.parts.push(p);
 			this.stats.born++;

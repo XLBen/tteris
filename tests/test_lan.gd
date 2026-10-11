@@ -127,6 +127,7 @@ static func _case_lan_page_gates_rules_and_start(ctx: Dictionary) -> void:
 	var ok: bool = session != null and link != null
 	if ok:
 		session.versus_page = &"lan"
+		session.open_versus_setup = true
 		session.lan_notice = "LAN_PEER_LEFT"
 		var select = (load(MODE_SELECT_PATH) as PackedScene).instantiate()
 		_tree().root.add_child(select)
@@ -161,12 +162,13 @@ static func _case_lan_page_gates_rules_and_start(ctx: Dictionary) -> void:
 		# The joined player's page: everything but leaving is locked.
 		setup.show_lan("", false, false, false)
 		ok = ok and setup.button("rules", &"rising").disabled and setup.button("format", &"single").disabled and setup.start_button.disabled
+		# Back leaves the page for the list - and hangs up.
+		(select.find_child("BackButton", true, false) as Button).pressed.emit()
+		ok = ok and select.page() == &"menu" and stub.loaded.is_empty() and link.role() == link.ROLE_NONE
 		(select.find_child("BackButton", true, false) as Button).pressed.emit()
 		ok = ok and stub.loaded.size() == 1
 		select.free()
 		await _tree().process_frame
-		# Leaving the page hangs up.
-		ok = ok and link.role() == link.ROLE_NONE
 		session.versus_page = &"pve"
 	_case(ctx, "lan_page_locks_start_and_rules_until_they_apply", ok)
 

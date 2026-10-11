@@ -831,10 +831,12 @@ static func _case_mode_select_versus_level_step_contained_all_sizes(ctx: Diction
 	var menu: Control = await _menu_spawn(MODE_SELECT_SCENE_PATH)
 	var ok: bool = menu != null
 	if menu != null:
-		# 2026-10-12: the screen opens on the setup page (Versus CPU here).
+		# 2026-10-12: the screen starts on the list of ways to play; this is
+		# its Versus CPU page.
 		var back_button: Button = menu.find_child("BackButton", true, false) as Button
 		ok = ok and back_button != null
 		if ok:
+			menu._show_page(&"pve")
 			for rules: StringName in [&"fixed", &"rising"]:
 				menu._on_option_picked("rules", rules)
 				for i: int in MENU_SETTLE_FRAMES:

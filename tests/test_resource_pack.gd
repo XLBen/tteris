@@ -41,6 +41,7 @@ static func run_module() -> Dictionary:
 	_case_runtime_styles_menus_and_interface_sounds(ctx)
 	_remove_test_pack()
 	_case_icon_pack_brings_every_part(ctx)
+	_case_template_pack_is_complete(ctx)
 	# Put the player's own choice back.
 	if had_choice:
 		ResourcePack.set_enabled(saved_choice)
@@ -161,6 +162,31 @@ static func _case_icon_pack_brings_every_part(ctx: Dictionary) -> void:
 	ResourcePack.set_enabled([], false)
 	ok = ok and (ResourcePack.backdrop()["texture"] as Texture2D).resource_path == "res://packs/default/backdrop.png"
 	_case(ctx, "icon_packs_bring_interface_blocks_effects_and_backdrop", ok)
+
+
+## The pack template handed to artists (packs/template, 2026-10-11) is a
+## working pack that holds every visual part itself and comes with its guide.
+static func _case_template_pack_is_complete(ctx: Dictionary) -> void:
+	ResourcePack.set_enabled(["template"], false)
+	var home: String = "res://packs/template/"
+	var ok: bool = ResourcePack.enabled_ids().has("template") and FileAccess.file_exists(home + "说明.md")
+	ok = ok and (ResourcePack.blocks().get("atlas_texture") as Texture2D).resource_path == home + "blocks.png"
+	for event: String in ResourcePack.EFFECT_EVENTS:
+		var effect: Dictionary = ResourcePack.effect(event)
+		ok = ok and not effect.is_empty() and (effect["texture"] as Texture2D).resource_path == home + "fx/" + event + ".png"
+	ok = ok and (ResourcePack.backdrop()["texture"] as Texture2D).resource_path == home + "backdrop.png"
+	ok = ok and (ResourcePack.title()["texture"] as Texture2D).resource_path == home + "title.png"
+	ok = ok and ResourcePack.texture("background").resource_path == home + "background.png"
+	for key: String in ["panel", "card", "button", "button_hover", "button_pressed", "button_focus"]:
+		ok = ok and ResourcePack._box(key, Color.BLACK, Color.BLACK, 1) is StyleBoxTexture
+	# Every color the default pack names is in it, and in its guide.
+	var stock: Dictionary = (JSON.parse_string(FileAccess.get_file_as_string(DEFAULT_MANIFEST)) as Dictionary)["colors"]
+	var listed: Dictionary = (JSON.parse_string(FileAccess.get_file_as_string(home + "pack.json")) as Dictionary)["colors"]
+	var guide: String = FileAccess.get_file_as_string(home + "说明.md")
+	for key: String in stock:
+		ok = ok and listed.has(key) and guide.contains("`%s`" % key)
+	ResourcePack.set_enabled([], false)
+	_case(ctx, "template_pack_is_complete_and_documented", ok)
 
 
 static func _case_scene_scripts_name_no_asset(ctx: Dictionary) -> void:

@@ -32,6 +32,18 @@ const SILENT_DB: float = -60.0
 ## the change lands within about a hundredth of a second of the bar line
 ## (tools/bgm_smoke.gd measures it).
 const HANDOFF_SECONDS: float = 0.004
+## A song cut off by the player (next, another song) fades out over this long.
+const CUT_SECONDS: float = 0.25
+## What the music is doing - a small state machine (see _set_state):
+##   IDLE      there is no music to play
+##   PLAYING   a song plays on one rung of its ladder
+##   STEPPING  the song is cross-fading to the next rung
+##   PAUSED    the player stopped it; it goes on from the same place
+## IDLE -> PLAYING when a song starts; PLAYING <-> STEPPING with every step
+## of the tempo; any -> PAUSED and back with set_paused; a new song (the next
+## of the order, or one the player picked) always lands in PLAYING.
+enum State { IDLE, PLAYING, STEPPING, PAUSED }
+const STATE_NAMES: Array[String] = ["IDLE", "PLAYING", "CHANGING TEMPO", "PAUSED"]
 const CONFIG_SECTION: String = "Music"
 const CONFIG_SHUFFLE: String = "Shuffle"
 const CONFIG_VOLUME: String = "Volume"
@@ -41,6 +53,9 @@ var _songs: Array = []
 ## Songs still to come in this round of the shuffle, and the one drawn next.
 var _bag: Array[int] = []
 var _shuffle: bool = true
+var _state: State = State.IDLE
+
+signal state_changed(state: State)
 ## The player's own volume for the music (0..1, on top of each song's level)
 ## and whether the player paused it.
 var _volume: float = 1.0
@@ -124,6 +139,71 @@ func set_paused(on: bool) -> void:
 	for child: Node in get_children():
 		if child is AudioStreamPlayer:
 			(child as AudioStreamPlayer).stream_paused = on
+	if _tracks.is_empty():
+		_set_state(State.IDLE)
+	elif on:
+		_set_state(State.PAUSED)
+	else:
+		_set_state(State.STEPPING if _fade < 1.0 else State.PLAYING)
+
+
+## What the music is doing (see State) and the word for it.
+func state() -> State:
+	return _state
+
+
+func state_name() -> String:
+	return STATE_NAMES[_state]
+
+
+func _set_state(to: State) -> void:
+	if to == _state:
+		return
+	_state = to
+	state_changed.emit(to)
+
+
+## Seconds into the playing song and its length in seconds, on the rung that
+## plays (a stream that loops by itself: of its loop).
+func position_seconds() -> float:
+	if _tracks.is_empty():
+		return 0.0
+	var length: float = length_seconds()
+	var position: float = _tune_position(_level)
+	return fposmod(position, length) if _bars <= 0 and length > 0.0 else minf(position, length)
+
+
+func length_seconds() -> float:
+	if _tracks.is_empty():
+		return 0.0
+	if _bars > 0:
+		return body_seconds(_level)
+	var stream: AudioStream = player(_level).stream
+	return maxf(0.0, (stream.get_length() if stream != null else 0.0) - (_offset if _level == 0 else 0.0))
+
+
+## How far the playing song is, 0..1.
+func progress() -> float:
+	var length: float = length_seconds()
+	return clampf(position_seconds() / length, 0.0, 1.0) if length > 0.0 else 0.0
+
+
+## Starts the playing song again from its beginning, on the rung that plays.
+func restart_song() -> void:
+	if _tracks.is_empty():
+		return
+	if _paused:
+		set_paused(false)
+	if _previous != _level:
+		_rest(_previous)
+		_previous = _level
+	_fade = 1.0
+	_switch_in = -1.0
+	var again: AudioStreamPlayer = player(_level)
+	again.volume_db = _db
+	if again.is_inside_tree():
+		again.play(_offset if _level == 0 and _bars <= 0 else 0.0)
+	_set_state(State.PLAYING)
 
 
 ## Titles of the playlist's songs, in its order.
@@ -135,9 +215,12 @@ func song_titles() -> PackedStringArray:
 
 
 ## Plays song `index` of the playlist now, on the rung that plays; the order
-## carries on after it.
+## carries on after it. The song that already plays starts again.
 func play_song(index: int) -> void:
 	if index < 0 or index >= _songs.size():
+		return
+	if index == _song:
+		restart_song()
 		return
 	_coming = index
 	_bag.erase(index)
@@ -243,13 +326,15 @@ func _process(delta: float) -> void:
 		ResourcePack.music_file(_warming.pop_back())
 	# The bars are over: the next song comes in on the same rung.
 	if current().playing and bars_over(_tune_position(_level), _level):
-		_start_song(_level)
+		_start_song(_level, true)
 		return
 	if _tracks.size() < 2:
 		return
 	if _fade < 1.0:
 		_fade = minf(1.0, _fade + delta / FADE_SECONDS)
 		_apply_fade()
+		if _fade >= 1.0:
+			_set_state(State.PLAYING)
 	if _switch_in >= 0.0:
 		_switch_in -= delta
 		if _switch_in <= 0.0:
@@ -285,17 +370,22 @@ func _draw() -> int:
 	return _bag.pop_back()
 
 
-## Starts the coming song on rung `level` (or its highest), leaving the one
-## that played to ring out.
-func _start_song(on_level: int) -> void:
+## Starts the coming song on rung `level` (or its highest). `ring_out`: the
+## song that played has reached the end of its bars and is left to ring out
+## over the new one; otherwise it was cut short and is faded away quickly.
+func _start_song(on_level: int, ring_out: bool = false) -> void:
 	# A song asked for while the music was paused plays.
 	if _paused:
 		set_paused(false)
 	for index: int in _tracks.size():
 		var old: AudioStreamPlayer = _tracks[index]["player"]
-		if index == _level and old.playing and _bars > 0:
+		if index == _level and old.playing and _bars > 0 and ring_out:
 			# Its reverb and echo die away over the new song.
 			old.finished.connect(old.queue_free)
+		elif index == _level and old.playing and old.is_inside_tree():
+			var cut: Tween = old.create_tween()
+			cut.tween_property(old, ^"volume_db", SILENT_DB, CUT_SECONDS)
+			cut.tween_callback(old.queue_free)
 		else:
 			old.stop()
 			old.queue_free()
@@ -328,7 +418,9 @@ func _start_song(on_level: int) -> void:
 	_switch_in = -1.0
 	_fade = 1.0
 	if _tracks.is_empty():
+		_set_state(State.IDLE)
 		return
+	_set_state(State.PLAYING)
 	_level = clampi(on_level, 0, _tracks.size() - 1)
 	_previous = _level
 	var starting: AudioStreamPlayer = _tracks[_level]["player"]
@@ -374,6 +466,7 @@ func _step(to: int) -> void:
 	_previous = _level
 	_level = to
 	_fade = 0.0
+	_set_state(State.STEPPING)
 	_apply_fade()
 
 

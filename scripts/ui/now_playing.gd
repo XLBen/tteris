@@ -4,8 +4,10 @@ extends Control
 ## one of a grand strategy game: a bar that is always there and a window that
 ## opens over it.
 ##   The bar: three bars bouncing with the beat, the song's title (translated
-##   when the language has it) and tempo, and three buttons - pause / play,
-##   next song, open / close the window.
+##   when the language has it), what the music is doing (the director's
+##   state: playing, changing tempo, paused), the tempo and the time, a
+##   progress line along its foot, and three buttons - pause / play, next
+##   song, open / close the window.
 ##   The window: "MUSIC PLAYER" and the song's place in the playlist, the
 ##   whole playlist as a list (the song that plays is marked; a click plays
 ##   another), and under it the play order (random, or as listed) and the
@@ -82,7 +84,7 @@ func _ready() -> void:
 	offset_bottom = -MARGIN
 	var text_width: float = BAR_SIZE.x - 34.0 - 3.0 * (BUTTON + 4.0)
 	_title = _label(self, 13, ResourcePack.color("text_value"), Vector2(30.0, 3.0), Vector2(text_width, 16.0))
-	_tempo = _label(self, 10, ResourcePack.color("text_dim"), Vector2(30.0, 20.0), Vector2(text_width, 12.0))
+	_tempo = _label(self, 10, ResourcePack.color("text_dim"), Vector2(30.0, 18.0), Vector2(text_width, 12.0))
 	_pause = _icon_button(self, "PauseButton", 3, _draw_pause_icon, _on_pause_pressed)
 	_next = _icon_button(self, "NextButton", 2, _draw_next_icon, _on_next_pressed)
 	_open = _icon_button(self, "OpenButton", 1, _draw_open_icon, _on_open_pressed)
@@ -269,6 +271,7 @@ func _refresh() -> void:
 	_order.text = tr("SHUFFLE") if _director.shuffled() else tr("IN ORDER")
 	_volume.set_value_no_signal(_director.volume())
 	var bpm: int = roundi(_director.tempo())
+	_tempo.text = "%s  %d BPM  %s / %s" % [tr(_director.state_name()), bpm, _clock(_director.position_seconds()), _clock(_director.length_seconds())]
 	if _director.song() == _song and bpm == _bpm:
 		return
 	if _director.song() != _song:
@@ -277,7 +280,6 @@ func _refresh() -> void:
 	_bpm = bpm
 	var name_shown: String = _director.song_title()
 	_title.text = tr(name_shown) if name_shown != "" else tr("Music")
-	_tempo.text = "%s  %d BPM" % [tr("NOW PLAYING"), bpm]
 	_place.text = "%d / %d" % [_song + 1, _director.song_count()]
 	for index: int in _rows.size():
 		_rows[index].add_theme_color_override("font_color", ResourcePack.color("accent") if index == _song else ResourcePack.color("text_value"))
@@ -285,10 +287,26 @@ func _refresh() -> void:
 	_pause.queue_redraw()
 
 
+## Seconds as m:ss.
+static func _clock(seconds: float) -> String:
+	var whole: int = int(maxf(0.0, seconds))
+	return "%d:%02d" % [whole / 60, whole % 60]
+
+
+## What the status line says (tests).
+func status() -> String:
+	return _tempo.text
+
+
 func _draw() -> void:
 	var panel: Rect2 = Rect2(Vector2.ZERO, size)
 	draw_rect(panel, ResourcePack.color("panel_fill"))
 	draw_rect(panel, ResourcePack.color("panel_border").lerp(ResourcePack.color("accent"), _flash), false, 1.0)
+	# The progress line along the foot of the text.
+	if _director != null and is_instance_valid(_director):
+		var track: Rect2 = Rect2(30.0, size.y - 4.0, _title.size.x, 2.0)
+		draw_rect(track, Color(ResourcePack.color("panel_border"), 0.5))
+		draw_rect(Rect2(track.position, Vector2(track.size.x * _director.progress(), track.size.y)), ResourcePack.color("accent"))
 	# Three bars, each on its own share of the beat (still while paused).
 	var beat: float = _time * float(_bpm) / 60.0
 	var still: bool = _director != null and is_instance_valid(_director) and _director.paused()

@@ -1,0 +1,196 @@
+{
+	"format": 1,
+	"name": "Template",
+	"author": "Your name",
+	"description": "The pack template: every part a pack can replace, as files to paint over. See 说明.md.",
+	"icon": "pack.png",
+	"blocks": {
+		"atlas": "blocks.png",
+		"filter": "linear",
+		"ghost_alpha": 0.35
+	},
+	"ui": {
+		"panel": {
+			"file": "ui/panel.png",
+			"margin": 8
+		},
+		"card": {
+			"file": "ui/card.png",
+			"margin": 8
+		},
+		"button": {
+			"file": "ui/button.png",
+			"margin": 6
+		},
+		"button_hover": {
+			"file": "ui/button_hover.png",
+			"margin": 6
+		},
+		"button_pressed": {
+			"file": "ui/button_pressed.png",
+			"margin": 6
+		},
+		"button_focus": {
+			"file": "ui/button_focus.png",
+			"margin": 6
+		}
+	},
+	"textures": {
+		"background": "background.png"
+	},
+	"backdrop": {
+		"sheet": "backdrop.png",
+		"frame": [192, 108],
+		"frames": 72,
+		"fps": 12
+	},
+	"title": {
+		"sheet": "title.png",
+		"frame": [224, 60],
+		"frames": 156,
+		"fps": 30,
+		"scale": 2,
+		"loop_from": 66,
+		"glow": 0.3
+	},
+	"effects": {
+		"lock": {
+			"sheet": "fx/lock.png",
+			"frame": [40, 40],
+			"frames": 8,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"hard_drop": {
+			"sheet": "fx/hard_drop.png",
+			"frame": [112, 48],
+			"frames": 14,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "bottom",
+			"glow": 0.35,
+			"replace": true
+		},
+		"line_clear": {
+			"sheet": "fx/line_clear.png",
+			"frame": [144, 40],
+			"frames": 18,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"tetris": {
+			"sheet": "fx/tetris.png",
+			"frame": [176, 128],
+			"frames": 30,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"tspin": {
+			"sheet": "fx/tspin.png",
+			"frame": [96, 96],
+			"frames": 24,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"perfect_clear": {
+			"sheet": "fx/perfect_clear.png",
+			"frame": [160, 232],
+			"frames": 42,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"garbage": {
+			"sheet": "fx/garbage.png",
+			"frame": [128, 44],
+			"frames": 14,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "bottom",
+			"glow": 0.35,
+			"replace": true
+		},
+		"ko": {
+			"sheet": "fx/ko.png",
+			"frame": [176, 240],
+			"frames": 45,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		}
+	},
+	"colors": {
+		"piece_i": "#33d9f2",
+		"piece_o": "#f2cc40",
+		"piece_t": "#bf66f2",
+		"piece_s": "#66e680",
+		"piece_z": "#f27373",
+		"piece_j": "#598cf2",
+		"piece_l": "#f29e47",
+		"garbage": "#8c949e",
+		"background_base": "#0d0f17",
+		"background_tint": "#59668c",
+		"menu_top": "#141a2e",
+		"menu_bottom": "#0a0d17",
+		"area_fill": "#121724e6",
+		"area_border": "#4d73b399",
+		"board_fill": "#05080eeb",
+		"board_border": "#73a6e68c",
+		"grid": "#ffffff0d",
+		"panel_fill": "#0d1424d9",
+		"panel_border": "#80b3f24d",
+		"veil": "#05080f99",
+		"text_title": "#99bff2",
+		"text_value": "#e6f0ff",
+		"text_dim": "#7a879e",
+		"accent": "#66d9ff",
+		"highlight": "#ffd659",
+		"good": "#8cf299",
+		"bad": "#fa7373",
+		"lamp_off": "#4d576b",
+		"player": "#73e6ff",
+		"opponent": "#ff8c66",
+		"warning": "#f24d40",
+		"warning_queued": "#994d33",
+		"cancel": "#e6f2ff",
+		"tier_easy": "#8cf299",
+		"tier_normal": "#8cccff",
+		"tier_hard": "#ffb34d",
+		"tier_lunatic": "#ff6673",
+		"fx_flash": "#ffffff",
+		"fx_garbage": "#e6ebf2",
+		"fx_danger": "#ff4033",
+		"fx_ko_veil": "#14171fb8",
+		"fx_ko_text": "#ff6659",
+		"callout_perfect": "#fff299",
+		"callout_tspin": "#d98cff",
+		"callout_tetris": "#66f2ff",
+		"callout_clear": "#faeb80",
+		"button_fill": "#1c2640",
+		"button_hover": "#28365c",
+		"button_pressed": "#121a2e",
+		"button_disabled": "#161b29",
+		"button_border": "#4d6699",
+		"button_focus": "#66d9ff",
+		"button_text": "#e6f0ff",
+		"button_text_disabled": "#667085",
+		"window_fill": "#101829f5",
+		"window_border": "#5980bf"
+	}
+}

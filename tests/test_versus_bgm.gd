@@ -233,9 +233,20 @@ static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
 		var ending: AudioStreamPlayer = director.current()
 		var coming: int = director.coming_song()
 		ok = ok and director.level() == 1 and coming != director.song()
-		director.next_song()
+		# (This is the change at the end of the bars: the old track rings out.)
+		director._start_song(director.level(), true)
 		ok = ok and director.song() == coming and director.level() == 1 and director.level_count() == 6
 		ok = ok and director.current() != ending and director.current().playing and is_instance_valid(ending) and ending.playing
+		# A song the player cuts short (next, or another one picked) does not
+		# play on over the new one: it fades away and is gone.
+		var cut: AudioStreamPlayer = director.current()
+		var after_cut: int = director.coming_song()
+		director.next_song()
+		coming = after_cut
+		ok = ok and director.song() == coming and director.current() != cut and director.current().playing
+		await _tree().create_timer(BgmDirector.CUT_SECONDS + 0.2).timeout
+		ok = ok and not is_instance_valid(cut)
+		ok = ok and director.state() == BgmDirector.State.PLAYING and director.state_name() == "PLAYING"
 		ok = ok and is_equal_approx(director.current().volume_db, float(ResourcePack.playlist()[coming]["volume_db"]))
 		ok = ok and director.song_title() == String(ResourcePack.playlist()[coming]["title"]) and director.song_title() != ""
 		# The end of the bars is what triggers it: nothing while there is
@@ -300,13 +311,37 @@ static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
 			var before_next: int = director.song()
 			corner._on_next_pressed()
 			ok = ok and director.song() != before_next
+			# The song that plays, clicked: it starts again - the same players,
+			# nothing new on top of it.
+			var same: AudioStreamPlayer = director.current()
+			var players: int = director.get_child_count()
+			corner._on_row_pressed(director.song())
+			ok = ok and director.current() == same and same.playing and director.get_child_count() == players \
+				and director.position_seconds() < 0.5
+			ok = ok and director.length_seconds() > 20.0 and director.progress() >= 0.0 and director.progress() < 0.05
+			ok = ok and NowPlaying._clock(75.4) == "1:15"
+			corner._refresh()
+			ok = ok and corner.status().begins_with(TranslationServer.translate("PLAYING")) and corner.status().contains(" / ")
 			corner._on_pause_pressed()
 			ok = ok and director.paused() and director.current().stream_paused
+			ok = ok and director.state() == BgmDirector.State.PAUSED
+			corner._refresh()
+			ok = ok and corner.status().begins_with(TranslationServer.translate("PAUSED"))
 			var held: int = director.song()
 			director._process(1.0)
 			ok = ok and director.song() == held
 			corner._on_pause_pressed()
 			ok = ok and not director.paused() and not director.current().stream_paused
+			ok = ok and director.state() == BgmDirector.State.PLAYING
+			# A step of the tempo is its own state until the cross-fade is done.
+			director.update_pressure(BgmDirector.DANGER_ROWS)
+			director._process(0.01)
+			director._process(2.1)
+			ok = ok and director.state() == BgmDirector.State.STEPPING and director.state_name() == "CHANGING TEMPO"
+			director.update_pressure(0)
+			director._target = director.level()
+			director._process(1.0)
+			ok = ok and director.state() == BgmDirector.State.PLAYING
 			# The volume turns the song's own level down; full is that level.
 			var own_db: float = float(ResourcePack.playlist()[director.song()]["volume_db"])
 			ok = ok and is_equal_approx(director.volume(), 1.0) and is_equal_approx(director.current().volume_db, own_db)

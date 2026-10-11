@@ -145,6 +145,7 @@ static func _case_music_walks_the_tempo_ladder(ctx: Dictionary) -> void:
 			ok = ok and absf(beats - float(int(song["bars"]) * int(song["beats"]))) < 0.05
 	if ok:
 		var director: BgmDirector = scene.get("_bgm_director")
+		director.set_volume(1.0, false)
 		var top: int = director.level_count() - 1
 		var calm: AudioStreamPlayer = director.player(0)
 		var level_db: float = float(songs[director.song()]["volume_db"])
@@ -221,6 +222,7 @@ static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
 	if ok:
 		var director: BgmDirector = scene.get("_bgm_director")
 		director.set_shuffle(true, false)
+		director.set_volume(1.0, false)
 		var count: int = director.song_count()
 		ok = count == ResourcePack.playlist().size() and count >= 2
 		# The change keeps the rung, and the song that ends is left to ring.
@@ -283,6 +285,37 @@ static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
 				PlayerConfig.erase_section_key(BgmDirector.CONFIG_SECTION, BgmDirector.CONFIG_SHUFFLE)
 			else:
 				PlayerConfig.set_config(BgmDirector.CONFIG_SECTION, BgmDirector.CONFIG_SHUFFLE, kept)
+			# The player's window (2026-10-11, owner: laid out like a grand
+			# strategy game's music player): the playlist as a list - a click
+			# plays that song - with pause, next and the volume.
+			ok = ok and not corner.window_open() and corner.listed().size() == count
+			corner._on_open_pressed()
+			ok = ok and corner.window_open()
+			var wanted: int = (director.song() + 3) % count
+			var rung: int = director.level()
+			corner._on_row_pressed(wanted)
+			ok = ok and director.song() == wanted and director.level() == rung and director.current().playing
+			ok = ok and corner.title() == TranslationServer.translate(director.song_title()) \
+				and corner.listed()[wanted].ends_with(corner.title())
+			var before_next: int = director.song()
+			corner._on_next_pressed()
+			ok = ok and director.song() != before_next
+			corner._on_pause_pressed()
+			ok = ok and director.paused() and director.current().stream_paused
+			var held: int = director.song()
+			director._process(1.0)
+			ok = ok and director.song() == held
+			corner._on_pause_pressed()
+			ok = ok and not director.paused() and not director.current().stream_paused
+			# The volume turns the song's own level down; full is that level.
+			var own_db: float = float(ResourcePack.playlist()[director.song()]["volume_db"])
+			ok = ok and is_equal_approx(director.volume(), 1.0) and is_equal_approx(director.current().volume_db, own_db)
+			director.set_volume(0.5, false)
+			ok = ok and absf(director.current().volume_db - (own_db + linear_to_db(0.5))) < 0.01
+			director.set_volume(1.0, false)
+			ok = ok and is_equal_approx(director.current().volume_db, own_db)
+			corner._on_open_pressed()
+			ok = ok and not corner.window_open()
 	if scene != null:
 		scene.free()
 	await _tree().process_frame

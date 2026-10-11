@@ -58,7 +58,7 @@ or resources: `--headless --editor --quit`.
 | `scripts/ui/` | binding scripts of the pack's screen layouts |
 | `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit); `mode_select/` is the play screen behind New Game |
 | `scripts/ui/main_menu_entries.gd`, `pack_title.gd` | the main menu's own entries and the pack's animated title, attached from outside |
-| `packs/` | `default` (built in, with the music), `pixel`, `pixelfx`, `icon`; format in `packs/README.md` |
+| `packs/` | `default` (built in, with the music), `pixel`, `pixelfx`, `icon`, `iconfx`; format in `packs/README.md` |
 | `tests/` | headless test modules, `run_all.gd` runs them all |
 | `tools/` | generators and labs, below |
 | `addons/`, `camera-effects/`, `particles/`, `docs/vendor/` | vendored code with its license records |

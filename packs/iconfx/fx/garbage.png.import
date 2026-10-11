@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://7dihkbuh6v2s"
-path="res://.godot/imported/tspin.png-70bec5eea1e7ccf14a85504309ef648e.ctex"
+uid="uid://jx5bx77gqd3k"
+path="res://.godot/imported/garbage.png-732ac693f611623f21c195ba55f18a09.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://packs/icon/fx/tspin.png"
-dest_files=["res://.godot/imported/tspin.png-70bec5eea1e7ccf14a85504309ef648e.ctex"]
+source_file="res://packs/iconfx/fx/garbage.png"
+dest_files=["res://.godot/imported/garbage.png-732ac693f611623f21c195ba55f18a09.ctex"]
 
 [params]
 

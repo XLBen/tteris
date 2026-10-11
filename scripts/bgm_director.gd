@@ -34,12 +34,17 @@ const SILENT_DB: float = -60.0
 const HANDOFF_SECONDS: float = 0.004
 const CONFIG_SECTION: String = "Music"
 const CONFIG_SHUFFLE: String = "Shuffle"
+const CONFIG_VOLUME: String = "Volume"
 
 var _bus: StringName = &"BGM"
 var _songs: Array = []
 ## Songs still to come in this round of the shuffle, and the one drawn next.
 var _bag: Array[int] = []
 var _shuffle: bool = true
+## The player's own volume for the music (0..1, on top of each song's level)
+## and whether the player paused it.
+var _volume: float = 1.0
+var _paused: bool = false
 var _song: int = -1
 var _coming: int = -1
 ## Files of the coming song still to be read, one a frame.
@@ -66,6 +71,7 @@ func setup(bus: StringName = &"BGM") -> void:
 	_songs = ResourcePack.playlist()
 	_random.randomize()
 	_shuffle = bool(PlayerConfig.get_config(CONFIG_SECTION, CONFIG_SHUFFLE, true))
+	_volume = clampf(float(PlayerConfig.get_config(CONFIG_SECTION, CONFIG_VOLUME, 1.0)), 0.0, 1.0)
 	if _songs.is_empty():
 		return
 	_coming = _draw()
@@ -90,6 +96,58 @@ func set_shuffle(on: bool, remember: bool = true) -> void:
 	_warming = []
 	for track: Dictionary in _songs[_coming]["tracks"]:
 		_warming.append(String(track["file"]))
+
+
+## The music's volume as the player set it (0..1; 1 is each song's own level).
+func volume() -> float:
+	return _volume
+
+
+func set_volume(value: float, remember: bool = true) -> void:
+	_volume = clampf(value, 0.0, 1.0)
+	if remember:
+		PlayerConfig.set_config(CONFIG_SECTION, CONFIG_VOLUME, _volume)
+	if _song >= 0:
+		_db = _song_db()
+		if not _tracks.is_empty():
+			_apply_fade()
+
+
+## Whether the player paused the music.
+func paused() -> bool:
+	return _paused
+
+
+## Stops the music where it is, or lets it go on from there.
+func set_paused(on: bool) -> void:
+	_paused = on
+	for child: Node in get_children():
+		if child is AudioStreamPlayer:
+			(child as AudioStreamPlayer).stream_paused = on
+
+
+## Titles of the playlist's songs, in its order.
+func song_titles() -> PackedStringArray:
+	var titles: PackedStringArray = []
+	for listed: Dictionary in _songs:
+		titles.append(String(listed["title"]))
+	return titles
+
+
+## Plays song `index` of the playlist now, on the rung that plays; the order
+## carries on after it.
+func play_song(index: int) -> void:
+	if index < 0 or index >= _songs.size():
+		return
+	_coming = index
+	_bag.erase(index)
+	_start_song(_level)
+
+
+## The level the playing song is played at: its own, turned down by the
+## player's volume.
+func _song_db() -> float:
+	return float(_songs[_song]["volume_db"]) + linear_to_db(maxf(_volume, 0.0001))
 
 
 func song_count() -> int:
@@ -179,7 +237,7 @@ func next_song() -> void:
 
 
 func _process(delta: float) -> void:
-	if _tracks.is_empty():
+	if _tracks.is_empty() or _paused:
 		return
 	if not _warming.is_empty():
 		ResourcePack.music_file(_warming.pop_back())
@@ -230,6 +288,9 @@ func _draw() -> int:
 ## Starts the coming song on rung `level` (or its highest), leaving the one
 ## that played to ring out.
 func _start_song(on_level: int) -> void:
+	# A song asked for while the music was paused plays.
+	if _paused:
+		set_paused(false)
 	for index: int in _tracks.size():
 		var old: AudioStreamPlayer = _tracks[index]["player"]
 		if index == _level and old.playing and _bars > 0:
@@ -241,7 +302,7 @@ func _start_song(on_level: int) -> void:
 	_song = _coming
 	_coming = _draw()
 	var playing: Dictionary = _songs[_song]
-	_db = float(playing["volume_db"])
+	_db = _song_db()
 	_beats = float(playing["beats"])
 	_bars = int(playing["bars"])
 	_offset = float(playing["offset"])

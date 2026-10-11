@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cktcbq8in37rq"
-path="res://.godot/imported/lock.png-cd06ba26b4421d6aacce0deeb247a8ef.ctex"
+uid="uid://c0bp3ryu764d7"
+path="res://.godot/imported/perfect_clear.png-0a6acf07b60dc90e3153405897a7d94d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://packs/icon/fx/lock.png"
-dest_files=["res://.godot/imported/lock.png-cd06ba26b4421d6aacce0deeb247a8ef.ctex"]
+source_file="res://packs/iconfx/fx/perfect_clear.png"
+dest_files=["res://.godot/imported/perfect_clear.png-0a6acf07b60dc90e3153405897a7d94d.ctex"]
 
 [params]
 

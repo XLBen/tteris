@@ -5,9 +5,10 @@
 //   node tools/fx_studio/export.js            -> packs/pixelfx/ (and the title
 //                                                into packs/default/)
 //   node tools/fx_studio/export.js <folder>   -> another pack folder
-//   node tools/fx_studio/export.js --pack icon -> packs/icon/: the effects in
-//                                                that pack's colors and its
-//                                                own backdrop
+//   node tools/fx_studio/export.js --pack icon   -> packs/icon/: its backdrop
+//   node tools/fx_studio/export.js --pack iconfx -> packs/iconfx/: the "Icon
+//                                                  FX" pack, its own effects
+//                                                  in its own colors
 //
 // Output: fx/<event>.png (frames left to right, top to bottom), pack.png (the
 // icon) and pack.json with one "effects" entry per sheet. Deterministic: the
@@ -98,11 +99,22 @@ function writeLoop(target, def, made, stats) {
 	return entry;
 }
 
-// A themed pack (--pack <id>) takes the board effects in its own colors:
-// every pixel keeps its brightness and its place and is given the color of
-// that brightness on the theme's ramp.
+// A themed pack (--pack <id>) takes what effects.js marks as its own (`pack`):
+// its loops, and its effects - which are given the pack's colors: every pixel
+// keeps its brightness and its place and takes the color of that brightness
+// on the pack's ramp. `about` is the pack.json of a pack that is all effects.
+const ICON_RAMP = ['#2a0806', '#7a140c', '#b02a1a', '#d88a1c', '#e8b83a', '#ffe27a', '#fff6c8', '#ffffff'];
 const THEMES = {
-	icon: ['#2a0806', '#7a140c', '#b02a1a', '#d88a1c', '#e8b83a', '#ffe27a', '#fff6c8', '#ffffff'],
+	icon: { ramp: ICON_RAMP },
+	iconfx: {
+		ramp: ICON_RAMP,
+		about: {
+			format: 1,
+			name: 'Icon FX',
+			author: 'Project',
+			description: 'The effects that go with the Icon pack: every board event in gold and vermilion, under a three-barred cross, a nimbus or rays of gold. Made with tools/fx_studio.',
+		},
+	},
 };
 
 function recolor(frames, stops) {
@@ -126,41 +138,46 @@ function main() {
 		return 1;
 	}
 	const target = path.resolve(theme ? path.join(__dirname, '..', '..', 'packs', theme) : args[0] || path.join(__dirname, '..', '..', 'packs', 'pixelfx'));
-	fs.mkdirSync(path.join(target, 'fx'), { recursive: true });
+	fs.mkdirSync(target, { recursive: true });
 	const effects = {};
 	const loops = {};
 	let problems = 0;
 	for (const def of FX.effectList) {
 		const loop = def.kind === 'title' || def.kind === 'backdrop';
-		// A pack's own loops go to that pack only; the board effects to all.
-		if (loop ? (def.pack || null) !== theme : false) continue;
+		// Everything goes to the pack it is made for (none: the stock ones).
+		if ((def.pack || null) !== theme) continue;
 		const { frames, stats } = FX.renderFrames(def);
-		if (theme && !loop) recolor(frames, THEMES[theme]);
+		if (theme && !loop) recolor(frames, THEMES[theme].ramp);
 		const made = sheet(def, frames);
 		if (loop) {
 			loops[def.kind] = writeLoop(target, def, made, stats);
 			continue;
 		}
-		fs.writeFileSync(path.join(target, 'fx', def.name + '.png'), png(made.width, made.height, made.data));
-		effects[def.name] = { sheet: 'fx/' + def.name + '.png', frame: [def.w, def.h], frames: def.frames, fps: def.fps, scale: def.scale, anchor: def.anchor, glow: 0.35, replace: true };
+		const event = def.event || def.name;
+		fs.mkdirSync(path.join(target, 'fx'), { recursive: true });
+		fs.writeFileSync(path.join(target, 'fx', event + '.png'), png(made.width, made.height, made.data));
+		effects[event] = { sheet: 'fx/' + event + '.png', frame: [def.w, def.h], frames: def.frames, fps: def.fps, scale: def.scale, anchor: def.anchor, glow: 0.35, replace: true };
 		const left = coverage(frames[frames.length - 1]), first = coverage(frames[0]);
 		const warn = left > 0 ? '  !! last frame still has ' + left + ' pixels' : '';
 		if (left > 0 || first === 0) problems++;
 		console.log('%s  %dx%d  %d frames (%s s)  sheet %dx%d  particles born %d, peak %d%s%s',
 			def.name.padEnd(14), def.w, def.h, def.frames, (def.frames / def.fps).toFixed(2), made.width, made.height, stats.born, stats.peak,
 			first === 0 ? '  !! first frame is empty' : '', warn);
-		if (def.name === 'ko' && !theme) fs.writeFileSync(path.join(target, 'pack.png'), icon(def, frames));
+		if (event === (theme ? 'tetris' : 'ko') && !(theme && fs.existsSync(path.join(target, 'pack.json')) && !THEMES[theme].about)) {
+			fs.writeFileSync(path.join(target, 'pack.png'), icon(def, frames));
+		}
 	}
 	// A themed pack has its own pack.json (colors, blocks, ...): only the
 	// moving parts are written into it.
 	const file = path.join(target, 'pack.json');
-	const manifest = theme && fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {
+	const manifest = theme && THEMES[theme].about ? Object.assign({}, THEMES[theme].about) : theme && fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {
 		format: 1,
 		name: 'Pixel FX',
 		author: 'Project',
 		description: 'Hand-timed pixel animations for every board event: line clears, Tetris, T-spins, perfect clears, drops, garbage and the K.O. Made with tools/fx_studio.',
 	};
-	manifest.effects = effects;
+	if (Object.keys(effects).length) manifest.effects = effects;
+	else delete manifest.effects;
 	if (theme) Object.assign(manifest, loops);
 	fs.writeFileSync(file, JSON.stringify(manifest, null, '\t').replace(/\[\n\t+(\d+),\n\t+(\d+)\n\t+\]/g, '[$1, $2]') + '\n');
 	console.log(problems ? problems + ' effect(s) need attention' : 'ok -> ' + target);

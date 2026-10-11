@@ -1072,6 +1072,110 @@
 		},
 	});
 
+	// -------------------------------------------------------------- icon fx
+	// The effects of the "Icon FX" pack: every board effect above, with the
+	// signs of an icon laid over it - a three-barred cross, a nimbus of rings,
+	// rays of gold - on the same timeline. (The exporter gives the whole of it
+	// the pack's colors: export.js --pack iconfx.)
+	// A three-barred cross of light; `s` is its unit (it stands 9 s tall).
+	function crossSign(layer, cx, cy, s, v) {
+		if (v <= 0) return;
+		const thick = s >= 3 ? [-0.5, 0.5] : [0];
+		for (const o of thick) {
+			layer.line(cx + o, cy - 4 * s, cx + o, cy + 5 * s, v);
+			layer.line(cx - 1.2 * s, cy - 2.8 * s + o, cx + 1.2 * s, cy - 2.8 * s + o, v);
+			layer.line(cx - 2.6 * s, cy - 1.2 * s + o, cx + 2.6 * s, cy - 1.2 * s + o, v);
+			layer.line(cx - 1.5 * s, cy + 2.2 * s + o, cx + 1.5 * s, cy + 3.4 * s + o, v);
+		}
+	}
+	// Rays from a ring outward, cooling toward their tips.
+	function raySigns(layer, cx, cy, from, to, count, turn, v) {
+		if (v <= 0 || to <= from) return;
+		for (let i = 0; i < count; i++) {
+			const a = turn + (i * TAU) / count;
+			layer.line(cx + Math.cos(a) * from, cy + Math.sin(a) * from, cx + Math.cos(a) * to, cy + Math.sin(a) * to, v, 0.15 * v);
+		}
+	}
+	const ICON_SIGNS = {
+		lock(sim, t, L) {
+			crossSign(L.sign, 20, 20, 1.5, 1 - sim.k(0, 0.2));
+		},
+		hard_drop(sim, t, L) {
+			const k = sim.k(0, 0.36);
+			if (k >= 1) return;
+			L.nimbus.ring(56, 44, lerp(6, 44, ease.outCubic(k)), 1.6, 1 - k, 0.3);
+			crossSign(L.sign, 56, 28 - 10 * k, 1.3, 1 - k);
+		},
+		garbage(sim, t, L) {
+			const k = sim.k(0, 0.36);
+			if (k < 1) L.nimbus.ring(64, 40, lerp(10, 58, ease.outCubic(k)), 1.4, 0.8 * (1 - k), 0.25);
+		},
+		line_clear(sim, t, L) {
+			// Small crosses light up along the row, one after another.
+			for (let i = 0; i < 6; i++) {
+				const k = (t - 0.06 - i * 0.04) / 0.28;
+				if (k > 0 && k < 1) crossSign(L.sign, 22 + i * 20, 20, 1.3, ease.bell(k));
+			}
+		},
+		tetris(sim, t, L) {
+			if (t < 0.2) return;
+			const k = sim.k(0.2, 0.9);
+			if (k >= 1) return;
+			const light = Math.pow(1 - k, 0.7);
+			L.nimbus.ring(88, 64, 30, 1.8, light);
+			L.nimbus.ring(88, 64, 36, 0.9, light * 0.8);
+			raySigns(L.nimbus, 88, 64, 40, 40 + 46 * ease.outCubic(k), 16, k * 0.4, light);
+			crossSign(L.sign, 88, 62, 5, 1 - ease.in(k));
+		},
+		tspin(sim, t, L) {
+			if (t < 0.25) return;
+			const k = sim.k(0.25, 0.7);
+			if (k >= 1) return;
+			L.nimbus.ring(48, 48, 24, 1.5, 1 - k);
+			for (let i = 0; i < 8; i++) {
+				const a = k * Math.PI + (i * TAU) / 8;
+				L.nimbus.disc(48 + Math.cos(a) * 24, 48 + Math.sin(a) * 24, 1.8, 1 - k, 0.3);
+			}
+			crossSign(L.sign, 48, 47, 2.2, 1 - k);
+		},
+		perfect_clear(sim, t, L) {
+			if (t < 0.3) return;
+			const k = sim.k(0.3, 1.25);
+			if (k >= 1) return;
+			const light = ease.bell(Math.pow(k, 0.6));
+			L.nimbus.ring(80, 106, 46, 2, light);
+			L.nimbus.ring(80, 106, 54, 1, light * 0.8);
+			raySigns(L.nimbus, 80, 106, 60, 60 + 50 * ease.outCubic(k), 24, -k * 0.3, light);
+			crossSign(L.sign, 80, 104, 9, light);
+		},
+		ko(sim, t, L) {
+			if (t < 0.2) return;
+			const k = sim.k(0.2, 1.3);
+			if (k >= 1) return;
+			// The nimbus closes in and goes out.
+			L.nimbus.ring(88, 112, lerp(52, 22, ease.inOut(k)), 1.6, 0.9 * (1 - k));
+			crossSign(L.sign, 88, 110, 8, 0.9 * (1 - ease.in(k)));
+		},
+	};
+	for (const base of defs.filter((def) => !def.kind)) {
+		define(Object.assign({}, base, {
+			name: 'icon_' + base.name,
+			event: base.name,
+			pack: 'iconfx',
+			title: base.title + ' (Icon)',
+			note: base.note + ' Icon FX: with a cross, a nimbus or rays of gold laid over it.',
+			setup(sim) {
+				base.setup(sim);
+				sim.layer('nimbus', { ramp: 'gold' });
+				sim.layer('sign', { ramp: 'gold', outline: '#2a0806c0' });
+			},
+			draw(sim, t) {
+				base.draw(sim, t);
+				ICON_SIGNS[base.name](sim, t, sim.byName);
+			},
+		}));
+	}
+
 	for (const def of defs) {
 		def.fps = def.fps || 30;
 		def.scale = 2;

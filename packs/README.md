@@ -273,10 +273,11 @@ backdrop uses the next pack's; with none at all the still `background`
 texture shows. The default pack's night sky is the `backdrop` effect of
 `tools/fx_studio`.
 
-`packs/icon/` is a whole theme - gilded blocks, nine-patch panels and
-buttons, its own colors, the board effects in gold and vermilion and a
-backdrop of domes: `python tools/make_icon_pack.py` draws the still parts,
-`node tools/fx_studio/export.js --pack icon` the moving ones.
+`packs/icon/` is a whole theme - blocks with a little saint on each,
+nine-patch panels and buttons, its own colors and a backdrop of domes and
+figures: `python tools/make_icon_pack.py` draws the still parts,
+`node tools/fx_studio/export.js --pack icon` the backdrop. `packs/iconfx/`
+holds the effects that go with it (`export.js --pack iconfx`): enable both.
 
 `packs/pixelfx/` is a pack made only of effects. Its sheets are rendered by
 `tools/fx_studio`: open `tools/fx_studio/index.html` in a browser to play,

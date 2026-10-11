@@ -2,7 +2,7 @@
 	"format": 1,
 	"name": "Icon",
 	"author": "Project",
-	"description": "Gold leaf, vermilion and lapis in the manner of an Orthodox icon: enamelled blocks in gold settings, gilded panels, effects of gold light, and domes under a slowly turning nimbus.",
+	"description": "Gold leaf, vermilion and lapis in the manner of an Orthodox icon: a little saint on every block, gilded panels, and domes under a slowly turning nimbus. Its effects are the Icon FX pack.",
 	"icon": "pack.png",
 	"blocks": {
 		"atlas": "blocks.png",
@@ -91,88 +91,6 @@
 		"button_text_disabled": "#8a7458",
 		"window_fill": "#1c0c06f7",
 		"window_border": "#e8b83a"
-	},
-	"effects": {
-		"lock": {
-			"sheet": "fx/lock.png",
-			"frame": [40, 40],
-			"frames": 8,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "center",
-			"glow": 0.35,
-			"replace": true
-		},
-		"hard_drop": {
-			"sheet": "fx/hard_drop.png",
-			"frame": [112, 48],
-			"frames": 14,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "bottom",
-			"glow": 0.35,
-			"replace": true
-		},
-		"garbage": {
-			"sheet": "fx/garbage.png",
-			"frame": [128, 44],
-			"frames": 14,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "bottom",
-			"glow": 0.35,
-			"replace": true
-		},
-		"line_clear": {
-			"sheet": "fx/line_clear.png",
-			"frame": [144, 40],
-			"frames": 18,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "center",
-			"glow": 0.35,
-			"replace": true
-		},
-		"tetris": {
-			"sheet": "fx/tetris.png",
-			"frame": [176, 128],
-			"frames": 30,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "center",
-			"glow": 0.35,
-			"replace": true
-		},
-		"tspin": {
-			"sheet": "fx/tspin.png",
-			"frame": [96, 96],
-			"frames": 24,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "center",
-			"glow": 0.35,
-			"replace": true
-		},
-		"perfect_clear": {
-			"sheet": "fx/perfect_clear.png",
-			"frame": [160, 232],
-			"frames": 42,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "center",
-			"glow": 0.35,
-			"replace": true
-		},
-		"ko": {
-			"sheet": "fx/ko.png",
-			"frame": [176, 240],
-			"frames": 45,
-			"fps": 30,
-			"scale": 2,
-			"anchor": "center",
-			"glow": 0.35,
-			"replace": true
-		}
 	},
 	"backdrop": {
 		"sheet": "backdrop.png",

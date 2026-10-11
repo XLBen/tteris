@@ -226,7 +226,7 @@
 			ctx.fillRect(0, 0, stage.width, stage.height);
 		} else if ($('board').checked) ctx.drawImage(boardCanvas, 0, 0, stage.width, stage.height);
 		else { ctx.fillStyle = '#05070c'; ctx.fillRect(0, 0, stage.width, stage.height); }
-		const spot = alone ? [0, 0] : SPOTS[def.name];
+		const spot = alone ? [0, 0] : SPOTS[def.event || def.name];
 		const x = alone ? 12 : MARGIN_X + spot[0] - def.w / 2;
 		const y = alone ? 24 : MARGIN_Y + spot[1] - (def.anchor === 'bottom' ? def.h : def.h / 2);
 		artCtx.putImageData(state.frames[state.frame], 0, 0);

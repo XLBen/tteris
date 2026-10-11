@@ -1,0 +1,88 @@
+{
+	"format": 1,
+	"name": "Icon FX",
+	"author": "Project",
+	"description": "The effects that go with the Icon pack: every board event in gold and vermilion, under a three-barred cross, a nimbus or rays of gold. Made with tools/fx_studio.",
+	"effects": {
+		"lock": {
+			"sheet": "fx/lock.png",
+			"frame": [40, 40],
+			"frames": 8,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"hard_drop": {
+			"sheet": "fx/hard_drop.png",
+			"frame": [112, 48],
+			"frames": 14,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "bottom",
+			"glow": 0.35,
+			"replace": true
+		},
+		"garbage": {
+			"sheet": "fx/garbage.png",
+			"frame": [128, 44],
+			"frames": 14,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "bottom",
+			"glow": 0.35,
+			"replace": true
+		},
+		"line_clear": {
+			"sheet": "fx/line_clear.png",
+			"frame": [144, 40],
+			"frames": 18,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"tetris": {
+			"sheet": "fx/tetris.png",
+			"frame": [176, 128],
+			"frames": 30,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"tspin": {
+			"sheet": "fx/tspin.png",
+			"frame": [96, 96],
+			"frames": 24,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"perfect_clear": {
+			"sheet": "fx/perfect_clear.png",
+			"frame": [160, 232],
+			"frames": 42,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"ko": {
+			"sheet": "fx/ko.png",
+			"frame": [176, 240],
+			"frames": 45,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		}
+	}
+}

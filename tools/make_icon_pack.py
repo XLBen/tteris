@@ -6,10 +6,10 @@ cover - gold leaf, vermilion, lapis and dark wood - and its pack.json.
     node tools/fx_studio/export.js --pack icon
 
 The first writes blocks.png (9 tiles of 32 px), pack.png, ui/*.png (nine-patch
-boxes) and pack.json; the second adds the moving parts - the board effects in
-gold and vermilion and the backdrop of domes under a nimbus - and their
-entries in pack.json (which this script keeps when it is run again).
-Deterministic.
+boxes) and pack.json; the second adds the backdrop of domes under a nimbus
+and its entry in pack.json (which this script keeps when it is run again).
+The effects that go with it are a pack of their own, "Icon FX"
+(node tools/fx_studio/export.js --pack iconfx). Deterministic.
 """
 import json
 import math
@@ -64,9 +64,49 @@ def gold_at(x, y, size):
     return mix(GOLD_DARK, GOLD, tone * 1.6) if tone < 0.625 else mix(GOLD, GOLD_LIGHT, (tone - 0.625) / 0.375)
 
 
-def enamel_tile(color, size=32, stone=False):
+FLESH = (rgb("#e0b084"), rgb("#b88458"), rgb("#7a4e30"))
+HAIRS = (rgb("#3a2010"), rgb("#6a4a2a"), rgb("#c8c0b0"))
+# Per piece (i o t s z j l): hair (dark, brown, grey), a beard, a veil over the head.
+FIGURES = [(0, True, False), (1, False, True), (2, True, False), (1, False, False), (0, False, True), (0, True, False), (1, True, False)]
+
+
+def figure_pixel(x, y, color, figure):
+    """The little icon on a tile, or None where the enamel shows: a haloed
+    head and shoulders - each piece its own saint (hair, beard or veil)."""
+    hair, beard, veil = figure
+    cx, cy = 15.5, 13.5
+    dx, dy = x - cx, y - cy
+    # Shoulders in the robe's color, a gold collar.
+    if y >= 20 and abs(dx) <= 3.0 + (y - 20) * 1.6:
+        if y == 20 and abs(dx) <= 2.5:
+            return GOLD
+        if abs(dx) > 2.0 + (y - 20) * 1.6:
+            return mix(color, WHITE, 0.2)
+        return mix(color, BLACK, 0.68 if dx > 2 else 0.52)
+    face = (dx / 3.4) ** 2 + ((dy - 1.0) / 4.4) ** 2
+    if face <= 1.0:
+        if veil and (dy < -1.6 or abs(dx) > 2.4):
+            return mix(color, BLACK, 0.35)
+        if dy < -2.2 or (abs(dx) > 2.6 and dy < 2):
+            return HAIRS[hair]
+        if beard and dy > 3.0:
+            return mix(HAIRS[hair], BLACK, 0.15)
+        if y == 14 and x in (14, 17):
+            return rgb("#2a160c")
+        if y == 17 and x in (15, 16) and not beard:
+            return rgb("#a04030")
+        return FLESH[2] if dx > 1.6 else FLESH[0] if dx < -1.2 else FLESH[1]
+    reach = math.hypot(dx, dy * 1.02)
+    if reach <= 7.6:
+        # The halo: bright leaf with a darker rim line.
+        return GOLD_DARK if reach > 6.7 else mix(GOLD, GOLD_LIGHT, 0.55 - 0.05 * (dx + dy))
+    return None
+
+
+def enamel_tile(color, size=32, stone=False, figure=None):
     """A cabochon of enamel in a gold setting: dark outline, a bevelled gold
-    frame, the domed color with a soft glint, and a four-pointed gold star."""
+    frame, the domed color, and on it a little icon (`figure`) - or, for the
+    stone of a garbage block, a cut cross."""
     rows = []
     half = (size - 1) / 2.0
     for y in range(size):
@@ -89,17 +129,20 @@ def enamel_tile(color, size=32, stone=False):
                 rim = min(1.0, math.hypot(dx, dy))
                 shade = mix(mix(color, WHITE, 0.3), mix(color, BLACK, 0.45), min(1.0, 0.5 + 0.35 * (dx + dy) + 0.25 * rim * rim))
                 if stone:
-                    # Rough stone: a crack and a mottled face instead of a glint.
-                    if (x + 2 * y) % 11 == 0 or (x == int(half) + (y // 5) % 2 and 8 < y < 24):
-                        shade = mix(shade, BLACK, 0.4)
+                    # Rough stone, and a three-barred cross cut into it.
+                    if (x + 2 * y) % 11 == 0:
+                        shade = mix(shade, BLACK, 0.3)
+                    cut = x in (15, 16) and 8 <= y <= 24
+                    cut = cut or (y in (10, 11) and 13 <= x <= 18) or (y in (14, 15) and 11 <= x <= 20)
+                    cut = cut or (13 <= x <= 18 and y == 20 + (x - 13) // 2)
+                    if cut:
+                        shade = mix(shade, BLACK, 0.55)
+                    elif (x in (17, 21) and 8 <= y <= 24 and x == 17) or (y == 16 and 11 <= x <= 20):
+                        shade = mix(shade, WHITE, 0.25)
                 else:
-                    glint = math.hypot(x - size * 0.36, y - size * 0.33)
-                    if glint < 3.2:
-                        shade = mix(shade, WHITE, 0.55 * (1.0 - glint / 3.2))
-                    # Four-pointed star in the middle.
-                    ax, ay = abs(x - half), abs(y - half)
-                    if (ax < 0.6 and ay < 4.6) or (ay < 0.6 and ax < 4.6) or ax + ay < 1.6:
-                        shade = mix(GOLD, GOLD_LIGHT, 1.0 - (ax + ay) / 5.0)
+                    painted = figure_pixel(x, y, color, figure)
+                    if painted is not None:
+                        shade = painted
             row.append((shade[0], shade[1], shade[2], 255))
         rows.append(row)
     return rows
@@ -166,7 +209,7 @@ def pack_icon(tile, size=64):
 
 
 def main():
-    tiles = [enamel_tile(rgb(c), stone=index == 7) for index, c in enumerate(ENAMELS)] + [ghost_tile()]
+    tiles = [enamel_tile(rgb(c), stone=index == 7, figure=FIGURES[index] if index < 7 else None) for index, c in enumerate(ENAMELS)] + [ghost_tile()]
     write_png(os.path.join(PACK, "blocks.png"), 32 * 9, 32, strip(tiles))
     write_png(os.path.join(PACK, "pack.png"), 64, 64, pack_icon(tiles[1]))
     ui = {
@@ -184,12 +227,12 @@ def main():
     if os.path.exists(path):
         with open(path, encoding="utf-8") as handle:
             old = json.load(handle)
-        kept = {key: old[key] for key in ("effects", "backdrop") if key in old}
+        kept = {key: old[key] for key in ("backdrop",) if key in old}
     manifest = {
         "format": 1,
         "name": "Icon",
         "author": "Project",
-        "description": "Gold leaf, vermilion and lapis in the manner of an Orthodox icon: enamelled blocks in gold settings, gilded panels, effects of gold light, and domes under a slowly turning nimbus.",
+        "description": "Gold leaf, vermilion and lapis in the manner of an Orthodox icon: a little saint on every block, gilded panels, and domes under a slowly turning nimbus. Its effects are the Icon FX pack.",
         "icon": "pack.png",
         "blocks": {"atlas": "blocks.png", "ghost_alpha": 0.55},
         "ui": {name: {"file": "ui/%s.png" % name, "margin": 8 if name in ("panel", "card") else 6} for name in ui},

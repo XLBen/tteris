@@ -32,14 +32,15 @@
 		"ui_focus": {"file": "sounds/ui_focus.wav", "volume_db": -16},
 		"ui_press": {"file": "sounds/ui_press.wav", "volume_db": -11}
 	},
-	"music": {
-		"game": {"file": "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg", "volume_db": -13, "bpm": 120.0109, "loop_offset": 7.99927},
-		"game_rise_1": {"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-1.ogg", "volume_db": -13, "bpm": 126},
-		"game_rise_2": {"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-2.ogg", "volume_db": -13, "bpm": 132.0096},
-		"game_rise_3": {"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-3.ogg", "volume_db": -13, "bpm": 138.0138},
-		"game_rise_4": {"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-4.ogg", "volume_db": -13, "bpm": 143.9922},
-		"game_danger": {"file": "res://assets/audio/bgm/korobeiniki-coldwar-danger.ogg", "volume_db": -13, "bpm": 150}
-	},
+	"playlist": [
+		{"title": "Korobeiniki", "beats": 4, "bars": 34, "volume_db": -12.8, "tracks": [{"file": "res://assets/audio/bgm/korobeiniki-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/korobeiniki-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/korobeiniki-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/korobeiniki-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/korobeiniki-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/korobeiniki-180.ogg", "bpm": 180.0}]},
+		{"title": "Kalinka", "beats": 4, "bars": 26, "volume_db": -13.0, "tracks": [{"file": "res://assets/audio/bgm/kalinka-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/kalinka-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/kalinka-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/kalinka-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/kalinka-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/kalinka-180.ogg", "bpm": 180.0}]},
+		{"title": "By the Long Road", "beats": 4, "bars": 26, "volume_db": -13.2, "tracks": [{"file": "res://assets/audio/bgm/long-road-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/long-road-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/long-road-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/long-road-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/long-road-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/long-road-180.ogg", "bpm": 180.0}]},
+		{"title": "God Save the Tsar!", "beats": 4, "bars": 34, "volume_db": -13.3, "tracks": [{"file": "res://assets/audio/bgm/god-save-the-tsar-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/god-save-the-tsar-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/god-save-the-tsar-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/god-save-the-tsar-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/god-save-the-tsar-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/god-save-the-tsar-180.ogg", "bpm": 180.0}]},
+		{"title": "The Great Gate of Kiev", "beats": 4, "bars": 26, "volume_db": -13.3, "tracks": [{"file": "res://assets/audio/bgm/great-gate-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/great-gate-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/great-gate-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/great-gate-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/great-gate-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/great-gate-180.ogg", "bpm": 180.0}]},
+		{"title": "Song of the Volga Boatmen", "beats": 4, "bars": 26, "volume_db": -13.2, "tracks": [{"file": "res://assets/audio/bgm/volga-boatmen-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/volga-boatmen-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/volga-boatmen-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/volga-boatmen-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/volga-boatmen-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/volga-boatmen-180.ogg", "bpm": 180.0}]},
+		{"title": "On the Hills of Manchuria", "beats": 3, "bars": 52, "volume_db": -12.0, "tracks": [{"file": "res://assets/audio/bgm/manchuria-120.ogg", "bpm": 120.0109}, {"file": "res://assets/audio/bgm/manchuria-132.ogg", "bpm": 132.0096}, {"file": "res://assets/audio/bgm/manchuria-144.ogg", "bpm": 143.9922}, {"file": "res://assets/audio/bgm/manchuria-156.ogg", "bpm": 156.0142}, {"file": "res://assets/audio/bgm/manchuria-168.ogg", "bpm": 167.9787}, {"file": "res://assets/audio/bgm/manchuria-180.ogg", "bpm": 180.0}]}
+	],
 	"fx": {
 		"shake": 1.0,
 		"shards_per_cell": 2,

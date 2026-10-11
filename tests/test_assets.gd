@@ -272,15 +272,17 @@ static func _case_bgm_loops(ctx: Dictionary) -> void:
 		ok = false
 	else:
 		var bgm_player: AudioStreamPlayer = player
+		# Revised 2026-10-11 (playlist): a song is one stream played once
+		# through; the director follows it with the next one.
 		var ogg: AudioStreamOggVorbis = bgm_player.stream as AudioStreamOggVorbis
-		if ogg == null or not ogg.loop:
+		if ogg == null or ogg.loop or main.get("_bgm_director") == null or (main.get("_bgm_director") as BgmDirector).song_count() < 2:
 			ok = false
 		if bgm_player.bus != "BGM":
 			ok = false
 		if not bgm_player.playing:
 			ok = false
 	main.free()
-	_case(ctx, "bgm_single_track_loops_on_bgm_bus", ok)
+	_case(ctx, "bgm_playlist_song_plays_on_bgm_bus", ok)
 
 
 # Revised 2026-10-10 (owner: decouple the assets into a resource pack): the sound

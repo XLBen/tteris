@@ -2,7 +2,7 @@ extends SceneTree
 ## Versus BGM lifecycle (S5 versus-bgm, G-BATTLE-EXPERIENCE-FIX O-01/BS-01).
 ##
 ## Asserts the headless-testable surface of the goal:
-##   a) entering the versus scene starts the korobeiniki loop on the BGM bus,
+##   a) entering the versus scene starts a song of the playlist on the BGM bus,
 ##   b) the player is invisible to ProjectMusicController's adoption hook
 ##      (autoplay stays off and the bus is never "Music", the two gates of
 ##      _node_matches_checks) and the controller holds no adopted player,
@@ -15,7 +15,9 @@ extends SceneTree
 
 const MODULE_NAME: String = "versus_bgm"
 
-const BGM_FILE: String = "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg"
+const BGM_DIR: String = "res://assets/audio/bgm/"
+const LEGACY_PACK_ID: String = "_test_one_song"
+const LEGACY_PACK_DIR: String = "user://packs/_test_one_song"
 const VERSUS_SCENE_PATH: String = "res://scenes/versus/versus.tscn"
 const MAIN_MENU_SCENE_PATH: String = "res://scenes/menus/main_menu/main_menu_with_animations.tscn"
 
@@ -38,6 +40,8 @@ static func run_module() -> Dictionary:
 	await _case_not_adopted_by_music_controller(ctx)
 	await _case_keeps_playing_across_rounds(ctx)
 	await _case_music_walks_the_tempo_ladder(ctx)
+	await _case_songs_follow_each_other_shuffled(ctx)
+	await _case_single_looping_song_pack(ctx)
 	await _case_no_playing_player_after_scene_exit(ctx)
 	await _case_main_menu_silent(ctx)
 	await _case_bgm_bus_compressor_restored(ctx)
@@ -90,7 +94,7 @@ static func _collect_playing_players(node: Node, into: Array) -> void:
 
 
 # ---------------------------------------------------------------------------
-# a) Entering the versus scene immediately plays the korobeiniki loop.
+# a) Entering the versus scene immediately plays a song of the playlist.
 static func _case_plays_on_enter(ctx: Dictionary) -> void:
 	var scene: Node = await _spawn_versus()
 	var ok: bool = scene != null
@@ -100,105 +104,213 @@ static func _case_plays_on_enter(ctx: Dictionary) -> void:
 	else:
 		var bgm: AudioStreamPlayer = player
 		ok = bgm.playing and bgm.bus == "BGM"
+		# A song is played once through; the next one follows it.
 		var ogg: AudioStreamOggVorbis = bgm.stream as AudioStreamOggVorbis
-		ok = ok and ogg != null and ogg.loop and ogg.resource_path == BGM_FILE
+		ok = ok and ogg != null and not ogg.loop and ogg.resource_path.begins_with(BGM_DIR)
 	if scene != null:
 		scene.free()
 	await _tree().process_frame
 	_reset_session()
-	_case(ctx, "versus_enter_starts_looping_korobeiniki_on_bgm_bus", ok)
+	_case(ctx, "versus_enter_starts_a_playlist_song_on_bgm_bus", ok)
 
 
 # ---------------------------------------------------------------------------
 # a2) The tempo ladder (BgmDirector; revised 2026-10-11, owner: a gradual
-#     change instead of a jump): the BGM loops its body past the intro, the
-#     faster tracks are the same bars at rising tempos, and a growing stack
-#     walks the music up one track per bar line, at the same point of the
-#     tune - and down again, without wavering at a boundary.
+#     change instead of a jump; 120 BPM at least and 180 when a stack is
+#     about to top out): every song of the playlist is six tracks, the same
+#     bars at rising tempos, and a growing stack walks the music up one track
+#     per bar line, at the same point of the tune - and down again, without
+#     wavering at a boundary.
 static func _case_music_walks_the_tempo_ladder(ctx: Dictionary) -> void:
 	var scene: Node = await _spawn_versus()
 	var ok: bool = scene != null and scene.get("_bgm_director") is BgmDirector
-	if ok:
-		var director: BgmDirector = scene.get("_bgm_director")
-		var calm: AudioStreamPlayer = scene.get("_bgm_player")
-		var keys: Array[String] = ["game", "game_rise_1", "game_rise_2", "game_rise_3", "game_rise_4", "game_danger"]
-		var top: int = keys.size() - 1
-		var offset: float = ResourcePack.music_number("game", "loop_offset", 0.0)
-		ok = director.level_count() == keys.size() and director.player(0) == calm and director.level() == 0
-		ok = ok and offset > 1.0 and is_equal_approx((calm.stream as AudioStreamOggVorbis).loop_offset, offset)
+	var songs: Array = ResourcePack.playlist()
+	ok = ok and songs.size() >= 2
+	for song: Dictionary in songs:
+		var tracks: Array = song["tracks"]
+		ok = ok and tracks.size() == 6 and not bool(song["loops"]) and int(song["bars"]) > 8
+		ok = ok and absf(float(tracks[0]["bpm"]) - 120.0) < 0.1 and absf(float(tracks[-1]["bpm"]) - 180.0) < 0.1
 		var last_bpm: float = 0.0
-		for i: int in (keys.size() if ok else 0):
-			var player: AudioStreamPlayer = director.player(i)
-			var ogg: AudioStreamOggVorbis = player.stream as AudioStreamOggVorbis
-			var bpm: float = ResourcePack.music_number(keys[i], "bpm", 0.0)
-			ok = ok and ogg != null and ogg.loop and player.bus == "BGM" and bpm > last_bpm
-			# A small step each time: no rung is more than 6 % faster than the last.
-			ok = ok and (i == 0 or bpm / last_bpm < 1.06)
+		for track: Dictionary in tracks:
+			var bpm: float = float(track["bpm"])
+			var ogg: AudioStreamOggVorbis = ResourcePack.music_file(String(track["file"])) as AudioStreamOggVorbis
+			# A small step each time: no rung is more than a tenth faster than the last.
+			ok = ok and ogg != null and bpm > last_bpm and (last_bpm == 0.0 or bpm / last_bpm <= 1.101)
 			last_bpm = bpm
 			if ogg == null:
 				continue
-			# Bar for bar the same music: 40 bars of four beats in every track.
-			var beats: float = (ogg.get_length() - (offset if i == 0 else 0.0)) * bpm / 60.0
-			ok = ok and absf(beats - 160.0) < 0.05
-			if i > 0:
-				ok = ok and not player.playing and player.get_parent() == director
-		if ok:
-			var calm_bpm: float = ResourcePack.music_number("game", "bpm", 0.0)
-			ok = absf(director.mapped_position(10.0, 0, top) - 10.0 * calm_bpm / 150.0) < 0.001 \
-				and absf(director.mapped_position(8.0, top, 0) - (offset + 8.0 * 150.0 / calm_bpm)) < 0.001
-			# Past the end of the tune the position wraps into the body.
-			ok = ok and absf(director.mapped_position(80.0 * 120.0 / calm_bpm + 1.0, 0, 0) - (offset + 1.0)) < 0.01
-			# Height to rung: calm up to CALM_ROWS, the top from DANGER_ROWS, up
-			# at once, down only a whole rung lower.
-			ok = ok and director.level_for_rows(BgmDirector.CALM_ROWS, 0) == 0 \
-				and director.level_for_rows(BgmDirector.CALM_ROWS + 1, 0) == 0 \
-				and director.level_for_rows(BgmDirector.CALM_ROWS + 2, 0) == 1 \
-				and director.level_for_rows(BgmDirector.DANGER_ROWS - 1, 0) == top - 1 \
-				and director.level_for_rows(BgmDirector.DANGER_ROWS, 0) == top \
-				and director.level_for_rows(40, 0) == top
-			ok = ok and director.level_for_rows(12, 3) == 3 and director.level_for_rows(11, 3) == 2 \
-				and director.level_for_rows(0, top) == 0
-			# A stack at the top: the music gets there one rung per bar line.
-			director.update_pressure(BgmDirector.DANGER_ROWS)
-			ok = ok and director.target_level() == top
-			director._process(0.01)
-			ok = ok and director.level() == 0 and director._switch_in >= 0.0 and director._switch_in <= 2.01
-			director._process(2.1)
-			ok = ok and director.level() == 1 and director.player(1).playing and calm.playing
-			# Mid-fade both are heard, neither at full level.
-			director._process(BgmDirector.FADE_SECONDS / 2.0)
-			ok = ok and director.player(1).volume_db < ResourcePack.music_volume("game_rise_1") \
-				and calm.volume_db > BgmDirector.SILENT_DB and calm.volume_db < ResourcePack.music_volume("game")
+			# Bar for bar the same music in every track, then three seconds
+			# in which it rings out.
+			var beats: float = (ogg.get_length() - 3.0) * bpm / 60.0
+			ok = ok and absf(beats - float(int(song["bars"]) * int(song["beats"]))) < 0.05
+	if ok:
+		var director: BgmDirector = scene.get("_bgm_director")
+		var top: int = director.level_count() - 1
+		var calm: AudioStreamPlayer = director.player(0)
+		var level_db: float = float(songs[director.song()]["volume_db"])
+		var bpm_calm: float = float(songs[director.song()]["tracks"][0]["bpm"])
+		var bpm_top: float = float(songs[director.song()]["tracks"][top]["bpm"])
+		ok = top == 5 and director.level() == 0 and director.current() == calm and scene.get("_bgm_player") == calm and calm.playing
+		for i: int in range(1, top + 1):
+			ok = ok and not director.player(i).playing and director.player(i).get_parent() == director and director.player(i).bus == "BGM"
+		ok = ok and absf(director.mapped_position(10.0, 0, top) - 10.0 * bpm_calm / bpm_top) < 0.001 \
+			and absf(director.mapped_position(8.0, top, 0) - 8.0 * bpm_top / bpm_calm) < 0.001
+		# Past the end of the tune the position wraps into the bars.
+		ok = ok and absf(director.mapped_position(director.body_seconds(0) + 1.0, 0, 0) - 1.0) < 0.01
+		# Height to rung: calm up to CALM_ROWS, the top from DANGER_ROWS, up
+		# at once, down only a whole rung lower.
+		ok = ok and director.level_for_rows(BgmDirector.CALM_ROWS, 0) == 0 \
+			and director.level_for_rows(BgmDirector.CALM_ROWS + 1, 0) == 0 \
+			and director.level_for_rows(BgmDirector.CALM_ROWS + 2, 0) == 1 \
+			and director.level_for_rows(BgmDirector.DANGER_ROWS - 1, 0) == top - 1 \
+			and director.level_for_rows(BgmDirector.DANGER_ROWS, 0) == top \
+			and director.level_for_rows(40, 0) == top
+		ok = ok and director.level_for_rows(12, 3) == 3 and director.level_for_rows(11, 3) == 2 \
+			and director.level_for_rows(0, top) == 0
+		# A stack at the top: the music gets there one rung per bar line.
+		director.update_pressure(BgmDirector.DANGER_ROWS)
+		ok = ok and director.target_level() == top
+		director._process(0.01)
+		ok = ok and director.level() == 0 and director._switch_in >= 0.0 and director._switch_in <= 2.01
+		director._process(2.1)
+		ok = ok and director.level() == 1 and director.player(1).playing and calm.playing
+		ok = ok and scene.get("_bgm_player") == director.player(1)
+		# Mid-fade both are heard, neither at full level.
+		director._process(BgmDirector.FADE_SECONDS / 2.0)
+		ok = ok and director.player(1).volume_db < level_db \
+			and calm.volume_db > BgmDirector.SILENT_DB and calm.volume_db < level_db
+		director._process(1.0)
+		ok = ok and is_equal_approx(director.player(1).volume_db, level_db) and not calm.playing
+		var steps: int = 1
+		for _i: int in 40:
+			var before: int = director.level()
 			director._process(1.0)
-			ok = ok and is_equal_approx(director.player(1).volume_db, ResourcePack.music_volume("game_rise_1")) \
-				and is_equal_approx(calm.volume_db, BgmDirector.SILENT_DB)
-			var steps: int = 1
-			for _i: int in 40:
-				var before: int = director.level()
-				director._process(1.0)
-				ok = ok and director.level() - before <= 1 and director.level() >= before
-				steps += director.level() - before
-			ok = ok and director.level() == top and steps == top and director.player(top).playing \
-				and is_equal_approx(director.player(top).volume_db, ResourcePack.music_volume("game_danger"))
-			for i: int in range(1, top):
-				ok = ok and not director.player(i).playing
-			# The stack is gone: down again the same way, and the calm stream,
-			# which never stopped, is the one left playing.
-			director.update_pressure(0)
-			director._process(0.01)
-			director._process(2.1)
-			ok = ok and director.level() == top - 1
-			for _i: int in 40:
-				director._process(1.0)
-			ok = ok and director.level() == 0 and calm.playing and is_equal_approx(calm.volume_db, ResourcePack.music_volume("game"))
-			for i: int in range(1, keys.size()):
-				ok = ok and not director.player(i).playing
+			ok = ok and director.level() - before <= 1 and director.level() >= before
+			steps += director.level() - before
+		ok = ok and director.level() == top and steps == top and director.player(top).playing \
+			and is_equal_approx(director.player(top).volume_db, level_db)
+		for i: int in top:
+			ok = ok and not director.player(i).playing
+		# The stack is gone: down again the same way.
+		director.update_pressure(0)
+		director._process(0.01)
+		director._process(2.1)
+		ok = ok and director.level() == top - 1
+		for _i: int in 40:
+			director._process(1.0)
+		ok = ok and director.level() == 0 and calm.playing and is_equal_approx(calm.volume_db, level_db)
+		for i: int in range(1, top + 1):
+			ok = ok and not director.player(i).playing
 	if scene != null:
 		scene.free()
 	await _tree().process_frame
 	_reset_session()
 	_case(ctx, "music_walks_the_tempo_ladder_a_bar_at_a_time", ok)
 	_case(ctx, "danger_track_switches_on_the_beat_and_back", ok)
+
+
+# ---------------------------------------------------------------------------
+# a3) The playlist (2026-10-11, owner: more songs, played at random with
+#     equal weight, the change from one to the next made good): where a
+#     song's bars end the next one starts on the same rung while the old
+#     track rings out; the order is a shuffled bag - every song once a round,
+#     never the same one twice in a row.
+static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
+	var scene: Node = await _spawn_versus()
+	var ok: bool = scene != null and scene.get("_bgm_director") is BgmDirector
+	if ok:
+		var director: BgmDirector = scene.get("_bgm_director")
+		var count: int = director.song_count()
+		ok = count == ResourcePack.playlist().size() and count >= 2
+		# The change keeps the rung, and the song that ends is left to ring.
+		director.update_pressure(BgmDirector.CALM_ROWS + 2)
+		director._process(0.01)
+		director._process(2.1)
+		director._process(1.0)
+		var ending: AudioStreamPlayer = director.current()
+		var coming: int = director.coming_song()
+		ok = ok and director.level() == 1 and coming != director.song()
+		director.next_song()
+		ok = ok and director.song() == coming and director.level() == 1 and director.level_count() == 6
+		ok = ok and director.current() != ending and director.current().playing and is_instance_valid(ending) and ending.playing
+		ok = ok and is_equal_approx(director.current().volume_db, float(ResourcePack.playlist()[coming]["volume_db"]))
+		ok = ok and director.song_title() == String(ResourcePack.playlist()[coming]["title"]) and director.song_title() != ""
+		# The end of the bars is what triggers it: nothing while there is
+		# music left, the change once there is none.
+		var before: int = director.song()
+		director._process(0.016)
+		ok = ok and director.song() == before
+		var body: float = director.body_seconds(1)
+		ok = ok and body > 20.0 and not director.bars_over(0.0, 1) and not director.bars_over(body - 0.5, 1) 			and director.bars_over(body - 0.002, 1) and director.bars_over(body + 1.0, 1)
+		# Three rounds of the shuffle, from the start of a round: each one
+		# plays every song once.
+		for _i: int in count * 2:
+			if director._bag.size() == count - 1:
+				break
+			director.next_song()
+		ok = ok and director._bag.size() == count - 1
+		var played: Array[int] = []
+		var previous: int = director.song()
+		for _i: int in count * 3:
+			director.next_song()
+			ok = ok and director.song() != previous
+			previous = director.song()
+			played.append(previous)
+		for song: int in count:
+			ok = ok and played.count(song) == 3
+	if scene != null:
+		scene.free()
+	await _tree().process_frame
+	_reset_session()
+	_case(ctx, "songs_follow_each_other_in_a_shuffled_bag", ok)
+
+
+# ---------------------------------------------------------------------------
+# a4) A pack that names its music the older way - one stream, "game", with
+#     faster versions - still plays: that stream loops by itself.
+static func _case_single_looping_song_pack(ctx: Dictionary) -> void:
+	var file: String = String(ResourcePack.playlist()[0]["tracks"][0]["file"])
+	var fast: String = String(ResourcePack.playlist()[0]["tracks"][-1]["file"])
+	var enabled: Array = ResourcePack.enabled_ids()
+	DirAccess.make_dir_recursive_absolute(LEGACY_PACK_DIR)
+	var manifest: FileAccess = FileAccess.open(LEGACY_PACK_DIR + "/pack.json", FileAccess.WRITE)
+	manifest.store_string(JSON.stringify({
+		"format": 1,
+		"name": "One Song",
+		"music": {
+			"game": {"file": file, "volume_db": -9, "bpm": 120, "loop_offset": 4.0},
+			"game_danger": {"file": fast, "bpm": 180},
+		},
+	}))
+	manifest.close()
+	ResourcePack.set_enabled([LEGACY_PACK_ID], false)
+	var songs: Array = ResourcePack.playlist()
+	var ok: bool = songs.size() == 1 and bool(songs[0]["loops"]) and (songs[0]["tracks"] as Array).size() == 2
+	var scene: Node = await _spawn_versus()
+	if ok and scene != null:
+		var director: BgmDirector = scene.get("_bgm_director")
+		var ogg: AudioStreamOggVorbis = director.current().stream as AudioStreamOggVorbis
+		ok = director.song_count() == 1 and director.level_count() == 2 and director.current().playing
+		ok = ok and ogg != null and ogg.loop and is_equal_approx(ogg.loop_offset, 4.0) and ogg.resource_path == file
+		ok = ok and is_equal_approx(director.current().volume_db, -9.0)
+		# It goes round by itself: no change of song is waiting at any point.
+		director._process(0.016)
+		ok = ok and director.song() == 0 and director.current().stream == ogg
+	else:
+		ok = false
+	if scene != null:
+		scene.free()
+	await _tree().process_frame
+	ResourcePack.set_enabled(enabled, false)
+	DirAccess.remove_absolute(LEGACY_PACK_DIR + "/pack.json")
+	DirAccess.remove_absolute(LEGACY_PACK_DIR)
+	# The playlist's streams are shared: give them back as the playlist wants them.
+	var shared: AudioStream = ResourcePack.music_file(file)
+	if shared != null:
+		shared.set("loop", false)
+		shared.set("loop_offset", 0.0)
+	_reset_session()
+	_case(ctx, "pack_with_one_looping_stream_still_plays", ok)
 
 
 # ---------------------------------------------------------------------------
@@ -219,7 +331,7 @@ static func _case_not_adopted_by_music_controller(ctx: Dictionary) -> void:
 		if adopted is AudioStreamPlayer:
 			var music_player: AudioStreamPlayer = adopted
 			var stream: AudioStream = music_player.stream
-			if music_player.playing or (stream != null and stream.resource_path == BGM_FILE):
+			if music_player.playing or (stream != null and stream.resource_path.begins_with(BGM_DIR)):
 				(ctx["lines"] as Array).append("DETAIL: music controller holds %s playing=%s" % [
 					music_player.name, str(music_player.playing)])
 				ok = false

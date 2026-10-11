@@ -1,31 +1,50 @@
 class_name BgmDirector
 extends Node
-## Speeds the game's music up as a stack grows, one small step at a time.
+## Plays the pack's playlist: one song after another in random order, each as
+## often as the others, and each sped up as a stack grows, one small step at
+## a time.
 ##
-## The pack's music is a ladder of tracks that are the same music bar for bar
-## at rising tempos: "game" (the calm one, which may have an intro before its
-## `loop_offset`), then "game_rise_1", "game_rise_2", ... as far as the pack
-## goes, then "game_danger" on top. Each names its `bpm`. The height of the
+## A song (ResourcePack.playlist()) is a ladder of tracks that are the same
+## music bar for bar at rising tempos, the calm one first. The height of the
 ## tallest stack picks a rung; the music walks there one rung per bar, each
 ## step taken on a bar line and landing on the same point of the tune in the
-## next track under a short cross-fade - an accelerando, not a jump. A pack
-## with only "game" never changes tempo.
+## next track under a short cross-fade - an accelerando, not a jump.
 ##
-## The scene owns the calm player (it is the one stream that plays from launch)
-## and reports the stack height every frame through update_pressure().
+## A track holds its song once through and then rings out. Where its bars
+## end the next song starts on the same rung, in time, while the old track's
+## ringing dies away over it: changing songs is the same as playing on. The
+## order is a shuffled bag - every song once before any comes again, never
+## the same one twice in a row. A pack whose music is a single looping
+## stream (the older "music" section) just goes round.
+##
+## The scene reports the stack height every frame through update_pressure().
 
 ## Rows of stack (plus incoming garbage) up to which the calm track plays, and
 ## from which the top of the ladder does; the rungs between are spread evenly.
 const CALM_ROWS: int = 8
 const DANGER_ROWS: int = 16
-const BEATS_PER_BAR: float = 4.0
 const FADE_SECONDS: float = 0.35
 const SILENT_DB: float = -60.0
-const RISE_KEY: String = "game_rise_%d"
-const DANGER_KEY: String = "game_danger"
+## The next song is started when less than this is left of the bars. A
+## started stream is heard from the next block the audio driver mixes, so
+## the change lands within about a hundredth of a second of the bar line
+## (tools/bgm_smoke.gd measures it).
+const HANDOFF_SECONDS: float = 0.004
 
-## The ladder, calm first: {player, db, bpm, offset}.
+var _bus: StringName = &"BGM"
+var _songs: Array = []
+## Songs still to come in this round of the shuffle, and the one drawn next.
+var _bag: Array[int] = []
+var _song: int = -1
+var _coming: int = -1
+## Files of the coming song still to be read, one a frame.
+var _warming: Array[String] = []
+## The ladder of the song that plays, calm first: {player, bpm}.
 var _tracks: Array[Dictionary] = []
+var _db: float = 0.0
+var _beats: float = 4.0
+var _bars: int = 0
+var _offset: float = 0.0
 ## The rung that plays, the one the stack asks for, and the one fading out.
 var _level: int = 0
 var _target: int = 0
@@ -33,46 +52,39 @@ var _previous: int = 0
 ## Seconds until the pending step (the next bar line); negative when none.
 var _switch_in: float = -1.0
 var _fade: float = 1.0
+var _random: RandomNumberGenerator = RandomNumberGenerator.new()
 
 
-## Takes over the scene's calm player (stream and volume already set).
-func setup(calm_player: AudioStreamPlayer) -> void:
-	var offset: float = ResourcePack.music_number("game", "loop_offset", 0.0)
-	if calm_player.stream != null and "loop_offset" in calm_player.stream:
-		calm_player.stream.set("loop_offset", offset)
-	_tracks = [{
-		"player": calm_player,
-		"db": ResourcePack.music_volume("game"),
-		"bpm": ResourcePack.music_number("game", "bpm", 120.0),
-		"offset": offset,
-	}]
-	# Only tracks of the pack the calm one comes from: a pack that replaces
-	# the music must not be mixed with another pack's faster versions.
-	var owner_id: String = ResourcePack.music_pack("game")
-	var keys: Array[String] = []
-	var rung: int = 1
-	while ResourcePack.music_pack(RISE_KEY % rung) == owner_id and owner_id != "":
-		keys.append(RISE_KEY % rung)
-		rung += 1
-	if owner_id != "" and ResourcePack.music_pack(DANGER_KEY) == owner_id:
-		keys.append(DANGER_KEY)
-	for key: String in keys:
-		var track: AudioStream = ResourcePack.music(key)
-		var bpm: float = ResourcePack.music_number(key, "bpm", 0.0)
-		if track == null or bpm <= 0.0:
-			continue
-		if "loop" in track:
-			track.set("loop", true)
-		var player: AudioStreamPlayer = AudioStreamPlayer.new()
-		player.name = key.to_pascal_case()
-		player.stream = track
-		player.bus = calm_player.bus
-		player.volume_db = SILENT_DB
-		add_child(player)
-		_tracks.append({"player": player, "db": ResourcePack.music_volume(key), "bpm": bpm, "offset": 0.0})
+## Starts the music on `bus` with a song picked at random.
+func setup(bus: StringName = &"BGM") -> void:
+	_bus = bus
+	_songs = ResourcePack.playlist()
+	_random.randomize()
+	if _songs.is_empty():
+		return
+	_coming = _draw()
+	_start_song(0)
 
 
-## Rungs of the ladder (1 when the pack has only the calm track).
+func song_count() -> int:
+	return _songs.size()
+
+
+## Index (in the pack's playlist) and title of the song that plays.
+func song() -> int:
+	return _song
+
+
+func song_title() -> String:
+	return String(_songs[_song]["title"]) if _song >= 0 else ""
+
+
+## The song that follows the one playing.
+func coming_song() -> int:
+	return _coming
+
+
+## Rungs of the playing song's ladder (1 when it has only the calm track).
 func level_count() -> int:
 	return _tracks.size()
 
@@ -91,27 +103,59 @@ func player(index: int) -> AudioStreamPlayer:
 	return _tracks[index]["player"]
 
 
+## The player that carries the music now; null without music.
+func current() -> AudioStreamPlayer:
+	return player(_level) if not _tracks.is_empty() else null
+
+
 ## Reports the tallest stack in play (rows, incoming garbage included).
 func update_pressure(rows: int) -> void:
 	_target = level_for_rows(rows, _target)
 
 
-## The rung for a stack of `rows`, coming from rung `current`: up as soon as a
-## rung's height is reached, down only once the stack is a whole rung lower,
-## so a stack hovering at a boundary does not make the music waver.
-func level_for_rows(rows: int, current: int) -> int:
+## The rung for a stack of `rows`, coming from rung `current_level`: up as
+## soon as a rung's height is reached, down only once the stack is a whole
+## rung lower, so a stack hovering at a boundary does not make the music waver.
+func level_for_rows(rows: int, current_level: int) -> int:
 	var top: int = _tracks.size() - 1
 	if top <= 0:
 		return 0
 	var want: float = float(rows - CALM_ROWS) / float(DANGER_ROWS - CALM_ROWS) * float(top)
-	if floori(want) > current:
+	if floori(want) > current_level:
 		return mini(top, floori(want))
-	if want <= float(current - 1):
+	if want <= float(current_level - 1):
 		return maxi(0, ceili(want))
-	return current
+	return current_level
+
+
+## Seconds the bars of the playing song take on rung `index` (0 for a stream
+## that loops by itself).
+func body_seconds(index: int) -> float:
+	return float(_bars) * _beats * 60.0 / float(_tracks[index]["bpm"])
+
+
+## Whether the bars of the playing song are over `position` seconds into its
+## track `index` (never, for a stream that loops by itself).
+func bars_over(position: float, index: int) -> bool:
+	return _bars > 0 and body_seconds(index) - position <= HANDOFF_SECONDS
+
+
+## Ends the playing song here and starts the next one of the shuffle.
+func next_song() -> void:
+	if _songs.is_empty():
+		return
+	_start_song(_level)
 
 
 func _process(delta: float) -> void:
+	if _tracks.is_empty():
+		return
+	if not _warming.is_empty():
+		ResourcePack.music_file(_warming.pop_back())
+	# The bars are over: the next song comes in on the same rung.
+	if current().playing and bars_over(_tune_position(_level), _level):
+		_start_song(_level)
+		return
 	if _tracks.size() < 2:
 		return
 	if _fade < 1.0:
@@ -124,28 +168,100 @@ func _process(delta: float) -> void:
 			if _target != _level:
 				_step(_level + signi(_target - _level))
 		return
-	if _target != _level and _fade >= 1.0:
+	var wanted: int = mini(_target, _tracks.size() - 1)
+	if wanted != _level and _fade >= 1.0:
 		# Wait for the bar line the playing track is about to reach.
-		var bar: float = 60.0 * BEATS_PER_BAR / float(_tracks[_level]["bpm"])
+		var bar: float = 60.0 * _beats / float(_tracks[_level]["bpm"])
 		_switch_in = bar - fposmod(_tune_position(_level), bar)
 
 
-## Where track `index` is in the tune, in its own seconds past its intro.
+## The next song of the shuffle: every song once a round, in random order,
+## and not the one that has just played.
+func _draw() -> int:
+	if _bag.is_empty():
+		for index: int in _songs.size():
+			_bag.append(index)
+		for index: int in range(_bag.size() - 1, 0, -1):
+			var other: int = _random.randi_range(0, index)
+			var held: int = _bag[index]
+			_bag[index] = _bag[other]
+			_bag[other] = held
+		# The bag is drawn from its end.
+		if _bag.size() > 1 and _bag[-1] == _coming:
+			_bag[-1] = _bag[0]
+			_bag[0] = _coming
+	return _bag.pop_back()
+
+
+## Starts the coming song on rung `level` (or its highest), leaving the one
+## that played to ring out.
+func _start_song(on_level: int) -> void:
+	for index: int in _tracks.size():
+		var old: AudioStreamPlayer = _tracks[index]["player"]
+		if index == _level and old.playing and _bars > 0:
+			# Its reverb and echo die away over the new song.
+			old.finished.connect(old.queue_free)
+		else:
+			old.stop()
+			old.queue_free()
+	_song = _coming
+	_coming = _draw()
+	var playing: Dictionary = _songs[_song]
+	_db = float(playing["volume_db"])
+	_beats = float(playing["beats"])
+	_bars = int(playing["bars"])
+	_offset = float(playing["offset"])
+	_tracks = []
+	for track: Dictionary in playing["tracks"]:
+		var stream: AudioStream = ResourcePack.music_file(String(track["file"]))
+		if stream == null:
+			continue
+		# Every stream type the packs support loops through this property.
+		if "loop" in stream:
+			stream.set("loop", bool(playing["loops"]))
+		if _tracks.is_empty() and "loop_offset" in stream:
+			stream.set("loop_offset", _offset)
+		var added: AudioStreamPlayer = AudioStreamPlayer.new()
+		added.stream = stream
+		added.bus = _bus
+		added.volume_db = SILENT_DB
+		add_child(added)
+		_tracks.append({"player": added, "bpm": float(track["bpm"])})
+	_warming = []
+	for track: Dictionary in _songs[_coming]["tracks"]:
+		_warming.append(String(track["file"]))
+	_switch_in = -1.0
+	_fade = 1.0
+	if _tracks.is_empty():
+		return
+	_level = clampi(on_level, 0, _tracks.size() - 1)
+	_previous = _level
+	var starting: AudioStreamPlayer = _tracks[_level]["player"]
+	starting.volume_db = _db
+	# play() reports "Playback can only happen when a node is inside the
+	# scene tree" when the scene is detached (tests call _ready() directly).
+	if starting.is_inside_tree():
+		starting.play()
+
+
+## Where track `index` is in the song, in its own seconds past its intro.
 func _tune_position(index: int) -> float:
 	var playing: AudioStreamPlayer = _tracks[index]["player"]
 	if not playing.playing:
 		return 0.0
 	var position: float = playing.get_playback_position() + AudioServer.get_time_since_last_mix()
-	return maxf(0.0, position - float(_tracks[index]["offset"]))
+	return maxf(0.0, position - (_offset if index == 0 else 0.0))
 
 
-## The stream position in track `to` of the point of the tune that is
+## The stream position in track `to` of the point of the song that is
 ## `position` seconds past the intro of track `from`.
 func mapped_position(position: float, from: int, to: int) -> float:
-	var offset: float = float(_tracks[to]["offset"])
+	var offset: float = _offset if to == 0 else 0.0
 	var target: float = position * float(_tracks[from]["bpm"]) / float(_tracks[to]["bpm"])
-	var stream: AudioStream = (_tracks[to]["player"] as AudioStreamPlayer).stream
-	var body: float = (stream.get_length() if stream != null else 0.0) - offset
+	var body: float = body_seconds(to)
+	if _bars <= 0:
+		var stream: AudioStream = (_tracks[to]["player"] as AudioStreamPlayer).stream
+		body = (stream.get_length() if stream != null else 0.0) - offset
 	if body > 0.0:
 		target = fposmod(target, body)
 	return offset + target
@@ -168,21 +284,17 @@ func _step(to: int) -> void:
 
 ## Equal-power cross-fade from the previous rung to the playing one.
 func _apply_fade() -> void:
-	var incoming: Dictionary = _tracks[_level]
-	var outgoing: Dictionary = _tracks[_previous]
 	var turn: float = _fade * PI / 2.0
-	(incoming["player"] as AudioStreamPlayer).volume_db = maxf(SILENT_DB, float(incoming["db"]) + linear_to_db(maxf(sin(turn), 0.0001)))
+	player(_level).volume_db = maxf(SILENT_DB, _db + linear_to_db(maxf(sin(turn), 0.0001)))
 	if _previous == _level:
 		return
-	(outgoing["player"] as AudioStreamPlayer).volume_db = maxf(SILENT_DB, float(outgoing["db"]) + linear_to_db(maxf(cos(turn), 0.0001)))
+	player(_previous).volume_db = maxf(SILENT_DB, _db + linear_to_db(maxf(cos(turn), 0.0001)))
 	if _fade >= 1.0:
 		_rest(_previous)
 
 
-## Silences a rung that is no longer heard. The faster tracks stop; the calm
-## one keeps its place in the scene as the stream that never stops.
+## Silences a rung that is no longer heard.
 func _rest(index: int) -> void:
-	var resting: AudioStreamPlayer = _tracks[index]["player"]
+	var resting: AudioStreamPlayer = player(index)
 	resting.volume_db = SILENT_DB
-	if index > 0:
-		resting.stop()
+	resting.stop()

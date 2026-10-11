@@ -73,7 +73,10 @@ var _lines_value: Label
 var _level_value: Label
 var _sfx: Dictionary = {}
 var _background: TextureRect
-var _bgm_player: AudioStreamPlayer
+## The player that carries the music now (it changes with the tempo and the song).
+var _bgm_player: AudioStreamPlayer:
+	get:
+		return _bgm_director.current() if _bgm_director != null else null
 var _bgm_director: BgmDirector
 var _font: Font
 var _font_mini: Font
@@ -659,25 +662,11 @@ func _setup_background() -> void:
 
 
 func _setup_bgm() -> void:
-	_bgm_player = AudioStreamPlayer.new()
-	var track: AudioStream = ResourcePack.music("game")
-	if track != null:
-		# Every stream type the packs support loops through this property.
-		if "loop" in track:
-			track.set("loop", true)
-		_bgm_player.stream = track
-	_bgm_player.bus = "BGM"
-	_bgm_player.volume_db = ResourcePack.music_volume("game")
-	add_child(_bgm_player)
-	# play() reports "Playback can only happen when a node is inside the
-	# scene tree" when the scene is detached (tests call _ready() directly);
-	# the real startup path is already in-tree here, so BGM still plays.
-	if _bgm_player.is_inside_tree():
-		_bgm_player.play()
-	# The faster versions and the walk between them (see BgmDirector).
+	# The playlist, the walk up and down each song's tempo ladder and the
+	# change from one song to the next: see BgmDirector.
 	_bgm_director = BgmDirector.new()
 	add_child(_bgm_director)
-	_bgm_director.setup(_bgm_player)
+	_bgm_director.setup(&"BGM")
 
 
 ## Game-over panel: the pack's "result_panel" layout on its own layer above

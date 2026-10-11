@@ -84,7 +84,10 @@ var _round_over_timer: float = 0.0
 var _countdown_shown: int = 0
 var _result_sounded: bool = false
 var _pause_menu: PopupWindowPanel
-var _bgm_player: AudioStreamPlayer
+## The player that carries the music now (it changes with the tempo and the song).
+var _bgm_player: AudioStreamPlayer:
+	get:
+		return _bgm_director.current() if _bgm_director != null else null
 var _bgm_director: BgmDirector
 ## Tallest stack (plus incoming garbage) seen by this frame's refresh.
 var _frame_pressure: int = 0
@@ -591,23 +594,11 @@ func _add_bgm_sidechain(bgm_bus: int) -> void:
 
 
 func _setup_bgm() -> void:
-	_bgm_player = AudioStreamPlayer.new()
-	var track: AudioStream = ResourcePack.music("game")
-	if track != null:
-		if "loop" in track:
-			track.set("loop", true)
-		_bgm_player.stream = track
-	_bgm_player.bus = "BGM"
-	_bgm_player.volume_db = ResourcePack.music_volume("game")
-	add_child(_bgm_player)
-	# play() reports "Playback can only happen when a node is inside the
-	# scene tree" when the scene is detached (tests call _ready() directly).
-	if _bgm_player.is_inside_tree():
-		_bgm_player.play()
-	# The faster versions and the walk between them (see BgmDirector).
+	# The playlist, the walk up and down each song's tempo ladder and the
+	# change from one song to the next: see BgmDirector.
 	_bgm_director = BgmDirector.new()
 	add_child(_bgm_director)
-	_bgm_director.setup(_bgm_player)
+	_bgm_director.setup(&"BGM")
 
 
 func _load_sfx() -> void:

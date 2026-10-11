@@ -100,7 +100,10 @@ static func _case_default_pack_covers_every_scene_request(ctx: Dictionary) -> vo
 			ok = ok and ResourcePack.sound(event) != null
 	for event: String in ["ui_focus", "ui_press"]:
 		ok = ok and ResourcePack.sound(event) != null
-	ok = ok and ResourcePack.music("game") != null
+	ok = ok and ResourcePack.playlist().size() >= 2
+	for song: Dictionary in ResourcePack.playlist():
+		for track: Dictionary in song["tracks"]:
+			ok = ok and ResourcePack.music_file(String(track["file"])) != null
 	for key: String in ["main", "mini", "mono"]:
 		ok = ok and ResourcePack.font(key) is FontFile
 	for key: String in ["background", "orb"]:

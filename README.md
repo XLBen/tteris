@@ -39,7 +39,7 @@ Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,
 & "<godot>" --headless --path . --script res://tests/run_all.gd
 ```
 
-Expected: `ALL TESTS PASSED (281)`, exit code 0, about three minutes. One module:
+Expected: `ALL TESTS PASSED (283)`, exit code 0, about three minutes. One module:
 `--script res://tests/test_menu.gd`. After editing a script:
 `--headless --check-only --script res://scripts/<file>.gd`; after editing scenes
 or resources: `--headless --editor --quit`.
@@ -53,7 +53,7 @@ or resources: `--headless --editor --quit`.
 | `scripts/lan_session.gd` | the LAN link: the host runs the battle and sends it, the guest sends keys |
 | `scripts/board.gd`, `tetromino.gd`, `srs.gd`, `scoring.gd` | the rules of the game |
 | `scripts/board_fx.gd` | board feedback: drawn effects and the pack's sprite effects |
-| `scripts/bgm_director.gd` | music that speeds up with the stack |
+| `scripts/bgm_director.gd` | the playlist: songs in random order, each sped up with the stack |
 | `scripts/resource_pack.gd`, `pack_runtime.gd` | resource packs |
 | `scripts/ui/` | binding scripts of the pack's screen layouts |
 | `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit); `mode_select/` is the play screen behind New Game |
@@ -68,7 +68,8 @@ or resources: `--headless --editor --quit`.
 | Tool | Makes |
 |---|---|
 | `tools/fx_studio/` | the Pixel FX pack, the animated title and the animated backdrop: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
-| `tools/make_coldwar_bgm.py` | the six BGM tracks (numpy, scipy, ffmpeg) |
+| `tools/make_bgm.py` | the BGM: every song at six tempos (numpy, scipy, ffmpeg) |
+| `tools/bgm_smoke.gd` | measures the change from one song to the next |
 | `tools/make_default_sfx.py`, `make_default_blocks.py` | the default pack's sounds and block atlas |
 | `tools/build_default_layouts.gd` | the default pack's screen layouts (`--headless --script`) |
 | `tools/ai_arena.gd`, `tspin_lab.gd` | AI match statistics and T-spin positions (`--headless --script`) |
@@ -76,14 +77,17 @@ or resources: `--headless --editor --quit`.
 | `tools/isolated_delivery_check.py` | imports and tests a clean copy of the project |
 | `tools/check_audio_assets.py`, `install_audio_assets.py` | audio records in `assets/assets-*.json` |
 
-After re-rendering the BGM, update its sha256 records in
+After re-rendering the BGM, let Godot import the files and run
+`python tools/make_bgm.py --records`: it rewrites their sha256 records in
 `assets/assets-measurements.json` (`tests/test_music.gd` checks them).
 
 ## Assets and licenses
 
 - Fonts, background, particle textures and the interface sounds: Kenney, CC0.
-- Music: the project's own synth arrangement of Korobeiniki (public-domain
-  melody), `assets/audio/bgm/LICENSE-bgm-coldwar-synth.txt`.
+- Music: the project's own synth arrangements of seven public-domain Russian
+  tunes (Korobeiniki, Kalinka, By the Long Road, God Save the Tsar!, The
+  Great Gate of Kiev, Song of the Volga Boatmen, On the Hills of Manchuria),
+  `assets/audio/bgm/LICENSE-bgm.txt`.
 - Maaack's Godot Game Template and marinho/godot-visual-effects: MIT, records in
   `docs/vendor/` and in each addon.
 - Sources and hashes of every asset: `assets/assets-provenance.json`,

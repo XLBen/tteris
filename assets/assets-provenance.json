@@ -22,34 +22,178 @@
 			"modifications": []
 		},
 		{
-			"source": "tools/make_coldwar_bgm.py (rendered locally, no download)",
+			"source": "tools/make_bgm.py (rendered locally, no download)",
 			"author": "Project",
-			"license": "original arrangement and synthesis made for this project; the underlying melody, Korobeiniki, is a public-domain Russian folk song",
+			"license": "original arrangement and synthesis made for this project; the underlying melodies are in the public domain: Korobeiniki (Russian folk song (19th century)); Kalinka (Ivan Larionov, 1860); By the Long Road (Boris Fomin, 1924 (Dorogoi dlinnoyu)); God Save the Tsar! (Alexei Lvov, 1833); The Great Gate of Kiev (Modest Mussorgsky, Pictures at an Exhibition, 1874); Song of the Volga Boatmen (Russian folk song, published by Mily Balakirev in 1866); On the Hills of Manchuria (Ilya Shatrov, 1906)",
 			"dest": "res://assets/audio/bgm",
 			"modifications": [
 				{
-					"file": "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg",
-					"note": "1980s-synth arrangement of Korobeiniki (A minor, 120 BPM): a 4-bar intro (8 s) and a 40-bar body (80 s) whose tails are folded onto its own first bar; the game loops the body through the stream loop offset named in packs/default/pack.json. Synthesized by tools/make_coldwar_bgm.py with numpy/scipy and encoded with ffmpeg libvorbis q6 (44.1 kHz stereo); byte sha256 bound in assets/assets-measurements.json; replaced the maki ligon arrangement on 2026-10-10 (owner decision), whose file and license record were moved out of the project"
+					"file": "res://assets/audio/bgm/korobeiniki-120.ogg",
+					"note": "Korobeiniki, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article"
 				},
 				{
-					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-1.ogg",
-					"note": "the same 40 bars at 126 BPM, rung 1 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+					"file": "res://assets/audio/bgm/korobeiniki-132.ogg",
+					"note": "Korobeiniki, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article"
 				},
 				{
-					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-2.ogg",
-					"note": "the same 40 bars at 132 BPM, rung 2 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+					"file": "res://assets/audio/bgm/korobeiniki-144.ogg",
+					"note": "Korobeiniki, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article"
 				},
 				{
-					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-3.ogg",
-					"note": "the same 40 bars at 138 BPM, rung 3 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+					"file": "res://assets/audio/bgm/korobeiniki-156.ogg",
+					"note": "Korobeiniki, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article"
 				},
 				{
-					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-4.ogg",
-					"note": "the same 40 bars at 144 BPM, rung 4 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+					"file": "res://assets/audio/bgm/korobeiniki-168.ogg",
+					"note": "Korobeiniki, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article"
 				},
 				{
-					"file": "res://assets/audio/bgm/korobeiniki-coldwar-danger.ogg",
-					"note": "the same 40 bars at 150 BPM (64 s, loops whole), the top of the ladder, rendered by the same script; scripts/bgm_director.gd walks the ladder one track per bar, each step on a bar line at the same point of the tune, as the tallest stack grows and shrinks"
+					"file": "res://assets/audio/bgm/korobeiniki-180.ogg",
+					"note": "Korobeiniki, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article"
+				},
+				{
+					"file": "res://assets/audio/bgm/kalinka-120.ogg",
+					"note": "Kalinka, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/Kalinka.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/kalinka-132.ogg",
+					"note": "Kalinka, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/Kalinka.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/kalinka-144.ogg",
+					"note": "Kalinka, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/Kalinka.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/kalinka-156.ogg",
+					"note": "Kalinka, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/Kalinka.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/kalinka-168.ogg",
+					"note": "Kalinka, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/Kalinka.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/kalinka-180.ogg",
+					"note": "Kalinka, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/Kalinka.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/long-road-120.ogg",
+					"note": "By the Long Road, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/DorogoyDalnoyu.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/long-road-132.ogg",
+					"note": "By the Long Road, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/DorogoyDalnoyu.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/long-road-144.ogg",
+					"note": "By the Long Road, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/DorogoyDalnoyu.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/long-road-156.ogg",
+					"note": "By the Long Road, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/DorogoyDalnoyu.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/long-road-168.ogg",
+					"note": "By the Long Road, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/DorogoyDalnoyu.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/long-road-180.ogg",
+					"note": "By the Long Road, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/DorogoyDalnoyu.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/god-save-the-tsar-120.ogg",
+					"note": "God Save the Tsar!, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article and The Everyday Song Book (1927) in John Chambers' ABC collection"
+				},
+				{
+					"file": "res://assets/audio/bgm/god-save-the-tsar-132.ogg",
+					"note": "God Save the Tsar!, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article and The Everyday Song Book (1927) in John Chambers' ABC collection"
+				},
+				{
+					"file": "res://assets/audio/bgm/god-save-the-tsar-144.ogg",
+					"note": "God Save the Tsar!, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article and The Everyday Song Book (1927) in John Chambers' ABC collection"
+				},
+				{
+					"file": "res://assets/audio/bgm/god-save-the-tsar-156.ogg",
+					"note": "God Save the Tsar!, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article and The Everyday Song Book (1927) in John Chambers' ABC collection"
+				},
+				{
+					"file": "res://assets/audio/bgm/god-save-the-tsar-168.ogg",
+					"note": "God Save the Tsar!, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article and The Everyday Song Book (1927) in John Chambers' ABC collection"
+				},
+				{
+					"file": "res://assets/audio/bgm/god-save-the-tsar-180.ogg",
+					"note": "God Save the Tsar!, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article and The Everyday Song Book (1927) in John Chambers' ABC collection"
+				},
+				{
+					"file": "res://assets/audio/bgm/great-gate-120.ogg",
+					"note": "The Great Gate of Kiev, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article (the opening eight bars)"
+				},
+				{
+					"file": "res://assets/audio/bgm/great-gate-132.ogg",
+					"note": "The Great Gate of Kiev, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article (the opening eight bars)"
+				},
+				{
+					"file": "res://assets/audio/bgm/great-gate-144.ogg",
+					"note": "The Great Gate of Kiev, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article (the opening eight bars)"
+				},
+				{
+					"file": "res://assets/audio/bgm/great-gate-156.ogg",
+					"note": "The Great Gate of Kiev, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article (the opening eight bars)"
+				},
+				{
+					"file": "res://assets/audio/bgm/great-gate-168.ogg",
+					"note": "The Great Gate of Kiev, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article (the opening eight bars)"
+				},
+				{
+					"file": "res://assets/audio/bgm/great-gate-180.ogg",
+					"note": "The Great Gate of Kiev, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against the score of the English Wikipedia article (the opening eight bars)"
+				},
+				{
+					"file": "res://assets/audio/bgm/volga-boatmen-120.ogg",
+					"note": "Song of the Volga Boatmen, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against an ABC transcription mirrored in John Chambers' collection (musicaviva.com, the refrain)"
+				},
+				{
+					"file": "res://assets/audio/bgm/volga-boatmen-132.ogg",
+					"note": "Song of the Volga Boatmen, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against an ABC transcription mirrored in John Chambers' collection (musicaviva.com, the refrain)"
+				},
+				{
+					"file": "res://assets/audio/bgm/volga-boatmen-144.ogg",
+					"note": "Song of the Volga Boatmen, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against an ABC transcription mirrored in John Chambers' collection (musicaviva.com, the refrain)"
+				},
+				{
+					"file": "res://assets/audio/bgm/volga-boatmen-156.ogg",
+					"note": "Song of the Volga Boatmen, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against an ABC transcription mirrored in John Chambers' collection (musicaviva.com, the refrain)"
+				},
+				{
+					"file": "res://assets/audio/bgm/volga-boatmen-168.ogg",
+					"note": "Song of the Volga Boatmen, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against an ABC transcription mirrored in John Chambers' collection (musicaviva.com, the refrain)"
+				},
+				{
+					"file": "res://assets/audio/bgm/volga-boatmen-180.ogg",
+					"note": "Song of the Volga Boatmen, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against an ABC transcription mirrored in John Chambers' collection (musicaviva.com, the refrain)"
+				},
+				{
+					"file": "res://assets/audio/bgm/manchuria-120.ogg",
+					"note": "On the Hills of Manchuria, 1980s-synth arrangement at 120 BPM (rung 0 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/ManchurianHills.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/manchuria-132.ogg",
+					"note": "On the Hills of Manchuria, 1980s-synth arrangement at 132 BPM (rung 1 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/ManchurianHills.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/manchuria-144.ogg",
+					"note": "On the Hills of Manchuria, 1980s-synth arrangement at 144 BPM (rung 2 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/ManchurianHills.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/manchuria-156.ogg",
+					"note": "On the Hills of Manchuria, 1980s-synth arrangement at 156 BPM (rung 3 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/ManchurianHills.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/manchuria-168.ogg",
+					"note": "On the Hills of Manchuria, 1980s-synth arrangement at 168 BPM (rung 4 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/ManchurianHills.abc)"
+				},
+				{
+					"file": "res://assets/audio/bgm/manchuria-180.ogg",
+					"note": "On the Hills of Manchuria, 1980s-synth arrangement at 180 BPM (rung 5 of the six-track ladder from calm to danger): the song once through and three seconds of ringing; notes checked against John Chambers' ABC collection (trillian.mit.edu/~jc/music/abc/Russia/ManchurianHills.abc)"
 				}
 			]
 		},

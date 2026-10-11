@@ -2,7 +2,7 @@ extends SceneTree
 
 const MODULE_NAME: String = "music"
 
-const BGM_FILE: String = "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg"
+const BGM_FILE: String = "res://assets/audio/bgm/korobeiniki-120.ogg"
 const BGM_DIR_SUBSTRING: String = "assets/audio/bgm/"
 const OLD_JINGLE_SUBSTRING: String = "assets/music/bgm.ogg"
 const OLD_JINGLE_DIR_SUBSTRING: String = "assets/music/"
@@ -13,9 +13,12 @@ const MIX_SETTLE_SECONDS: float = 0.2
 # ONE looping stream on the BGM bus replaces them (runtime stream.loop, played
 # from launch), with the SFX sidechain compressor on the BGM bus retained.
 # Revised 2026-10-10 (owner decision): that stream is the project's own synth
-# arrangement rendered by tools/make_coldwar_bgm.py (record:
-# assets/audio/bgm/LICENSE-bgm-coldwar-synth.txt); byte sha256 bound in
+# arrangement rendered by tools/make_bgm.py (record:
+# assets/audio/bgm/LICENSE-bgm.txt); byte sha256 bound in
 # assets/assets-measurements.json.
+# Revised 2026-10-11 (owner decision): a playlist of songs in that
+# arrangement, one playing at a time (scripts/bgm_director.gd): the stream is
+# a song of the default pack's playlist, played once through, not looped.
 const MAGORY_FILENAMES: Array[String] = [
 	"going_undercover-loop1.ogg",
 	"hostile_territory-loop1.ogg",
@@ -96,14 +99,14 @@ static func _case_single_bgm_stream_looped_on_bgm_bus(ctx: Dictionary) -> void:
 		if bgm_player.bus != "BGM":
 			ok = false
 		var ogg: AudioStreamOggVorbis = bgm_player.stream as AudioStreamOggVorbis
-		if ogg == null or not ogg.loop:
+		if ogg == null or ogg.loop:
 			ok = false
-		elif ogg.resource_path != BGM_FILE:
+		elif not text.contains(ogg.resource_path) or not ogg.resource_path.contains(BGM_DIR_SUBSTRING):
 			ok = false
 		if not bgm_player.playing:
 			ok = false
 	main.free()
-	_case(ctx, "single_bgm_stream_looped_on_bgm_bus", ok)
+	_case(ctx, "single_bgm_stream_of_the_playlist_on_bgm_bus", ok)
 
 
 static func _case_old_jingle_unreferenced_and_unplayed(ctx: Dictionary) -> void:
@@ -207,12 +210,20 @@ static func _case_removed_tier_files_absent_and_unreferenced(ctx: Dictionary) ->
 static func _case_bgm_file_sha256_bound_to_measurements(ctx: Dictionary) -> void:
 	var ok: bool = true
 	var records: Dictionary = _load_measurement_records()
-	var record: Variant = records.get(BGM_FILE)
-	if typeof(record) != TYPE_DICTIONARY:
-		ok = false
-	else:
+	# Every track of every song of the playlist is bound.
+	var files: Array[String] = [BGM_FILE]
+	for song: Dictionary in ResourcePack.playlist():
+		for track: Dictionary in song["tracks"]:
+			if not files.has(String(track["file"])):
+				files.append(String(track["file"]))
+	ok = files.size() >= 12
+	for file: String in files:
+		var record: Variant = records.get(file)
+		if typeof(record) != TYPE_DICTIONARY:
+			ok = false
+			continue
 		var rec: Dictionary = record
-		var actual_sha: String = FileAccess.get_sha256(BGM_FILE).to_lower()
+		var actual_sha: String = FileAccess.get_sha256(file).to_lower()
 		var recorded_sha: String = String(rec.get("sha256", "")).to_lower()
 		if actual_sha.length() != 64 or recorded_sha != actual_sha:
 			ok = false

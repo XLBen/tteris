@@ -12,7 +12,10 @@ extends RefCounted
 ## them top to bottom and ends at the default pack.
 ## pack.json sections (all optional except in the default pack):
 ##   sounds    event -> "file" or {"file": ..., "volume_db": ...}
-##   music     track -> same shape as a sound
+##   playlist  the game's music: a list of songs, each a ladder of tracks at
+##             rising tempos. See playlist() and scripts/bgm_director.gd.
+##   music     the older way to name the music: one song, "game" and its
+##             faster versions "game_rise_1".. and "game_danger"
 ##   fonts     main / mini / mono -> file
 ##   textures  background / orb -> file
 ##   colors    name -> "#rrggbb" or "#rrggbbaa"
@@ -214,33 +217,83 @@ static func sound_volume(key: String) -> float:
 	return _volume("sounds", key)
 
 
-static func music(key: String) -> AudioStream:
-	return _resource("music", key) as AudioStream
-
-
-static func music_volume(key: String) -> float:
-	return _volume("music", key)
-
-
-## A number of a music entry (`bpm`, `loop_offset`), from the pack that
-## provides the track's file; `fallback` when it names none.
-static func music_number(key: String, field: String, fallback: float) -> float:
+## The game's music, from the top-most pack that names any: a list of songs,
+## each {title, beats (per bar), bars, volume_db, loops, offset, tracks}.
+## `tracks` is the song's ladder, calm first: [{file, bpm}], bar for bar the
+## same music at rising tempos. A song with `bars` is played once through and
+## followed by another (its file may ring on past its bars); one with `loops`
+## (the older "music" section: "game", "game_rise_N", "game_danger") is a
+## single stream that goes round by itself from `offset` seconds.
+static func playlist() -> Array:
 	ensure_loaded()
+	if _cache.has("playlist"):
+		return _cache["playlist"]
+	var songs: Array = []
 	for pack: Dictionary in _stack:
-		var entry: Dictionary = _entry("music", key, pack["manifest"])
-		if entry.is_empty():
+		var manifest: Dictionary = pack["manifest"]
+		var listed: Variant = manifest.get("playlist")
+		for value: Variant in (listed as Array) if listed is Array else []:
+			if not (value is Dictionary):
+				continue
+			var tracks: Array = _tracks((value as Dictionary).get("tracks"), String(pack["dir"]))
+			var bars: int = int((value as Dictionary).get("bars", 0))
+			if tracks.is_empty() or bars <= 0:
+				continue
+			songs.append({
+				"title": String((value as Dictionary).get("title", "")),
+				"beats": clampi(int((value as Dictionary).get("beats", 4)), 1, 16),
+				"bars": bars,
+				"volume_db": float((value as Dictionary).get("volume_db", 0.0)),
+				"loops": false,
+				"offset": 0.0,
+				"tracks": tracks,
+			})
+		if songs.is_empty():
+			var game: Dictionary = _entry("music", "game", manifest)
+			var named: Array = [game]
+			var rung: int = 1
+			while not _entry("music", "game_rise_%d" % rung, manifest).is_empty():
+				named.append(_entry("music", "game_rise_%d" % rung, manifest))
+				rung += 1
+			named.append(_entry("music", "game_danger", manifest))
+			var tracks: Array = _tracks(named if not game.is_empty() else [], String(pack["dir"]))
+			if not tracks.is_empty() and String(tracks[0]["file"]) == _resolve(String(game.get("file", "")), String(pack["dir"])):
+				songs.append({
+					"title": "",
+					"beats": 4,
+					"bars": 0,
+					"volume_db": float(game.get("volume_db", 0.0)),
+					"loops": true,
+					"offset": float(game.get("loop_offset", 0.0)),
+					"tracks": tracks,
+				})
+		if not songs.is_empty():
+			break
+	_cache["playlist"] = songs
+	return songs
+
+
+## The usable tracks of a ladder: files that exist, each naming its tempo
+## (the first one may leave it out).
+static func _tracks(listed: Variant, pack_dir: String) -> Array:
+	var tracks: Array = []
+	for value: Variant in (listed as Array) if listed is Array else []:
+		if not (value is Dictionary):
 			continue
-		return float(entry.get(field, fallback))
-	return fallback
+		var file: String = _resolve(String((value as Dictionary).get("file", "")), pack_dir)
+		var bpm: float = float((value as Dictionary).get("bpm", 120.0 if tracks.is_empty() else 0.0))
+		if bpm <= 0.0 or file.is_empty() or not (FileAccess.file_exists(file) or ResourceLoader.exists(file)):
+			continue
+		tracks.append({"file": file, "bpm": bpm})
+	return tracks
 
 
-## The id of the pack that provides a music track ("" when none does).
-static func music_pack(key: String) -> String:
-	ensure_loaded()
-	for pack: Dictionary in _stack:
-		if not _entry("music", key, pack["manifest"]).is_empty():
-			return String(pack["id"])
-	return ""
+## The stream of a music file named by playlist(), read once.
+static func music_file(path: String) -> AudioStream:
+	var cache_key: String = "file/" + path
+	if not _cache.has(cache_key):
+		_cache[cache_key] = _load_file(path)
+	return _cache[cache_key] as AudioStream
 
 
 ## Events a pack can give a sprite animation (scripts/board_fx.gd plays them).

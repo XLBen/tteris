@@ -118,30 +118,49 @@ Names: `panel` (windows), `card` (HUD cards), `button`, `button_hover`,
 
 ### Music
 
+The music is a playlist: songs played one after another in random order, each
+as often as the others (every song once before any comes again).
+
+```json
+"playlist": [
+	{"title": "Theme", "beats": 4, "bars": 34, "volume_db": -13, "tracks": [
+		{"file": "music/theme_120.ogg", "bpm": 120},
+		{"file": "music/theme_150.ogg", "bpm": 150},
+		{"file": "music/theme_180.ogg", "bpm": 180}
+	]},
+	{"title": "Waltz", "beats": 3, "bars": 52, "volume_db": -12, "tracks": [{"file": "music/waltz.ogg", "bpm": 120}]}
+]
+```
+
+- `tracks` is the song at rising tempos, the calm one first (one track is
+  enough). The tallest stack (rows, incoming garbage included) picks one - the
+  first up to 8 rows, the last from 16, the others spread evenly between - and
+  the music walks there one track per bar: each step is taken on a bar line
+  and lands on the same point of the tune in the next track. So all tracks of
+  a song must hold the same bars and name their `bpm`. Small tempo steps sound
+  like a gradual speed-up; one big step sounds like a jump.
+- `bars` (of `beats` beats each) is how long the song is. A file may go on
+  past them - let its reverb ring out there: where the bars end the next song
+  starts in time, on the same rung of its own ladder, while the old file
+  plays to its end over it. Start every song on its first beat, with no
+  silence before it.
+- A pack with a playlist replaces the whole playlist; songs of different
+  packs are never mixed.
+
+The older form still works - one stream that loops by itself, with optional
+faster versions (`loop_offset`: seconds where it starts again after its first
+pass, so an intro before it is heard once):
+
 ```json
 "music": {
 	"game": {"file": "music/theme.ogg", "volume_db": -13, "bpm": 120, "loop_offset": 8.0},
-	"game_rise_1": {"file": "music/theme_130.ogg", "volume_db": -13, "bpm": 130},
-	"game_rise_2": {"file": "music/theme_140.ogg", "volume_db": -13, "bpm": 140},
-	"game_danger": {"file": "music/theme_fast.ogg", "volume_db": -13, "bpm": 150}
+	"game_rise_1": {"file": "music/theme_130.ogg", "bpm": 130},
+	"game_danger": {"file": "music/theme_fast.ogg", "bpm": 150}
 }
 ```
 
-- `game` plays from the start of a game and loops. `loop_offset` (seconds) is
-  where it starts again after its first pass: put an intro before it and the
-  intro is heard once.
-- `game_rise_1`, `game_rise_2`, ... (as many as you like, numbered without a
-  gap) and `game_danger` are optional: faster versions of the same music, in
-  rising order, `game_danger` the fastest. The tallest stack (rows, incoming
-  garbage included) picks one - `game` up to 8 rows, the last one from 16, the
-  others spread evenly between - and the music walks there one track per bar:
-  each step is taken on a bar line of the playing track and lands on the same
-  point of the tune in the next one. So all of them must hold the same bars -
-  `game` after its `loop_offset`, the others from their start - in 4/4, and
-  name their `bpm`. Small tempo steps (about 5 %) sound like a gradual
-  speed-up; one big step sounds like a jump.
-- A pack that provides `game` uses only its own faster versions; the default
-  pack's are never mixed with another pack's music.
+The default pack's songs are rendered by `tools/make_bgm.py`: adding a tune
+there is a line of notes and a line of chords.
 
 ### Sound events
 

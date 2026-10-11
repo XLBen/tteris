@@ -150,7 +150,9 @@ Names: `panel` (windows), `card` (HUD cards), `button`, `button_hover`,
 | `move`, `rotate`, `hold` | the piece is moved, rotated, swapped with Hold |
 | `lock`, `hard_drop` | a piece locks by itself / is hard dropped |
 | `clear` | 1-3 lines cleared (pitched up with the line count) |
-| `tetris`, `tspin`, `perfect_clear` | the special clears |
+| `tetris`, `perfect_clear` | four lines at once / the board emptied |
+| `tspin_mini`, `tspin`, `tspin_double`, `tspin_triple` | a T-spin mini / a T-spin with 0-1 lines / with 2 / with 3 |
+| `b2b` | on top of a clear that keeps a Back-to-Back chain going |
 | `combo` | every clear of a running combo (pitched up with the combo) |
 | `level_up`, `game_over` | classic mode |
 | `attack`, `garbage` | versus: rows sent / rows received |

@@ -80,6 +80,9 @@ extends RefCounted
 
 ## Fastest key repeat the AI may reach when gravity compresses a plan.
 const MIN_KEY_INTERVAL: float = 1.0 / 60.0
+## Even the fastest piece (a burst, right after a hold) is looked at for a
+## moment before its first key.
+const MIN_THINK_INTERVAL: float = 0.04
 ## Share of the time-to-touch-down a plan may spend before its hard drop.
 const GRAVITY_SAFETY: float = 0.7
 ## Per-piece tempo variation (fraction of the piece budget), seeded.
@@ -192,7 +195,12 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"danger_soft_rows": 12,
 	},
 	&"lunatic": {
-		"pps": 2.0,
+		# 2.5 on average: about 2.2 between bursts, 5 inside them (see
+		# _schedule_beats).
+		"pps": 2.5,
+		"burst_pps": 5.0,
+		"burst_share": 0.2,
+		"burst_pieces": [6, 10],
 		"think_share": 0.3,
 		"error_rate": 0.0,
 		"error_pool": 2,
@@ -260,6 +268,17 @@ const DANGER_RELEASE_ROWS: int = 4
 ## usual time a piece gets (a player in trouble plays faster).
 const DANGER_PEAK_WEIGHT: int = 60
 const DANGER_PACE: float = 0.8
+## A burst is this much likelier to start on a piece planned under pressure.
+const BURST_PRESSURE_FACTOR: float = 3.0
+## Pieces the pace is averaged over, the share of the time lost (or gained)
+## over them that one piece makes up for, and the largest share of a piece's
+## time that may change.
+## Share of the plan's simulation budget a piece inside a burst gets: played
+## on instinct, and planned fast enough to keep the burst's pace on screen.
+const BURST_SIM_SHARE: float = 0.5
+const PACE_WINDOW: int = 24
+const PACE_CORRECTION: float = 0.25
+const PACE_CORRECTION_MAX: float = 0.3
 ## Upper bound of the constructive shaping term (S3c): at most this many
 ## spin-ready shapes are paid for per after-board, so rewarding ragged
 ## terrain can never out-bribe the height/hole survival terms.
@@ -295,6 +314,20 @@ var _side: int
 ## _schedule_beats. tick() issues at most one action per frame.
 var _beat_timer: float = 0.0
 var _pps: float = 0.9
+## Bursts (profile keys burst_pps, burst_share, burst_pieces): a run of pieces
+## played at burst_pps. `pps` stays the average, so the pace between bursts
+## (_cruise_pps) is a little under it. 0 = the tier never bursts.
+var _burst_pps: float = 0.0
+var _cruise_pps: float = 0.9
+var _burst_chance: float = 0.0
+var _burst_pieces: Array = [6, 10]
+var _burst_left: int = 0
+var _bursts_started: int = 0
+var _burst_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+## When the last PACE_WINDOW pieces were planned: a bursting tier steers its
+## cruise pace by them, so its average holds at `pps` whatever the bursts,
+## the hold swaps and the frame rate did to it.
+var _pace_marks: Array[float] = []
 var _think_share: float = 0.4
 var _think_interval: float = 0.4
 var _key_interval: float = 0.15
@@ -356,6 +389,7 @@ var _mistakes_made: int = 0
 var _hold_policy: StringName = &"none"
 var _hold_gain_margin: int = 0
 var _plan_sim_budget: int = 320
+var _full_sim_budget: int = 320
 var _held_this_drop: bool = false
 var _hold_swap_pending: bool = false
 var _awaiting_hold_swap: bool = false
@@ -415,6 +449,17 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_profile = DIFFICULTY_PROFILES[&"normal"] if profile.is_empty() else profile
 	_pps = maxf(0.05, float(_profile.get("pps", 0.9)))
 	_think_share = clampf(float(_profile.get("think_share", 0.4)), 0.05, 0.9)
+	_burst_pps = float(_profile.get("burst_pps", 0.0))
+	_cruise_pps = _pps
+	if _burst_pps > _pps:
+		# `share` of the pieces at burst_pps and the rest at the cruise pace
+		# average out to `pps`; a burst starts on a cruise piece with the
+		# chance that makes bursts that share of all pieces.
+		var share: float = clampf(float(_profile.get("burst_share", 0.2)), 0.0, 0.9)
+		_burst_pieces = _profile.get("burst_pieces", _burst_pieces)
+		var mean_length: float = (float(_burst_pieces[0]) + float(_burst_pieces[1])) / 2.0
+		_cruise_pps = (1.0 - share) / (1.0 / _pps - share / _burst_pps)
+		_burst_chance = share / ((1.0 - share) * mean_length)
 	_error_rate = float(_profile.get("error_rate", 0.0))
 	_error_pool = int(_profile.get("error_pool", 2))
 	_error_max_drop = int(_profile.get("error_max_drop", 300))
@@ -431,6 +476,7 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_hold_policy = StringName(_profile.get("hold_policy", &"none"))
 	_hold_gain_margin = int(_profile.get("hold_gain_margin", 0))
 	_plan_sim_budget = int(_profile.get("plan_sim_budget", 320))
+	_full_sim_budget = _plan_sim_budget
 	_tspin_policy = StringName(_profile.get("tspin_policy", &"none"))
 	_tspin_bonus = int(_profile.get("tspin_bonus", 0))
 	_tslot_notch = int(_profile.get("tslot_notch", 0))
@@ -444,12 +490,23 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_style_noise = int(_profile.get("style_noise", 0))
 	_rng.seed = rng_seed
 	_style_rng.seed = hash([rng_seed, "style"])
+	_burst_rng.seed = hash([rng_seed, "burst"])
 
 
 ## Read-only view of the active difficulty profile (versus.gd and the tests
 ## read it back; callers must not mutate it).
 func profile() -> Dictionary:
 	return _profile
+
+
+## True while the AI plays a burst (pieces at the profile's burst_pps).
+func in_burst() -> bool:
+	return _burst_left > 0
+
+
+## Bursts started so far.
+func bursts_started() -> int:
+	return _bursts_started
 
 
 ## Number of new pieces this AI has planned (one per _build_plan call).
@@ -650,13 +707,35 @@ func _schedule_beats(piece: Tetromino, swapped_in: bool) -> void:
 	var pos: Vector2i = _battle.piece_pos(_side)
 	var turn: int = (_plan_rotation - piece.rotation + 4) % 4
 	var keys: int = (1 if turn == 3 else turn) + absi(_plan_x - pos.x) + 1
-	var budget: float = (1.0 / _pps) * (1.0 + _rng.randf_range(-PACE_JITTER, PACE_JITTER))
+	var pace: float = _cruise_pps
+	if _burst_chance > 0.0 and not swapped_in:
+		# Bursts have their own random stream: the plan's stays aligned.
+		if _burst_left > 0:
+			_burst_left -= 1
+			pace = _burst_pps
+		elif _burst_rng.randf() < _burst_chance * (BURST_PRESSURE_FACTOR if _ctx_danger else 1.0):
+			_burst_left = _burst_rng.randi_range(int(_burst_pieces[0]), int(_burst_pieces[1])) - 1
+			_bursts_started += 1
+			pace = _burst_pps
+	elif _burst_left > 0:
+		pace = _burst_pps
+	var budget: float = (1.0 / pace) * (1.0 + _rng.randf_range(-PACE_JITTER, PACE_JITTER))
+	if _burst_chance > 0.0:
+		# A piece swapped in by hold is the same placement as the one it replaced.
+		if not swapped_in:
+			_pace_marks.append(_sim_time)
+		if _pace_marks.size() > PACE_WINDOW:
+			_pace_marks.pop_front()
+		if pace < _burst_pps and _pace_marks.size() >= 4:
+			var late: float = _sim_time - _pace_marks[0] - float(_pace_marks.size() - 1) / _pps
+			budget -= clampf(late * PACE_CORRECTION, -PACE_CORRECTION_MAX * budget, PACE_CORRECTION_MAX * budget)
+			budget = maxf(budget, 1.0 / _burst_pps)
 	if swapped_in:
 		budget *= 0.5
-	if _ctx_danger:
+	if _ctx_danger and pace < _burst_pps:
 		budget *= DANGER_PACE
 	var key: float = maxf(MIN_KEY_INTERVAL, budget * (1.0 - _think_share) / float(keys))
-	var think: float = maxf(0.0, budget - key * float(keys - 1))
+	var think: float = maxf(MIN_THINK_INTERVAL, budget - key * float(keys - 1))
 	# Sideways moves must finish while the piece is still above every column,
 	# or the stack's peaks wall it in.
 	var bottom: int = pos.y
@@ -716,6 +795,7 @@ func _build_plan(piece: Tetromino) -> void:
 	_plan_x = _battle.piece_pos(_side).x
 	_pieces_planned += 1
 	_plan_sims = 0
+	_plan_sim_budget = int(float(_full_sim_budget) * (BURST_SIM_SHARE if _burst_left > 0 else 1.0))
 	_awaiting_hold_swap = false
 	_hold_wait_steps = 0
 	_spin_plan = false

@@ -30,7 +30,7 @@ const NEXT_COUNT: int = 5
 const ROUND_OVER_DELAY: float = 2.0
 const COUNTDOWN_SECONDS: float = 3.0
 ## Time each AI may spend planning per frame (see VersusAI.frame_budget_usec).
-const AI_FRAME_BUDGET_USEC: int = 4000
+const AI_FRAME_BUDGET_USEC: int = 6000
 ## The stack is "in danger" once it (plus the incoming garbage) reaches this
 ## many rows.
 const DANGER_STACK_ROWS: int = 15
@@ -42,6 +42,7 @@ const MODE_SELECT_SCENE: String = "res://scenes/menus/mode_select/mode_select.ts
 ## that hits it and the match flow make sound; the right board stays silent.
 const SFX_EVENTS: Array[String] = [
 	"move", "rotate", "hold", "hard_drop", "lock", "clear", "tetris", "tspin",
+	"tspin_mini", "tspin_double", "tspin_triple", "b2b",
 	"perfect_clear", "combo", "attack", "garbage", "countdown", "go", "ko",
 	"win", "lose", "pause", "resume",
 ]
@@ -351,7 +352,7 @@ func _handle_events() -> void:
 					_play_clear_sfx(event)
 			&"spin":
 				if mine:
-					_play_sfx("tspin")
+					_play_sfx(BoardFX.clear_sound(0, int(event["t_spin"]), false))
 				var words: Array[String] = BoardFX.callout(0, int(event["t_spin"]), false, 0, false)
 				view.fx.popup(words[0], words[1], BoardFX.callout_color(0, int(event["t_spin"]), false))
 			&"garbage":
@@ -367,18 +368,15 @@ func _handle_events() -> void:
 	_play_result_sfx()
 
 
-## One main sound per clear (the rarest thing that happened), a combo pluck
+## One main sound per clear (BoardFX.clear_sound: every special clear has its
+## own), the Back-to-Back stinger on top when the chain pays, a combo pluck
 ## that climbs in pitch while the combo runs, and a whoosh when rows are sent.
 func _play_clear_sfx(event: Dictionary) -> void:
 	var lines: int = int(event["lines"])
-	if bool(event["perfect_clear"]):
-		_play_sfx("perfect_clear")
-	elif int(event["t_spin"]) != Scoring.TSpinKind.NONE:
-		_play_sfx("tspin")
-	elif lines >= 4:
-		_play_sfx("tetris")
-	else:
-		_play_sfx("clear", 1.0 + 0.08 * float(lines - 1))
+	var sound: String = BoardFX.clear_sound(lines, int(event["t_spin"]), bool(event["perfect_clear"]))
+	_play_sfx(sound, 1.0 + 0.08 * float(lines - 1) if sound == "clear" else 1.0)
+	if bool(event["b2b"]):
+		_play_sfx("b2b")
 	var combo: int = int(event["combo"])
 	if combo >= 2:
 		_play_sfx("combo", minf(COMBO_PITCH_MAX, 1.0 + COMBO_PITCH_STEP * float(combo - 1)))

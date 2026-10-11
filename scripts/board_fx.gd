@@ -459,6 +459,18 @@ static func callout(lines: int, t_spin: int, b2b: bool, combo: int, perfect_clea
 	return [text, "  ".join(parts)]
 
 
+## The sound event of a clear (or of a T-spin without lines): the rarest
+## thing that happened names it. Every kind of special clear has its own.
+static func clear_sound(lines: int, t_spin: int, perfect_clear: bool) -> String:
+	if perfect_clear:
+		return "perfect_clear"
+	if t_spin == Scoring.TSpinKind.MINI:
+		return "tspin_mini"
+	if t_spin == Scoring.TSpinKind.FULL:
+		return "tspin_triple" if lines >= 3 else ("tspin_double" if lines == 2 else "tspin")
+	return "tetris" if lines >= 4 else "clear"
+
+
 ## Color tier for a call-out: bigger events run warmer.
 static func callout_color(lines: int, t_spin: int, perfect_clear: bool) -> Color:
 	if perfect_clear:

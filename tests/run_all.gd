@@ -58,17 +58,24 @@ func _initialize() -> void:
 	var total: int = 0
 	var failed: int = 0
 	var lines: Array[String] = []
+	# Some modules enable packs the way the pack screen does, which is saved:
+	# the player's own choice is put back when the run is over.
+	var player_packs: Array[String] = ResourcePack.enabled_ids()
 	for path: String in MODULE_PATHS:
 		var script: GDScript = load(path) as GDScript
 		if script == null:
 			print("FAILED: load %s" % path)
 			quit(1)
 			return
+		# Every module starts on the default pack alone, whatever packs the
+		# player has enabled in the saved settings.
+		ResourcePack.set_enabled([], false)
 		var result: Dictionary = await script.run_module()
 		total += int(result["total"])
 		failed += int(result["failed"])
 		for line: String in (result["lines"] as Array):
 			lines.append(line)
+	ResourcePack.set_enabled(player_packs)
 	for line: String in lines:
 		print(line)
 	if failed > 0:

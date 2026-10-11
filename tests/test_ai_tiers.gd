@@ -58,6 +58,7 @@ static func run_module() -> Dictionary:
 		second[tier] = ARENA.solo(tier, 1, SEED + 1, SOLO_SECONDS, TICK)
 		fast[tier] = ARENA.solo(tier, 10, SEED, SOLO_SECONDS, TICK)
 	_case_measured_speed_matches_profile(ctx, solo)
+	_case_lunatic_bursts_to_twice_its_average(ctx, solo)
 	_case_every_tier_uses_hold(ctx, solo)
 	_case_seed_gives_each_cpu_its_own_game(ctx)
 	_case_keys_follow_a_think_beat_one_per_tick(ctx, solo)
@@ -177,6 +178,29 @@ static func _case_measured_speed_matches_profile(ctx: Dictionary, solo: Dictiona
 		var target: float = float(_profile(tier)["pps"])
 		ok = ok and absf(_pps(solo[tier]) - target) <= PPS_TOLERANCE * target
 	_case(ctx, "measured_pieces_per_second_match_the_profile", ok)
+
+
+## Lunatic (2026-10-12, owner: 2.5 on average, 5 at its fastest): the tier
+## plays runs of pieces at its burst pace and still averages its profile pps;
+## no other tier bursts.
+static func _case_lunatic_bursts_to_twice_its_average(ctx: Dictionary, solo: Dictionary) -> void:
+	var profile: Dictionary = _profile(&"lunatic")
+	var ok: bool = is_equal_approx(float(profile["pps"]), 2.5) and is_equal_approx(float(profile["burst_pps"]), 5.0)
+	for tier: StringName in [&"easy", &"normal", &"hard"]:
+		ok = ok and not _profile(tier).has("burst_pps")
+	ok = ok and absf(_pps(solo[&"lunatic"]) - 2.5) <= 0.25
+	# The fastest run of eight pieces, from the journal's piece entries. The
+	# tests tick at 30 Hz, where a key costs a whole tick: on a 60 Hz screen
+	# the same burst is faster.
+	var stamps: Array[float] = []
+	for entry: Dictionary in solo[&"lunatic"]["log"]:
+		if entry["kind"] == &"piece":
+			stamps.append(float(entry["t"]))
+	var best: float = 0.0
+	for i: int in range(8, stamps.size()):
+		best = maxf(best, 8.0 / (stamps[i] - stamps[i - 8]))
+	ok = ok and best >= 4.0
+	_case(ctx, "lunatic_averages_2_5_and_bursts_far_above_it", ok)
 
 
 ## Per piece: the first key comes after a think beat, never in the tick the

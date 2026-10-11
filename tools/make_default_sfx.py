@@ -2,8 +2,10 @@
 
     python tools/make_default_sfx.py
 
-Writes 44.1 kHz 16-bit mono WAV files to packs/default/sounds/. Every sound is
-generated from the recipes below (no samples, no downloads), so the set is
+Writes 44.1 kHz 16-bit mono WAV files to packs/default/sounds/. The set is a
+casino floor - chips and cards for the pieces, bells for the clears, a reel
+spinning up for a T-spin, a cash register for Back-to-Back, coins paying out
+for the big ones. Every sound is generated from the recipes below (no samples, no downloads), so the set is
 ours to ship and anybody can retune it: edit a recipe, rerun, reimport.
 The output is deterministic (the noise generator is seeded).
 """
@@ -108,56 +110,123 @@ def finish(samples, peak=0.7):
     return out
 
 
+# --- the casino floor: bells, coins, chips, reels ---------------------------
+def bell(seconds, f, decay=None, gain=1.0, bright=1.0):
+    """A struck bell: inharmonic partials, the high ones dying first."""
+    decay = seconds / 3.0 if decay is None else decay
+    partials = [(1.0, 1.0, 1.0), (2.0, 0.55, 0.7), (2.76, 0.4, 0.5), (5.4, 0.22 * bright, 0.3), (8.93, 0.1 * bright, 0.18)]
+    return mix(*[(0.0, tone(seconds, f * ratio, shape="sine", attack=0.001, decay=decay * life, gain=gain * level))
+                 for ratio, level, life in partials if f * ratio < 18000.0])
+
+
+def bells(names, step, length, decay=None, gain=1.0):
+    """A run of bells, one every `step` seconds."""
+    return mix(*[(i * step, bell(length, hz(name), decay=decay, gain=gain)) for i, name in enumerate(names)])
+
+
+def trill(names, step, count, gain=1.0):
+    """The win bell: two notes hammered in turn."""
+    return mix(*[(i * step, bell(step * 3.0, hz(names[i % len(names)]), decay=step * 0.9, gain=gain)) for i in range(count)])
+
+
+def coin(f=4200.0, gain=1.0):
+    """One coin on metal: three high partials that ring for a moment."""
+    return mix((0.0, tone(0.14, f, shape="sine", attack=0.0005, decay=0.035, gain=gain)),
+               (0.0, tone(0.14, f * 1.48, shape="sine", attack=0.0005, decay=0.026, gain=gain * 0.7)),
+               (0.0, tone(0.1, f * 2.31, shape="sine", attack=0.0005, decay=0.014, gain=gain * 0.4)))
+
+
+def coins(count, span, seed, gain=1.0):
+    """A payout: `count` coins falling over `span` seconds, thinning out."""
+    rng = random.Random(seed)
+    return mix(*[(span * rng.random() ** 1.6, coin(rng.uniform(3300.0, 5600.0), gain * rng.uniform(0.5, 1.0))) for _ in range(count)])
+
+
+def click(f, gain=1.0):
+    """A chip, a card edge, one tooth of a reel."""
+    return tone(0.014, f, f * 0.6, "tri", attack=0.0005, decay=0.0035, gain=gain)
+
+
+def reel(seconds, f0, f1, gain=1.0):
+    """A reel spinning up: clicks that get closer and higher."""
+    layers = []
+    t = 0.0
+    while t < seconds:
+        k = t / seconds
+        layers.append((t, click(f0 * (f1 / f0) ** k, gain * (0.5 + 0.5 * k))))
+        t += 0.026 - 0.014 * k
+    return mix(*layers)
+
+
 def recipes():
     r = {}
-    # --- piece handling: short, soft, never tiring ---------------------------
-    r["move"] = tone(0.035, 1150, 900, "tri", attack=0.001, decay=0.010)
-    r["rotate"] = mix((0.0, tone(0.03, 720, shape="tri", attack=0.001, decay=0.012)),
-                      (0.022, tone(0.05, 1080, shape="tri", attack=0.001, decay=0.016)))
-    r["hold"] = mix((0.0, tone(0.11, 480, 960, "sine", decay=0.05)),
-                    (0.0, noise(0.11, 900, 4000, attack=0.02, decay=0.05, gain=0.25, seed=3)))
-    r["lock"] = mix((0.0, tone(0.09, 170, 85, "sine", attack=0.001, decay=0.03)),
-                    (0.0, noise(0.03, 2500, 600, attack=0.0005, decay=0.008, gain=0.35, seed=4)))
-    r["hard_drop"] = mix((0.0, tone(0.16, 150, 48, "sine", attack=0.001, decay=0.05, curve=0.5)),
-                         (0.0, noise(0.09, 5000, 300, attack=0.0005, decay=0.02, gain=0.55, seed=5)),
-                         (0.0, tone(0.03, 900, 300, "tri", attack=0.0005, decay=0.008, gain=0.3)))
-    # --- clears ---------------------------------------------------------------
-    r["clear"] = mix((0.0, notes(["C6", "E6", "G6"], 0.045, 0.22, "tri", decay=0.07)),
-                     (0.0, noise(0.12, 6000, 9000, attack=0.002, decay=0.03, gain=0.12, seed=6)))
-    r["tetris"] = mix((0.0, notes(["C5", "E5", "G5", "C6"], 0.06, 0.3, "square", decay=0.09, gain=0.8)),
-                      (0.24, chord(["C6", "E6", "G6"], 0.5, "tri", decay=0.16, gain=1.6)),
-                      (0.24, noise(0.3, 7000, 3000, attack=0.002, decay=0.08, gain=0.15, seed=7)))
-    r["tspin"] = mix((0.0, tone(0.16, 330, 1320, "saw", attack=0.004, decay=0.09, gain=0.5, vibrato=0.03)),
-                     (0.12, chord(["E5", "G#5", "B5", "E6"], 0.36, "tri", decay=0.12, gain=1.8)))
-    r["perfect_clear"] = mix((0.0, notes(["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6", "G6", "C7"], 0.055, 0.3, "tri", decay=0.1)),
-                             (0.55, chord(["C6", "E6", "G6", "C7"], 0.6, "sine", decay=0.2, gain=2.2)))
-    # One pluck; the game raises its pitch with the combo count.
-    r["combo"] = mix((0.0, tone(0.14, hz("G5"), shape="tri", attack=0.001, decay=0.045)),
-                     (0.0, tone(0.14, hz("G6"), shape="sine", attack=0.001, decay=0.03, gain=0.35)))
-    r["level_up"] = mix((0.0, notes(["G5", "C6", "E6", "G6"], 0.075, 0.28, "square", decay=0.09, gain=0.7)),
-                        (0.225, tone(0.4, hz("C7"), shape="sine", decay=0.14, gain=0.5)))
-    # --- versus ---------------------------------------------------------------
-    r["attack"] = mix((0.0, tone(0.2, 1700, 420, "saw", attack=0.002, decay=0.06, gain=0.6, curve=0.6)),
-                      (0.0, noise(0.12, 8000, 1500, attack=0.001, decay=0.03, gain=0.2, seed=8)))
+    # --- piece handling: chips and cards, short and dry ------------------------
+    r["move"] = mix((0.0, click(2600)), (0.0, tone(0.03, 1300, shape="sine", attack=0.0005, decay=0.008, gain=0.4)))
+    r["rotate"] = mix((0.0, noise(0.04, 7000, 2500, attack=0.0005, decay=0.01, gain=0.5, seed=2)),
+                      (0.012, click(1900, 0.9)))
+    r["hold"] = mix((0.0, noise(0.1, 2000, 7000, attack=0.004, decay=0.04, gain=0.35, seed=3)),
+                    (0.05, bell(0.12, hz("E6"), decay=0.03, gain=0.5)))
+    r["lock"] = mix((0.0, click(1500)), (0.018, click(2300, 0.8)),
+                    (0.0, tone(0.07, 160, 90, "sine", attack=0.001, decay=0.025, gain=0.6)))
+    r["hard_drop"] = mix((0.0, tone(0.16, 140, 45, "sine", attack=0.001, decay=0.05, curve=0.5)),
+                         (0.0, noise(0.07, 4000, 400, attack=0.0005, decay=0.018, gain=0.5, seed=5)),
+                         (0.02, click(2100, 0.5)), (0.045, click(1700, 0.4)), (0.075, click(2400, 0.3)))
+    # --- clears: every kind of win has its own bell -----------------------------
+    r["clear"] = mix((0.0, bell(0.3, hz("C6"), decay=0.08)), (0.05, bell(0.3, hz("E6"), decay=0.08, gain=0.8)),
+                     (0.08, coin(4400, 0.5)))
+    r["tetris"] = mix((0.0, bells(["C6", "E6", "G6", "C7"], 0.05, 0.3, decay=0.09)),
+                      (0.2, trill(["G6", "C7"], 0.045, 10, gain=0.9)),
+                      (0.22, coins(14, 0.55, seed=11, gain=0.45)))
+    r["tspin_mini"] = bells(["E6", "A6"], 0.06, 0.24, decay=0.07)
+    r["tspin"] = mix((0.0, reel(0.14, 900, 2400, 0.6)),
+                     (0.1, bells(["E6", "G#6", "B6"], 0.05, 0.32, decay=0.1)))
+    r["tspin_double"] = mix((0.0, reel(0.16, 900, 2600, 0.6)),
+                            (0.12, bells(["E6", "G#6", "B6", "E7"], 0.05, 0.34, decay=0.1)),
+                            (0.32, chord(["E6", "G#6", "B6"], 0.4, "tri", decay=0.13, gain=1.2)),
+                            (0.32, coins(8, 0.35, seed=12, gain=0.4)))
+    r["tspin_triple"] = mix((0.0, reel(0.18, 900, 2900, 0.6)),
+                            (0.14, bells(["E6", "G#6", "B6", "E7", "G#7"], 0.05, 0.34, decay=0.1)),
+                            (0.38, trill(["B6", "E7"], 0.045, 12, gain=0.9)),
+                            (0.38, chord(["E6", "G#6", "B6", "E7"], 0.6, "tri", decay=0.2, gain=1.3)),
+                            (0.4, coins(18, 0.7, seed=13, gain=0.45)))
+    # The cash register: played on top of a clear that keeps Back-to-Back going.
+    r["b2b"] = mix((0.0, noise(0.03, 5000, 1500, attack=0.0005, decay=0.008, gain=0.5, seed=14)), (0.0, click(900)),
+                   (0.05, bell(0.35, hz("B6"), decay=0.1)), (0.11, bell(0.4, hz("E7"), decay=0.12)),
+                   (0.15, coin(5000, 0.5)))
+    r["perfect_clear"] = mix((0.0, bells(["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6", "G6", "C7"], 0.05, 0.3, decay=0.1)),
+                             (0.5, trill(["C7", "E7"], 0.04, 22, gain=0.9)),
+                             (0.5, chord(["C6", "E6", "G6", "C7"], 0.9, "tri", decay=0.3, gain=1.5)),
+                             (0.45, coins(32, 1.2, seed=15, gain=0.45)))
+    # One coin; the game raises its pitch with the combo count.
+    r["combo"] = mix((0.0, bell(0.16, hz("G6"), decay=0.04)), (0.0, coin(4800, 0.5)))
+    r["level_up"] = mix((0.0, bells(["G5", "C6", "E6", "G6", "C7"], 0.06, 0.3, decay=0.09)),
+                        (0.3, trill(["G6", "C7"], 0.04, 8, gain=0.8)))
+    # --- versus -------------------------------------------------------------------
+    r["attack"] = mix((0.0, noise(0.16, 6000, 1500, attack=0.002, decay=0.045, gain=0.5, seed=8)),
+                      (0.02, coins(4, 0.12, seed=16, gain=0.6)))
     r["garbage"] = mix((0.0, tone(0.28, 95, 55, "sine", attack=0.004, decay=0.09)),
-                       (0.0, noise(0.28, 700, 180, attack=0.004, decay=0.08, gain=0.9, seed=9)))
-    r["countdown"] = tone(0.14, 660, shape="sine", attack=0.003, decay=0.05)
-    r["go"] = mix((0.0, tone(0.4, 1320, shape="sine", attack=0.003, decay=0.14)),
-                  (0.0, tone(0.4, 1980, shape="sine", attack=0.003, decay=0.09, gain=0.3)))
-    r["ko"] = mix((0.0, tone(0.7, 420, 50, "saw", attack=0.003, decay=0.25, gain=0.7, curve=0.7)),
-                  (0.0, noise(0.6, 3000, 150, attack=0.002, decay=0.18, gain=0.6, seed=10)))
-    r["win"] = mix((0.0, notes(["C5", "E5", "G5", "C6", "E6"], 0.09, 0.32, "square", decay=0.1, gain=0.7)),
-                   (0.45, chord(["C5", "G5", "C6", "E6", "G6"], 0.8, "tri", decay=0.28, gain=2.4)))
-    r["lose"] = mix((0.0, notes(["A4", "F4", "D4"], 0.17, 0.4, "tri", decay=0.14)),
-                    (0.51, tone(0.7, hz("A3"), hz("A3") * 0.94, "tri", decay=0.25)))
-    r["game_over"] = mix((0.0, notes(["E5", "C5", "A4", "F4"], 0.15, 0.4, "square", decay=0.13, gain=0.7)),
-                         (0.6, chord(["D4", "F4", "A4"], 0.8, "tri", decay=0.28, gain=2.0)))
-    # --- interface ------------------------------------------------------------
-    r["pause"] = mix((0.0, tone(0.07, 880, shape="tri", decay=0.025)), (0.06, tone(0.1, 660, shape="tri", decay=0.035)))
-    r["resume"] = mix((0.0, tone(0.07, 660, shape="tri", decay=0.025)), (0.06, tone(0.1, 880, shape="tri", decay=0.035)))
-    r["ui_focus"] = tone(0.03, 1500, 1300, "sine", attack=0.001, decay=0.008)
-    r["ui_press"] = mix((0.0, tone(0.05, 900, shape="tri", attack=0.001, decay=0.018)),
-                        (0.035, tone(0.08, 1350, shape="tri", attack=0.001, decay=0.028)))
+                       (0.0, noise(0.28, 700, 180, attack=0.004, decay=0.08, gain=0.8, seed=9)),
+                       (0.03, click(1300, 0.5)), (0.07, click(1700, 0.45)), (0.1, click(1100, 0.4)),
+                       (0.15, click(1500, 0.3)), (0.2, click(1250, 0.25)))
+    r["countdown"] = mix((0.0, tone(0.08, 880, shape="tri", attack=0.001, decay=0.02)), (0.0, click(1760, 0.7)))
+    r["go"] = mix((0.0, bell(0.5, hz("C7"), decay=0.16)), (0.0, bell(0.5, hz("G7"), decay=0.12, gain=0.5)))
+    r["ko"] = mix((0.0, mix(*[(i * 0.11, tone(0.3, hz(name), hz(name) * 0.94, "tri", decay=0.09, vibrato=0.02))
+                              for i, name in enumerate(["E5", "D#5", "D5", "C#5"])])),
+                  (0.44, tone(0.4, 120, 45, "sine", attack=0.002, decay=0.14, gain=1.2)),
+                  (0.44, noise(0.3, 2500, 200, attack=0.002, decay=0.09, gain=0.5, seed=10)))
+    r["win"] = mix((0.0, bells(["C5", "E5", "G5", "C6", "E6", "G6"], 0.07, 0.34, decay=0.11)),
+                   (0.45, chord(["C5", "G5", "C6", "E6", "G6"], 1.0, "tri", decay=0.32, gain=2.0)),
+                   (0.45, trill(["C7", "E7"], 0.04, 18, gain=0.8)),
+                   (0.45, coins(28, 1.0, seed=17, gain=0.45)))
+    r["lose"] = mix((0.0, bells(["A5", "F5", "D5", "A4"], 0.16, 0.5, decay=0.16, gain=0.9)))
+    r["game_over"] = mix((0.0, bells(["E5", "C5", "A4", "F4"], 0.15, 0.45, decay=0.14)),
+                         (0.62, bell(0.9, hz("D4"), decay=0.3, gain=1.2)),
+                         (0.62, tone(0.3, 110, 50, "sine", attack=0.002, decay=0.1, gain=0.8)))
+    # --- interface ------------------------------------------------------------------
+    r["pause"] = mix((0.0, bell(0.1, hz("A5"), decay=0.03)), (0.06, bell(0.14, hz("E5"), decay=0.04)))
+    r["resume"] = mix((0.0, bell(0.1, hz("E5"), decay=0.03)), (0.06, bell(0.14, hz("A5"), decay=0.04)))
+    r["ui_focus"] = click(2400)
+    r["ui_press"] = mix((0.0, click(1600)), (0.02, bell(0.1, hz("E6"), decay=0.03, gain=0.8)))
     return r
 
 

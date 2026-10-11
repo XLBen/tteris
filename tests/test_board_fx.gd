@@ -37,6 +37,7 @@ static func run_module() -> Dictionary:
 	_case_callout_wording(ctx)
 	_case_reset_clears_everything(ctx)
 	await _case_pack_sprite_effects_play_and_replace(ctx)
+	_case_every_special_clear_has_its_own_sound(ctx)
 	await _case_versus_clear_drives_attacker_fx_and_sends_orb(ctx)
 	await _case_versus_garbage_and_loss_drive_receiver_fx(ctx)
 	await _case_versus_countdown_holds_pieces_then_go(ctx)
@@ -137,6 +138,23 @@ static func _case_callout_wording(ctx: Dictionary) -> void:
 	# A combo'd double sends its row count without a headline.
 	ok = ok and BoardFX.callout(2, none, false, 2, false, 2) == ["", "COMBO x2  +2"]
 	_case(ctx, "callout_wording_for_clears_spins_combo_b2b_and_rows_sent", ok)
+
+
+# Every special clear has its own sound (2026-10-12), and the default pack
+# ships a file for each of them.
+static func _case_every_special_clear_has_its_own_sound(ctx: Dictionary) -> void:
+	var none: int = Scoring.TSpinKind.NONE
+	var mini: int = Scoring.TSpinKind.MINI
+	var full: int = Scoring.TSpinKind.FULL
+	var ok: bool = BoardFX.clear_sound(1, none, false) == "clear" and BoardFX.clear_sound(3, none, false) == "clear" 		and BoardFX.clear_sound(4, none, false) == "tetris" 		and BoardFX.clear_sound(0, mini, false) == "tspin_mini" and BoardFX.clear_sound(1, mini, false) == "tspin_mini" 		and BoardFX.clear_sound(0, full, false) == "tspin" and BoardFX.clear_sound(1, full, false) == "tspin" 		and BoardFX.clear_sound(2, full, false) == "tspin_double" and BoardFX.clear_sound(3, full, false) == "tspin_triple" 		and BoardFX.clear_sound(2, full, true) == "perfect_clear" and BoardFX.clear_sound(4, none, true) == "perfect_clear"
+	ResourcePack.set_enabled([], false)
+	var seen: Array[AudioStream] = []
+	for event: String in ["clear", "tetris", "tspin_mini", "tspin", "tspin_double", "tspin_triple", "perfect_clear", "b2b", "combo"]:
+		var stream: AudioStream = ResourcePack.sound(event)
+		ok = ok and stream != null and not seen.has(stream)
+		seen.append(stream)
+		ok = ok and (load("res://scripts/main.gd").SFX_EVENTS as Array).has(event) and (load("res://scripts/versus.gd").SFX_EVENTS as Array).has(event)
+	_case(ctx, "every_special_clear_has_its_own_sound", ok)
 
 
 static func _case_reset_clears_everything(ctx: Dictionary) -> void:

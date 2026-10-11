@@ -23,6 +23,7 @@ const FX_BG_LERP_RATE: float = 6.0
 ## active resource pack (scripts/resource_pack.gd), never from this script.
 const SFX_EVENTS: Array[String] = [
 	"move", "rotate", "hold", "hard_drop", "lock", "clear", "tetris", "tspin",
+	"tspin_mini", "tspin_double", "tspin_triple", "b2b",
 	"perfect_clear", "combo", "level_up", "game_over", "pause", "resume",
 ]
 ## Each combo step raises the combo pluck by this much, up to the cap.
@@ -397,7 +398,7 @@ func _lock_piece(hard: bool) -> void:
 	var full: Array[int] = _board.get_full_lines()
 	if full.is_empty():
 		if _pending_t_spin != Scoring.TSpinKind.NONE:
-			_play_sfx("tspin")
+			_play_sfx(BoardFX.clear_sound(0, _pending_t_spin, false))
 			_award_score(0)
 		else:
 			_combo_index = 0
@@ -531,7 +532,7 @@ func _award_score(lines: int) -> void:
 	else:
 		_combo_index = 0
 	if lines >= 1:
-		_play_clear_sfx(lines, _pending_t_spin != Scoring.TSpinKind.NONE, perfect_clear, combo_at_event)
+		_play_clear_sfx(lines, _pending_t_spin, perfect_clear, combo_at_event, bool(result["b2b_applied"]))
 	_last_feedback = _feedback_text(lines, result, combo_at_event, perfect_clear)
 	if not _last_feedback.is_empty():
 		var words: Array[String] = BoardFX.callout(lines, _pending_t_spin, bool(result["b2b_applied"]), combo_at_event + 1 if lines >= 1 else 0, perfect_clear)
@@ -541,17 +542,14 @@ func _award_score(lines: int) -> void:
 	_update_bg_tier()
 
 
-## One main sound per clear (the rarest thing that happened), plus a combo
+## One main sound per clear (BoardFX.clear_sound: every special clear has its
+## own), the Back-to-Back stinger on top when the chain pays, plus a combo
 ## pluck that climbs in pitch while the combo runs.
-func _play_clear_sfx(lines: int, t_spin: bool, perfect_clear: bool, combo_before: int) -> void:
-	if perfect_clear:
-		_play_sfx("perfect_clear")
-	elif t_spin:
-		_play_sfx("tspin")
-	elif lines >= 4:
-		_play_sfx("tetris")
-	else:
-		_play_sfx("clear", 1.0 + 0.08 * float(lines - 1))
+func _play_clear_sfx(lines: int, t_spin: int, perfect_clear: bool, combo_before: int, b2b: bool) -> void:
+	var sound: String = BoardFX.clear_sound(lines, t_spin, perfect_clear)
+	_play_sfx(sound, 1.0 + 0.08 * float(lines - 1) if sound == "clear" else 1.0)
+	if b2b:
+		_play_sfx("b2b")
 	if combo_before >= 1:
 		_play_sfx("combo", minf(COMBO_PITCH_MAX, 1.0 + COMBO_PITCH_STEP * float(combo_before)))
 

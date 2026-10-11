@@ -15,7 +15,7 @@ extends SceneTree
 
 const MODULE_NAME: String = "versus_bgm"
 
-const BGM_DIR: String = "res://assets/audio/bgm/"
+const BGM_DIR: String = "res://packs/default/music/"
 const LEGACY_PACK_ID: String = "_test_one_song"
 const LEGACY_PACK_DIR: String = "user://packs/_test_one_song"
 const VERSUS_SCENE_PATH: String = "res://scenes/versus/versus.tscn"
@@ -220,6 +220,7 @@ static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
 	var ok: bool = scene != null and scene.get("_bgm_director") is BgmDirector
 	if ok:
 		var director: BgmDirector = scene.get("_bgm_director")
+		director.set_shuffle(true, false)
 		var count: int = director.song_count()
 		ok = count == ResourcePack.playlist().size() and count >= 2
 		# The change keeps the rung, and the song that ends is left to ring.
@@ -258,6 +259,30 @@ static func _case_songs_follow_each_other_shuffled(ctx: Dictionary) -> void:
 			played.append(previous)
 		for song: int in count:
 			ok = ok and played.count(song) == 3
+		# The other order (the corner player's button switches): the playlist
+		# as it is written, round and round, from the song that plays.
+		ok = ok and director.shuffled()
+		director.set_shuffle(false, false)
+		ok = ok and not director.shuffled() and director.coming_song() == (director.song() + 1) % count
+		for _i: int in count + 2:
+			var following: int = (director.song() + 1) % count
+			director.next_song()
+			ok = ok and director.song() == following
+		var corner: NowPlaying = scene.find_child("NowPlaying", true, false) as NowPlaying
+		ok = ok and corner != null
+		if corner != null:
+			corner._refresh()
+			ok = ok and corner.order_text() == TranslationServer.translate("IN ORDER")
+			ok = ok and corner.title() == TranslationServer.translate(director.song_title())
+			# The press is remembered (the player's own choice is put back after).
+			var kept: Variant = PlayerConfig.get_config(BgmDirector.CONFIG_SECTION, BgmDirector.CONFIG_SHUFFLE, null)
+			corner._on_order_pressed()
+			ok = ok and director.shuffled() and corner.order_text() == TranslationServer.translate("SHUFFLE")
+			ok = ok and PlayerConfig.get_config(BgmDirector.CONFIG_SECTION, BgmDirector.CONFIG_SHUFFLE, null) == true
+			if kept == null:
+				PlayerConfig.erase_section_key(BgmDirector.CONFIG_SECTION, BgmDirector.CONFIG_SHUFFLE)
+			else:
+				PlayerConfig.set_config(BgmDirector.CONFIG_SECTION, BgmDirector.CONFIG_SHUFFLE, kept)
 	if scene != null:
 		scene.free()
 	await _tree().process_frame

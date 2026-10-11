@@ -28,7 +28,7 @@ carries on at the same point of the tune.
     python tools/make_bgm.py --records   only refresh the asset records (run
                                          it after Godot has imported the files)
 
-Needs numpy, scipy and ffmpeg. The files go to assets/audio/bgm/;
+Needs numpy, scipy and ffmpeg. The files go to packs/default/music/;
 assets/assets-measurements.json binds their sha256 (tests/test_music.gd checks
 it). Deterministic: the same script always renders the same audio.
 """
@@ -52,7 +52,7 @@ SR = 44100
 LADDER = [(120.0, 0.0), (132.0, 0.2), (144.0, 0.4), (156.0, 0.6), (168.0, 0.8), (180.0, 1.0)]
 TAIL = SR * 3
 ROOT = Path(__file__).resolve().parent.parent
-BGM_DIR = ROOT / "assets" / "audio" / "bgm"
+BGM_DIR = ROOT / "packs" / "default" / "music"
 PACK = ROOT / "packs" / "default" / "pack.json"
 VOLUME_DB = -13.0
 # The level a calm track is played at VOLUME_DB; louder ones are turned down.
@@ -655,7 +655,7 @@ def playlist_entry(song: dict, tracks: list[dict]) -> str:
     entry = {
         "title": song["title"], "beats": plan["beats"], "bars": plan["bars"],
         "volume_db": round(VOLUME_DB + LEVEL_DB - tracks[0]["level"], 1),
-        "tracks": [{"file": "res://assets/audio/bgm/" + file_name(song, LADDER[track["rung"]][0]), "bpm": round(track["bpm"], 4)} for track in tracks],
+        "tracks": [{"file": "music/" + file_name(song, LADDER[track["rung"]][0]), "bpm": round(track["bpm"], 4)} for track in tracks],
     }
     return json.dumps(entry, ensure_ascii=False)
 
@@ -684,7 +684,7 @@ def write_records() -> None:
 
     path = ROOT / "assets" / "assets-measurements.json"
     data = json.loads(path.read_text(encoding="utf-8"))
-    prefix = "res://assets/audio/bgm/"
+    prefix = "res://packs/default/music/"
     kept = [entry for entry in data["files"] if not entry["path"].startswith(prefix)]
     made = []
     for file in sorted(BGM_DIR.iterdir()):
@@ -702,7 +702,7 @@ def write_records() -> None:
     path = ROOT / "assets" / "assets-provenance.json"
     data = json.loads(path.read_text(encoding="utf-8"))
     for record in data["families"]:
-        if record.get("dest") != "res://assets/audio/bgm":
+        if record.get("dest") != "res://packs/default/music":
             continue
         record["source"] = "tools/make_bgm.py (rendered locally, no download)"
         record["license"] = "original arrangement and synthesis made for this project; the underlying melodies are in the public domain: " \

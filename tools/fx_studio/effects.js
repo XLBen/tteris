@@ -674,6 +674,142 @@
 		},
 	});
 
+	// -------------------------------------------------------- backdrop (icon)
+	// The backdrop of the "Icon" pack: church domes at dusk under a nimbus.
+	// Like the night sky above it is one seamless loop, everything a function
+	// of the loop's phase: the nimbus turns by exactly one ray, its rings
+	// breathe once, the little crosses in the sky twinkle a whole number of
+	// times, the incense rises a whole number of screens, the windows' candles
+	// flicker in step.
+	const DUSK = hexes(['#090403', '#0f0605', '#170907', '#200c08', '#2b1009', '#38160b', '#461d0d']);
+	const LEAF = hexes(['#5a3a10', '#8a5a14', '#c8962e', '#e8b83a', '#ffe27a', '#fff6c8']);
+	const DOME_TINTS = hexes(['#e8b83a', '#e8b83a', '#2c50b0', '#e8b83a', '#3c9c62', '#e8b83a', '#b02a1a']);
+	const WALL = hexes(['#0c0604', '#160a06', '#26120a']);
+	const RAYS = 24;
+
+	define({
+		name: 'backdrop_icon',
+		kind: 'backdrop',
+		pack: 'icon',
+		title: 'Backdrop (Icon)',
+		note: 'The background of the Icon pack, one seamless six-second loop: a dithered dusk, a nimbus of gold rays turning behind two breathing rings, small crosses twinkling, incense drifting up, and a skyline of onion domes with candle-lit windows.',
+		w: NIGHT.w, h: NIGHT.h, fps: NIGHT.fps, frames: NIGHT.loop * NIGHT.fps, loopFrom: 0, anchor: 'center', seed: 733,
+		phases: [{ name: 'the nimbus turns one ray', at: 0 }, { name: 'back to the start', at: 5 }],
+		setup(sim) {
+			sim.layer('sky', { kind: 'color' });
+			sim.layer('nimbus', { kind: 'color' });
+			sim.layer('crosses', { kind: 'color' });
+			sim.layer('incense', { kind: 'color' });
+			sim.layer('skyline', { kind: 'color' });
+			const r = makeRng(1054);
+			const S = sim.state;
+			S.crosses = [];
+			for (let i = 0; i < 46; i++) S.crosses.push({ x: r.int(2, NIGHT.w - 3), y: r.int(2, 66), times: r.int(1, 3), phase: r.angle(), big: r() < 0.3 });
+			S.motes = [];
+			for (let i = 0; i < 34; i++) S.motes.push({ x: r.int(4, NIGHT.w - 5), start: r.range(0, 1), rises: r.int(1, 2), sway: r.range(2, 7), turns: r.int(1, 3), phase: r.angle() });
+			// Churches along the bottom: a tower, an onion dome, a cross.
+			S.churches = [];
+			let x = -4;
+			while (x < NIGHT.w) {
+				const radius = r.int(5, 11);
+				const church = { x: x + radius + r.int(0, 3), radius, tower: r.int(4, 16), tint: r.pick(DOME_TINTS), lights: [] };
+				for (let row = 0; row * 7 + 4 < church.tower; row++) {
+					if (r() < 0.6) church.lights.push({ row, side: r.pick([-1, 0, 1]), times: r.int(1, 3), phase: r.angle() });
+				}
+				S.churches.push(church);
+				x = church.x + radius + r.int(1, 6);
+			}
+		},
+		update() {},
+		draw(sim, t) {
+			const L = sim.byName, S = sim.state;
+			const p = ((t / NIGHT.loop) % 1 + 1) % 1;
+			const w = NIGHT.w, h = NIGHT.h;
+			const dither = (x, y) => BAYER4[(y & 3) * 4 + (x & 3)];
+			// Dusk: dithered bands, darkest on top, an ember glow at the skyline.
+			for (let y = 0; y < h; y++) {
+				for (let x = 0; x < w; x++) {
+					const band = Math.pow(y / h, 1.5) * (DUSK.length - 1) + (dither(x, y) - 0.5);
+					L.sky.px(x, y, DUSK[Math.max(0, Math.min(DUSK.length - 1, Math.round(band)))]);
+				}
+			}
+			// The nimbus: rays turning by one ray over the loop, two rings breathing.
+			const cx = w / 2 - 0.5, cy = 34;
+			const breath = 0.5 + 0.5 * Math.sin(p * TAU);
+			for (let y = 0; y < 84; y++) {
+				for (let x = 0; x < w; x++) {
+					const dx = x - cx, dy = (y - cy) * 1.05;
+					const reach = Math.hypot(dx, dy);
+					if (reach < 13) continue;
+					const ring = Math.abs(reach - 17) < 1.3 || Math.abs(reach - 22.5) < 0.6;
+					if (ring) {
+						L.nimbus.px(x, y, LEAF[2 + Math.round(breath * 2 + (dx + dy < 0 ? 1 : 0))], 0.55 + 0.25 * breath);
+						continue;
+					}
+					if (reach < 26 || reach > 96) continue;
+					const turn = ((Math.atan2(dy, dx) / TAU * RAYS + p) % 1 + 1) % 1;
+					if (turn > 0.42) continue;
+					// Each ray thins out and dims with distance.
+					const power = (1 - (reach - 26) / 70) * (1 - Math.abs(turn - 0.21) / 0.21 * 0.5);
+					if (power * 0.62 > dither(x, y)) L.nimbus.px(x, y, LEAF[power > 0.75 ? 2 : 1], 0.3 + 0.3 * power);
+				}
+			}
+			for (const cross of S.crosses) {
+				const glow = 0.5 + 0.5 * Math.sin(p * TAU * cross.times + cross.phase);
+				if (glow < 0.25) continue;
+				L.crosses.px(cross.x, cross.y, glow > 0.75 ? LEAF[5] : LEAF[3], 0.3 + 0.6 * glow);
+				if (cross.big && glow > 0.6) {
+					for (const [ox, oy] of [[1, 0], [-1, 0], [0, -1], [0, 1], [0, 2]]) L.crosses.px(cross.x + ox, cross.y + oy, LEAF[3], 0.5 * glow);
+				}
+			}
+			// Incense: motes swaying upward, fading in and out along the way.
+			for (const mote of S.motes) {
+				const along = ((mote.start + p * mote.rises) % 1 + 1) % 1;
+				const y = Math.round((1 - along) * (h - 14));
+				const x = Math.round(mote.x + Math.sin(p * TAU * mote.turns + mote.phase) * mote.sway);
+				L.incense.px(x, y, LEAF[4], 0.55 * Math.sin(along * Math.PI));
+			}
+			// The skyline.
+			for (const church of S.churches) {
+				const base = h - church.tower;
+				const half = Math.max(2, Math.round(church.radius * 0.62));
+				for (let y = base; y < h; y++) {
+					for (let x = church.x - half; x <= church.x + half; x++) L.skyline.px(x, y, x === church.x - half ? WALL[2] : x === church.x + half ? WALL[0] : WALL[1]);
+				}
+				for (const light of church.lights) {
+					const on = Math.sin(p * TAU * light.times + light.phase);
+					if (on < -0.3) continue;
+					const lamp = on > 0.4 ? LEAF[4] : LEAF[2];
+					const lx = church.x + light.side * Math.max(1, half - 2), ly = base + 3 + light.row * 7;
+					L.skyline.px(lx, ly, lamp, 0.9);
+					L.skyline.px(lx, ly + 1, lamp, 0.9);
+					L.skyline.px(lx, ly + 2, LEAF[1], 0.9);
+				}
+				// The dome: narrow at the drum, swelling, drawn to a point.
+				const tall = Math.round(church.radius * 1.9);
+				for (let j = 0; j < tall; j++) {
+					const k = j / (tall - 1);
+					const width = Math.round(church.radius * Math.pow(Math.sin(Math.PI * (0.18 + 0.82 * k)), 0.85));
+					for (let x = -width; x <= width; x++) {
+						// Lit from the upper left, dark toward the right rim.
+						const side = width === 0 ? 0 : x / width;
+						const tone = side < -0.45 ? 0.2 : side > 0.55 ? 0.72 : side > 0.1 ? 0.52 : 0.36;
+						L.skyline.px(church.x + x, base - 1 - j, mixColor(church.tint, BLACK, tone + 0.1 * (1 - k)));
+					}
+					if (j % 4 === 1 && width > 2) L.skyline.px(church.x - Math.round(width * 0.5), base - 1 - j, mixColor(church.tint, WHITE, 0.35));
+				}
+				// The cross: a short bar, the long bar, a slanted foot.
+				const tip = base - tall - 1;
+				for (let j = 0; j < 9; j++) L.skyline.px(church.x, tip - j, LEAF[3]);
+				L.skyline.px(church.x - 1, tip - 7, LEAF[3]);
+				L.skyline.px(church.x + 1, tip - 7, LEAF[3]);
+				for (let x = -2; x <= 2; x++) L.skyline.px(church.x + x, tip - 5, LEAF[4]);
+				L.skyline.px(church.x - 1, tip - 3, LEAF[3]);
+				L.skyline.px(church.x + 1, tip - 2, LEAF[3]);
+			}
+		},
+	});
+
 	// ---------------------------------------------------------------- title
 	// The game's title, built out of falling blocks and then kept alive. Unlike
 	// the board effects it does not end: an intro plays once (blocks rain down

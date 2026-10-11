@@ -13,9 +13,11 @@ extends Node
 ## A track holds its song once through and then rings out. Where its bars
 ## end the next song starts on the same rung, in time, while the old track's
 ## ringing dies away over it: changing songs is the same as playing on. The
-## order is a shuffled bag - every song once before any comes again, never
-## the same one twice in a row. A pack whose music is a single looping
-## stream (the older "music" section) just goes round.
+## order is the player's choice (set_shuffle, remembered): a shuffled bag -
+## every song once before any comes again, never the same one twice in a
+## row - or the playlist as it is written, round and round. A pack whose
+## music is a single looping stream (the older "music" section) just goes
+## round.
 ##
 ## The scene reports the stack height every frame through update_pressure().
 
@@ -30,11 +32,14 @@ const SILENT_DB: float = -60.0
 ## the change lands within about a hundredth of a second of the bar line
 ## (tools/bgm_smoke.gd measures it).
 const HANDOFF_SECONDS: float = 0.004
+const CONFIG_SECTION: String = "Music"
+const CONFIG_SHUFFLE: String = "Shuffle"
 
 var _bus: StringName = &"BGM"
 var _songs: Array = []
 ## Songs still to come in this round of the shuffle, and the one drawn next.
 var _bag: Array[int] = []
+var _shuffle: bool = true
 var _song: int = -1
 var _coming: int = -1
 ## Files of the coming song still to be read, one a frame.
@@ -60,10 +65,31 @@ func setup(bus: StringName = &"BGM") -> void:
 	_bus = bus
 	_songs = ResourcePack.playlist()
 	_random.randomize()
+	_shuffle = bool(PlayerConfig.get_config(CONFIG_SECTION, CONFIG_SHUFFLE, true))
 	if _songs.is_empty():
 		return
 	_coming = _draw()
 	_start_song(0)
+
+
+## Whether the songs come in random order (else in the playlist's own).
+func shuffled() -> bool:
+	return _shuffle
+
+
+## Random order or the playlist's own, from the next song on. `remember`
+## keeps the choice for the next games.
+func set_shuffle(on: bool, remember: bool = true) -> void:
+	_shuffle = on
+	if remember:
+		PlayerConfig.set_config(CONFIG_SECTION, CONFIG_SHUFFLE, on)
+	if _songs.is_empty():
+		return
+	_bag.clear()
+	_coming = _draw()
+	_warming = []
+	for track: Dictionary in _songs[_coming]["tracks"]:
+		_warming.append(String(track["file"]))
 
 
 func song_count() -> int:
@@ -183,6 +209,9 @@ func _process(delta: float) -> void:
 ## The next song of the shuffle: every song once a round, in random order,
 ## and not the one that has just played.
 func _draw() -> int:
+	if not _shuffle:
+		# The one after the song that plays (the first, before any does).
+		return (_song + 1) % _songs.size()
 	if _bag.is_empty():
 		for index: int in _songs.size():
 			_bag.append(index)
@@ -192,9 +221,9 @@ func _draw() -> int:
 			_bag[index] = _bag[other]
 			_bag[other] = held
 		# The bag is drawn from its end.
-		if _bag.size() > 1 and _bag[-1] == _coming:
+		if _bag.size() > 1 and _bag[-1] == _song:
 			_bag[-1] = _bag[0]
-			_bag[0] = _coming
+			_bag[0] = _song
 	return _bag.pop_back()
 
 

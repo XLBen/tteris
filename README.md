@@ -39,7 +39,7 @@ Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,
 & "<godot>" --headless --path . --script res://tests/run_all.gd
 ```
 
-Expected: `ALL TESTS PASSED (285)`, exit code 0, about three minutes. One module:
+Expected: `ALL TESTS PASSED (286)`, exit code 0, about three minutes. One module:
 `--script res://tests/test_menu.gd`. After editing a script:
 `--headless --check-only --script res://scripts/<file>.gd`; after editing scenes
 or resources: `--headless --editor --quit`.
@@ -58,7 +58,7 @@ or resources: `--headless --editor --quit`.
 | `scripts/ui/` | binding scripts of the pack's screen layouts |
 | `scenes/menus/`, `scenes/windows/` | menus and windows from the Maaack template (vendored copies: do not edit); `mode_select/` is the play screen behind New Game |
 | `scripts/ui/main_menu_entries.gd`, `pack_title.gd` | the main menu's own entries and the pack's animated title, attached from outside |
-| `packs/` | `default` (built in), `pixel`, `pixelfx`; format in `packs/README.md` |
+| `packs/` | `default` (built in, with the music), `pixel`, `pixelfx`, `icon`; format in `packs/README.md` |
 | `tests/` | headless test modules, `run_all.gd` runs them all |
 | `tools/` | generators and labs, below |
 | `addons/`, `camera-effects/`, `particles/`, `docs/vendor/` | vendored code with its license records |
@@ -68,6 +68,7 @@ or resources: `--headless --editor --quit`.
 | Tool | Makes |
 |---|---|
 | `tools/fx_studio/` | the Pixel FX pack, the animated title and the animated backdrop: `index.html` is the effect studio, `node tools/fx_studio/export.js` writes the sheets |
+| `tools/make_icon_pack.py` | the still parts of the Icon pack (blocks, boxes, colors) |
 | `tools/make_bgm.py` | the BGM: every song at six tempos (numpy, scipy, ffmpeg) |
 | `tools/ai_dig_lab.gd` | how fast each AI tier digs out of a buried board |
 | `tools/bgm_smoke.gd` | measures the change from one song to the next |
@@ -88,7 +89,7 @@ After re-rendering the BGM, let Godot import the files and run
 - Music: the project's own synth arrangements of seven public-domain Russian
   tunes (Korobeiniki, Kalinka, By the Long Road, God Save the Tsar!, The
   Great Gate of Kiev, Song of the Volga Boatmen, On the Hills of Manchuria),
-  `assets/audio/bgm/LICENSE-bgm.txt`.
+  `packs/default/music/LICENSE-bgm.txt`.
 - Maaack's Godot Game Template and marinho/godot-visual-effects: MIT, records in
   `docs/vendor/` and in each addon.
 - Sources and hashes of every asset: `assets/assets-provenance.json`,

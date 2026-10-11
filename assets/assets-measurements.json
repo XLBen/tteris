@@ -1,7 +1,7 @@
 {
 	"files": [
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-120.ogg",
+			"path": "res://packs/default/music/god-save-the-tsar-120.ogg",
 			"sha256": "caac9c043f55f310b9d396353b0d22c2bb5eaca9d5798ebed6a718b059f3cea7",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -11,8 +11,8 @@
 			"boundary_step_db": -27.692144236007486
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-120.ogg.import",
-			"sha256": "f59bcc44a7c8db69f4c2c72e48f62df94041c999ef4b8c20fd5ceb76c9197321",
+			"path": "res://packs/default/music/god-save-the-tsar-120.ogg.import",
+			"sha256": "5d02c4cde48cad3f6f88764caca3477cc8800e538680f113a668d17dbf15ac0b",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -21,7 +21,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-132.ogg",
+			"path": "res://packs/default/music/god-save-the-tsar-132.ogg",
 			"sha256": "b8501590c9387d75e1a63da6e264ab9d02ed45ea04d1657f4705ba0964f41f55",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -31,8 +31,8 @@
 			"boundary_step_db": -29.630820492192566
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-132.ogg.import",
-			"sha256": "b309a7e29d930f98a87102d25ff4e7662aeac675c82dbb3b01bc953ce07a2c72",
+			"path": "res://packs/default/music/god-save-the-tsar-132.ogg.import",
+			"sha256": "48ff88ab0b605e94cd6fe1b913a40d74af9b07e843b0d908aca1f638bcd1a99a",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -41,7 +41,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-144.ogg",
+			"path": "res://packs/default/music/god-save-the-tsar-144.ogg",
 			"sha256": "9f54f5afb3b07c9757d85fe7542e873efaffcdfdd5ddbec2afd5492e7e3548ae",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -51,8 +51,8 @@
 			"boundary_step_db": -29.715223174606876
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-144.ogg.import",
-			"sha256": "a0fd2266fd388b00f3ab39ec34f8b938e55fd2a77ddfc16c051da1eb2d91dd3e",
+			"path": "res://packs/default/music/god-save-the-tsar-144.ogg.import",
+			"sha256": "de3212da4c5508e7f71544ebd74ff02fe230fe713e615309eeca7bf058b0ca6e",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -61,7 +61,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-156.ogg",
+			"path": "res://packs/default/music/god-save-the-tsar-156.ogg",
 			"sha256": "0114c2e4fdba0c90d5373ef41bb5f5d9c0768cd19473bed5048f171c9c422196",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -71,8 +71,8 @@
 			"boundary_step_db": -29.0957739835599
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-156.ogg.import",
-			"sha256": "a15f22489991c872ef64e9fe660f70fd9a39a2859eab5e98ce77251e272dfa06",
+			"path": "res://packs/default/music/god-save-the-tsar-156.ogg.import",
+			"sha256": "c52837e6dd1b83cc241cfb4e2c4f5013a23d87743826cd42943389afeb567afc",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -81,7 +81,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-168.ogg",
+			"path": "res://packs/default/music/god-save-the-tsar-168.ogg",
 			"sha256": "326516cae24f1893626cf607cebd1dfdb2efdd28411517c0785fc13628f9444b",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -91,8 +91,8 @@
 			"boundary_step_db": -29.511775756765786
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-168.ogg.import",
-			"sha256": "f61ac906fe0b3c0c168e2bbc33a593dc181318a482499e2e419ab3913783aa3e",
+			"path": "res://packs/default/music/god-save-the-tsar-168.ogg.import",
+			"sha256": "10fb7abac868366bbab15f8917cdfadb3aa0169a870f2d3d0ce4143d38710efe",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -101,7 +101,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-180.ogg",
+			"path": "res://packs/default/music/god-save-the-tsar-180.ogg",
 			"sha256": "31d9cc5f47e2cbae3ea2c7618088b2b9238a225f5811f895810e739e87a941aa",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -111,8 +111,8 @@
 			"boundary_step_db": -27.68115827421726
 		},
 		{
-			"path": "res://assets/audio/bgm/god-save-the-tsar-180.ogg.import",
-			"sha256": "919c143554cfce59b86badcfb2df3d9ce4790f7c9020ba093b4fa342ed24d96b",
+			"path": "res://packs/default/music/god-save-the-tsar-180.ogg.import",
+			"sha256": "1dbc05a89fde0b62873a78ec5f2b4de0778750912276d25827759d1d307358d3",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -121,7 +121,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-120.ogg",
+			"path": "res://packs/default/music/great-gate-120.ogg",
 			"sha256": "eefd38d5a982bca71bb1d027856d92c0a65b55b459dbbcbb65652e2bb34b43f2",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -131,8 +131,8 @@
 			"boundary_step_db": -30.64216493024668
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-120.ogg.import",
-			"sha256": "b8a92a814d925a53471c2bddc64779404b197a6ee2576cf7b791815e4bb37360",
+			"path": "res://packs/default/music/great-gate-120.ogg.import",
+			"sha256": "324216673b93092db2cf914fa9f7dd6befd57cde4ace3909d10b18b313e17819",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -141,7 +141,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-132.ogg",
+			"path": "res://packs/default/music/great-gate-132.ogg",
 			"sha256": "b087f95c791ffeafb77847c37c7fe59ad4a8b4770a3b270a346fc5625f2d8f9f",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -151,8 +151,8 @@
 			"boundary_step_db": -29.808975192920958
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-132.ogg.import",
-			"sha256": "ed15f3ae21f3739e7a1619e21f2f21b2ea9795cdea7c2beddbac8a275cd106d5",
+			"path": "res://packs/default/music/great-gate-132.ogg.import",
+			"sha256": "2b32ecff61c276d91b1bf6d8727b14c8f1444aed1c70772d4a8eda02a4e7de50",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -161,7 +161,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-144.ogg",
+			"path": "res://packs/default/music/great-gate-144.ogg",
 			"sha256": "3434722ebd55272aac35f513e5686dac2bee4d384a2b6f01a8a2fe397466388d",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -171,8 +171,8 @@
 			"boundary_step_db": -27.74802400269989
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-144.ogg.import",
-			"sha256": "4a69a6d7542a235355d9d243266fc1220c05ea4d9d10238c861b9b8dc1922a54",
+			"path": "res://packs/default/music/great-gate-144.ogg.import",
+			"sha256": "1b902b47c680b9115865b86bdacc0b47bb27da852553476837aa9347be1d69e4",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -181,7 +181,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-156.ogg",
+			"path": "res://packs/default/music/great-gate-156.ogg",
 			"sha256": "f1becd4c6a7be5813b3bb80909c0f7ec7f8159b79d3d67395a02d395a04f45ea",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -191,8 +191,8 @@
 			"boundary_step_db": -26.24525497589573
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-156.ogg.import",
-			"sha256": "a3fb8f6a51cb291feb4d1653c84a7ba577292081caa62d9e54eb73d52dee6f6a",
+			"path": "res://packs/default/music/great-gate-156.ogg.import",
+			"sha256": "a978cddf17931168add9bff2b79834269e2b97d491b7177076cc16c739690fe2",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -201,7 +201,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-168.ogg",
+			"path": "res://packs/default/music/great-gate-168.ogg",
 			"sha256": "1179cb5384e05253af486e7bf5e5c4c01ad604393f975cca3421b831fe7497d2",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -211,8 +211,8 @@
 			"boundary_step_db": -30.315371784713626
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-168.ogg.import",
-			"sha256": "e9c7e2f89a9e8eef5a2ab1e7a5cf662e88d3ffbe0a8cc638e797262242a341f3",
+			"path": "res://packs/default/music/great-gate-168.ogg.import",
+			"sha256": "b42b723921ddb5db355a66db2b3c406e8c8acd2639addcc5793ed130b3ffe6f8",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -221,7 +221,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-180.ogg",
+			"path": "res://packs/default/music/great-gate-180.ogg",
 			"sha256": "0033fcaef2b67f0418b8026e2bb613b8a63ebfa767c0bc24568cf0d0a847b7e0",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -231,8 +231,8 @@
 			"boundary_step_db": -25.08737437260878
 		},
 		{
-			"path": "res://assets/audio/bgm/great-gate-180.ogg.import",
-			"sha256": "97d0e1e85055058091d3931753568a01175a2c35ac548fff55c783dc688efcfd",
+			"path": "res://packs/default/music/great-gate-180.ogg.import",
+			"sha256": "9e648df828a36131824244e4f4501ad12ac92365ccdf1cd1c71c029fb37db1e8",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -241,7 +241,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-120.ogg",
+			"path": "res://packs/default/music/kalinka-120.ogg",
 			"sha256": "dd2ba687b31d4e67f609531fb8c62e6a66a2ca371d4a91257506b000c73db6ff",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -251,8 +251,8 @@
 			"boundary_step_db": -27.31785052616464
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-120.ogg.import",
-			"sha256": "909aa49d85e8695fd9001d22613eb720f755191536a86f54fb813248281070ad",
+			"path": "res://packs/default/music/kalinka-120.ogg.import",
+			"sha256": "f735a74f2b2adb89b51671e830b5e829df56d47f4440e5db13afc2afb64944cb",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -261,7 +261,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-132.ogg",
+			"path": "res://packs/default/music/kalinka-132.ogg",
 			"sha256": "614058396325fec7b5a69360dd3f2dd48bbe791f576eeb5d61948ed2e60862ae",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -271,8 +271,8 @@
 			"boundary_step_db": -28.58637470017808
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-132.ogg.import",
-			"sha256": "80bfa0e28c9946620f110e1e8861f1ee2b3f8750ec5caa74bf87f81ed2baada0",
+			"path": "res://packs/default/music/kalinka-132.ogg.import",
+			"sha256": "dc7cf545aacb0304c115d16b6f5c010898ac80bfff45d4df584175fa48775d52",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -281,7 +281,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-144.ogg",
+			"path": "res://packs/default/music/kalinka-144.ogg",
 			"sha256": "3932c9e52dcffddfeee214be696a00d8c8cc385ee9703ed0b152531e9e9660c2",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -291,8 +291,8 @@
 			"boundary_step_db": -28.653775008543118
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-144.ogg.import",
-			"sha256": "52b1f1d4bfdc9e936f865529debc19b43af43017f40c347ba23d599511346892",
+			"path": "res://packs/default/music/kalinka-144.ogg.import",
+			"sha256": "577fcda9c17623e9753e13393b47bc49f4ebaf948d74f4ed126d0f17bea3b3da",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -301,7 +301,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-156.ogg",
+			"path": "res://packs/default/music/kalinka-156.ogg",
 			"sha256": "b9f21e94d0cfa9ac2a50a19a77f515d435cc5e86cacbd2e253681d3d2ce2374a",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -311,8 +311,8 @@
 			"boundary_step_db": -27.290692612680346
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-156.ogg.import",
-			"sha256": "2299c299cadd4e198d2b8bd0e0d18cd99f4128e8b948fb34ae8ac2172565c1f5",
+			"path": "res://packs/default/music/kalinka-156.ogg.import",
+			"sha256": "d5f5e9c1f542865db7bf2a10f54f4ab4d38bf4d8f7128921380120ef3dade719",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -321,7 +321,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-168.ogg",
+			"path": "res://packs/default/music/kalinka-168.ogg",
 			"sha256": "68b339e7f5515faf52fdc304701bdbce27f228eae18e3c32bd05ab1201985872",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -331,8 +331,8 @@
 			"boundary_step_db": -27.113430858696614
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-168.ogg.import",
-			"sha256": "aad60b10161c1432c8a81b6f132467bce8f15c0a43e1b8c601604a01186a86fc",
+			"path": "res://packs/default/music/kalinka-168.ogg.import",
+			"sha256": "6707e5d53c877daff2f24175927c79319bb8faad70bb6e051860356a7c274829",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -341,7 +341,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-180.ogg",
+			"path": "res://packs/default/music/kalinka-180.ogg",
 			"sha256": "a21c726611243e725503b7d0d6474ab4e756ac74e906d28bec7acab17d670377",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -351,8 +351,8 @@
 			"boundary_step_db": -27.4118387238626
 		},
 		{
-			"path": "res://assets/audio/bgm/kalinka-180.ogg.import",
-			"sha256": "c259c7b6eaef624d0d9376160b5e7dbaf54765e3a87a4c449cd94eae40fa720f",
+			"path": "res://packs/default/music/kalinka-180.ogg.import",
+			"sha256": "aee818024e789a42f12e2c9909796238cf9d67712c167ac242071f513bd8d1aa",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -361,7 +361,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-120.ogg",
+			"path": "res://packs/default/music/korobeiniki-120.ogg",
 			"sha256": "0cd1476894338b1b056ecd5921a93a55b73ad8dc5330ca206f42c46d52a5d265",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -371,8 +371,8 @@
 			"boundary_step_db": -26.882970378643535
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-120.ogg.import",
-			"sha256": "a7fe9b8887f2989772466df2db9aed1e447b359a3f26bb9ed5c21597049fdfbd",
+			"path": "res://packs/default/music/korobeiniki-120.ogg.import",
+			"sha256": "9e82e959703f309886157c3d3ba99ba1838b4611c7f03a284b76a57d4b86911a",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -381,7 +381,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-132.ogg",
+			"path": "res://packs/default/music/korobeiniki-132.ogg",
 			"sha256": "2a88643c26468ab566aa23a49e6243e9f1c88c4674b50640efd79bf0fd17a32d",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -391,8 +391,8 @@
 			"boundary_step_db": -27.42131797974528
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-132.ogg.import",
-			"sha256": "9d1d1dce8d94d2c2153165009bb79748a48af94384e6098f78ea545213352869",
+			"path": "res://packs/default/music/korobeiniki-132.ogg.import",
+			"sha256": "08997bf3b027ca761173282a9fb0e0881ad578ba01181bf26d6973ae86f3d307",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -401,7 +401,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-144.ogg",
+			"path": "res://packs/default/music/korobeiniki-144.ogg",
 			"sha256": "b6826a83478444eefb5f15ba6e2991bb241949b10172c3e4dc643445098d7992",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -411,8 +411,8 @@
 			"boundary_step_db": -26.617458668726115
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-144.ogg.import",
-			"sha256": "f63d4f64c4da57797725aa70137f0d766f58957e0c202948c424f508aaa196f6",
+			"path": "res://packs/default/music/korobeiniki-144.ogg.import",
+			"sha256": "0473bfbda81c4eb395f983b50c24c31bbb512fd2b00e75a380b5d4ca96d9f183",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -421,7 +421,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-156.ogg",
+			"path": "res://packs/default/music/korobeiniki-156.ogg",
 			"sha256": "d47d31ec21f733699c900d41a494b883bfc11e581a0fe0d9f4e60f7ed41b8f1d",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -431,8 +431,8 @@
 			"boundary_step_db": -24.17104185214788
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-156.ogg.import",
-			"sha256": "f276829d0bd8aa9d0e5e011842551174d1ef2dda0bf03a3d16cfd0453c01e485",
+			"path": "res://packs/default/music/korobeiniki-156.ogg.import",
+			"sha256": "a0fbb8f4880284073f09eadf57a8bbd9ea2701e0eb8e5cad4c6011a3f511690c",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -441,7 +441,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-168.ogg",
+			"path": "res://packs/default/music/korobeiniki-168.ogg",
 			"sha256": "dc27fcc9cb1986897cc150278ac42d62b3250f80190d697a7ddf300b4dc3d956",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -451,8 +451,8 @@
 			"boundary_step_db": -27.379081936584065
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-168.ogg.import",
-			"sha256": "a29f96aa4e7df196410410d9d6ae5a19dae103885c691458d4187678df1d9a22",
+			"path": "res://packs/default/music/korobeiniki-168.ogg.import",
+			"sha256": "10ed13ed379390bc785d5560cf01c552cbcb513c342d99a32f15a59af1604dbf",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -461,7 +461,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-180.ogg",
+			"path": "res://packs/default/music/korobeiniki-180.ogg",
 			"sha256": "70f741c9e4fe39d01ac217a73d6a9d50593b1eea941ff26274c801bd0dc087c7",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -471,8 +471,8 @@
 			"boundary_step_db": -27.511721233417433
 		},
 		{
-			"path": "res://assets/audio/bgm/korobeiniki-180.ogg.import",
-			"sha256": "96a3d1c629e4b0562b4133e5aeb69bcc02737231a30f5987e337a19bbd1e9444",
+			"path": "res://packs/default/music/korobeiniki-180.ogg.import",
+			"sha256": "829fccb2dca6ef1c2e285cd6232ecc98a50fe517d35dc490d8eb55b92c893314",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -481,7 +481,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/LICENSE-bgm.txt",
+			"path": "res://packs/default/music/LICENSE-bgm.txt",
 			"sha256": "01a70766fd180366fdff040b07475b6e1da8880a33be3c80904622e41f7ef3fc",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
@@ -491,7 +491,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-120.ogg",
+			"path": "res://packs/default/music/long-road-120.ogg",
 			"sha256": "4523cecd6709e3a0f5390238c5893edeb526466f802d99357d335b8aa5a295e5",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -501,8 +501,8 @@
 			"boundary_step_db": -27.105550715656207
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-120.ogg.import",
-			"sha256": "b7d51aed734d5e28dc8619f362f36e24b35e2f622d54c22bbb4217de99f75519",
+			"path": "res://packs/default/music/long-road-120.ogg.import",
+			"sha256": "be9977a87ccae762f74a32bc7a38765951a12bed012726963d11c55d9d09c3f7",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -511,7 +511,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-132.ogg",
+			"path": "res://packs/default/music/long-road-132.ogg",
 			"sha256": "e12d867ea01b070e29ad8fa4411a0fc3463382ee3a9e7f4f00e4444985c546a8",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -521,8 +521,8 @@
 			"boundary_step_db": -27.25760663350576
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-132.ogg.import",
-			"sha256": "5a40c74f91d4a07821af9d4e563487b9b56b702bc024da0e1d73118cef0026fc",
+			"path": "res://packs/default/music/long-road-132.ogg.import",
+			"sha256": "319210f6f9e99f8585efff9ff6a0b271c4fd7475c5206bc323dd04aef0a49847",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -531,7 +531,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-144.ogg",
+			"path": "res://packs/default/music/long-road-144.ogg",
 			"sha256": "da58540f3bc6a9ada6eb5c1c4c32ca42593da0776eb7c0d2ba8a8353fb20641e",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -541,8 +541,8 @@
 			"boundary_step_db": -26.67701750595578
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-144.ogg.import",
-			"sha256": "f83cb9b913c127e51f9967582fc66fe4280b9c083405b81289fb9652258d81f0",
+			"path": "res://packs/default/music/long-road-144.ogg.import",
+			"sha256": "742e72b92967eeeb3b64e67fb75e4012953f30dc1aa026b6db40b43d811d7531",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -551,7 +551,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-156.ogg",
+			"path": "res://packs/default/music/long-road-156.ogg",
 			"sha256": "923f0d18e1e999e814d9c0d0c98b0709d46c2424873211b6632815dd85ec3a34",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -561,8 +561,8 @@
 			"boundary_step_db": -25.084870822712638
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-156.ogg.import",
-			"sha256": "b713eb0e5ceb1eec8f79878eb791ecd9bfb8c047679c3fde3f2d3267d634a278",
+			"path": "res://packs/default/music/long-road-156.ogg.import",
+			"sha256": "0ba6494187143e8e3d203456410e5ea109b44c190f5eb05be10bcec8c010b3c4",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -571,7 +571,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-168.ogg",
+			"path": "res://packs/default/music/long-road-168.ogg",
 			"sha256": "77e46876d0e980537464e4a77d092c4da39cfb41465a624a9de878f59eca8aa8",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -581,8 +581,8 @@
 			"boundary_step_db": -27.094350949140424
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-168.ogg.import",
-			"sha256": "7f57bd144a4e4d9c597fbf374798bbadac86725554390a27bbdff7aeae178f19",
+			"path": "res://packs/default/music/long-road-168.ogg.import",
+			"sha256": "c1da24c836bc3bae0a7c99c1a25e8bfd952529ccea3775053b050f09cdad28df",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -591,7 +591,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-180.ogg",
+			"path": "res://packs/default/music/long-road-180.ogg",
 			"sha256": "5915a9d9a7a0f58f73c12882971b14b4fe980a3b0638dfc9d576e80e362b3fd4",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -601,8 +601,8 @@
 			"boundary_step_db": -26.84726604940551
 		},
 		{
-			"path": "res://assets/audio/bgm/long-road-180.ogg.import",
-			"sha256": "77ee9ef4064ab86737820e3b56bd004af169354d49fa6dc28e54a9a89f1d8cd3",
+			"path": "res://packs/default/music/long-road-180.ogg.import",
+			"sha256": "c650a11d5e9e15954d815cafba4494e42385e7a281c6dea5807e8de2532116c7",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -611,7 +611,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-120.ogg",
+			"path": "res://packs/default/music/manchuria-120.ogg",
 			"sha256": "92e1544f936101852ea778e1bee9e0b3002ea8ade690ba80d08b3cf4332017c9",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -621,8 +621,8 @@
 			"boundary_step_db": -22.835807957336666
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-120.ogg.import",
-			"sha256": "b0afbbae5a40059798de2e1cc8e271b3e12d61b6acdb84f4c4d0644f7133e5f1",
+			"path": "res://packs/default/music/manchuria-120.ogg.import",
+			"sha256": "db5903f56b7a24b65c433c5605bac0e56ed96cf97bb7ce9528a16023dd831ccd",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -631,7 +631,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-132.ogg",
+			"path": "res://packs/default/music/manchuria-132.ogg",
 			"sha256": "b6031f519408d055e3901e4d954f19e0820047c81f8973048bfe4300e4f597b3",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -641,8 +641,8 @@
 			"boundary_step_db": -26.788752785784745
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-132.ogg.import",
-			"sha256": "3b5e4f655cd9d3d254cf00458f2bf044a4aa6853af62c1664ed10aa8f4606408",
+			"path": "res://packs/default/music/manchuria-132.ogg.import",
+			"sha256": "415b5f9c9ebbb9ddfa793cd202d56167ad70fb0a184f0879b8e6c35580b2480c",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -651,7 +651,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-144.ogg",
+			"path": "res://packs/default/music/manchuria-144.ogg",
 			"sha256": "37601cf2785af1500d023774d89714fc00f93584d6ad3b087c66ea3c5f2eb7a6",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -661,8 +661,8 @@
 			"boundary_step_db": -27.927818411855263
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-144.ogg.import",
-			"sha256": "31ddbb29a89dc8976adeff106b162851b4badd667cc3302b769d2c2018076fec",
+			"path": "res://packs/default/music/manchuria-144.ogg.import",
+			"sha256": "3e4169fb155bdddebca0f0f49f33bf77df9d09e3435137721ec105811c908154",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -671,7 +671,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-156.ogg",
+			"path": "res://packs/default/music/manchuria-156.ogg",
 			"sha256": "5b166a09ff561cf1c1f644c59676ade88fa237fbee98f826dbb366718304a901",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -681,8 +681,8 @@
 			"boundary_step_db": -24.18350413017982
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-156.ogg.import",
-			"sha256": "ba7dcce3bd2cbc59570216219b4400c27b6412427b11bacf050938f4170182e1",
+			"path": "res://packs/default/music/manchuria-156.ogg.import",
+			"sha256": "2ff91bd7954f162c7a2b7183ea350aaace926ba2fab262178f33fe089541f6e5",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -691,7 +691,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-168.ogg",
+			"path": "res://packs/default/music/manchuria-168.ogg",
 			"sha256": "3f20db08db8e52274af06c93320024ea9d6053a69208d566024c48b2e41096fc",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -701,8 +701,8 @@
 			"boundary_step_db": -22.480450070413966
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-168.ogg.import",
-			"sha256": "d266e7a5f429e5001546b75f6fb4c094c4a6d4c8c6e7c98ca03de17b14b67f4a",
+			"path": "res://packs/default/music/manchuria-168.ogg.import",
+			"sha256": "208d76766a15eac154b287a66deaab9009b8158322d75f77d5691e7b87943e53",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -711,7 +711,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-180.ogg",
+			"path": "res://packs/default/music/manchuria-180.ogg",
 			"sha256": "ce67530e66c7d4c478753face1022760d86b7fc697918f3c687b45cd79475d99",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -721,8 +721,8 @@
 			"boundary_step_db": -22.322536836675905
 		},
 		{
-			"path": "res://assets/audio/bgm/manchuria-180.ogg.import",
-			"sha256": "2fb99cd058f56e105064ce8e8a2d45adb3a22f58002b4bdc727cdb3e34c12155",
+			"path": "res://packs/default/music/manchuria-180.ogg.import",
+			"sha256": "8f114ecb306f3f3484386280b1e9da7f8c55e0352e9ae688f0f23b37989d209a",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -731,7 +731,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-120.ogg",
+			"path": "res://packs/default/music/volga-boatmen-120.ogg",
 			"sha256": "da05054f0118141826f938d412e05e3da5ae8a0953cf532822362c902c29a478",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -741,8 +741,8 @@
 			"boundary_step_db": -26.78570973538737
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-120.ogg.import",
-			"sha256": "d2fc43596fe965b8eb81db4e0919ae33dfbe4811d8b02ae8b2ce293713f1f71b",
+			"path": "res://packs/default/music/volga-boatmen-120.ogg.import",
+			"sha256": "5961fedf1c43bc55733fb844000d58bd28ea902d9fdc5b683e5273548b81b66d",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -751,7 +751,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-132.ogg",
+			"path": "res://packs/default/music/volga-boatmen-132.ogg",
 			"sha256": "aa11896f83d925fde5e900b54d9a371856220c38c7a390711897e7cf6ae5a9cd",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -761,8 +761,8 @@
 			"boundary_step_db": -26.617458668726115
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-132.ogg.import",
-			"sha256": "722d84b7ae5d56735d2aaee58a756e4dec924d18439a38216c7215f46e50f2c9",
+			"path": "res://packs/default/music/volga-boatmen-132.ogg.import",
+			"sha256": "f9067df6ee3ab1af6978ba30cf1d66ce23b9b2a588a3722ac19375cc5c9e2d04",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -771,7 +771,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-144.ogg",
+			"path": "res://packs/default/music/volga-boatmen-144.ogg",
 			"sha256": "7bc780a3f5a1aa27726fabbc914b48ae24196ad4877775600df8425cb8df4139",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.2426303854875282,
@@ -781,8 +781,8 @@
 			"boundary_step_db": -27.31787532215818
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-144.ogg.import",
-			"sha256": "7e34f831ebaa049bfeed612f689c016d520f122a7d90699270e2d42565755eeb",
+			"path": "res://packs/default/music/volga-boatmen-144.ogg.import",
+			"sha256": "d3cf0fbddbffecab7caf964800dceb7894439ce9c074b44b1f8c49b9ccc951e0",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -791,7 +791,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-156.ogg",
+			"path": "res://packs/default/music/volga-boatmen-156.ogg",
 			"sha256": "6623479d75e8fcf42872d3e2df3f102de88dd605ec752f6e12310c9ed935f9f2",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -801,8 +801,8 @@
 			"boundary_step_db": -26.92122799228079
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-156.ogg.import",
-			"sha256": "0a1a80fb2e2ff13f78b1eaf816b774d2a8c213f85a49b50e30cf8bc32ef1e8ab",
+			"path": "res://packs/default/music/volga-boatmen-156.ogg.import",
+			"sha256": "205b6430227a6f9236f08aab345a0f10c5a7af3db6091c7862d3617467764201",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -811,7 +811,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-168.ogg",
+			"path": "res://packs/default/music/volga-boatmen-168.ogg",
 			"sha256": "3fac403f6af1c35222b13753cc853c45194f2512139b1ec74c1e1e6eacf3d7cd",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 3.4467120181405897,
@@ -821,8 +821,8 @@
 			"boundary_step_db": -29.053964916217872
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-168.ogg.import",
-			"sha256": "d72f9a2132901cdddd28bc95d93d0ea42cdd7555a7dbc4b75b98b45f8536cd60",
+			"path": "res://packs/default/music/volga-boatmen-168.ogg.import",
+			"sha256": "b86191d297dc0d7ce56b8d7bfcef87a82e4c1c555e9fd1d3e28e56a694eaf064",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,
@@ -831,7 +831,7 @@
 			"boundary_step_db": -120.0
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-180.ogg",
+			"path": "res://packs/default/music/volga-boatmen-180.ogg",
 			"sha256": "31de586bb8ccef5d4a669e7ad9f86c24f9acc720858b4f888728566d55351396",
 			"onset_ms": 0.0,
 			"half_amplitude_ms": 0.6122448979591837,
@@ -841,8 +841,8 @@
 			"boundary_step_db": -28.23158274207095
 		},
 		{
-			"path": "res://assets/audio/bgm/volga-boatmen-180.ogg.import",
-			"sha256": "ef40d0737da2c8f9e25ed5e0c2d9f51c16baa4c0207d4c68bff7559881cce5a4",
+			"path": "res://packs/default/music/volga-boatmen-180.ogg.import",
+			"sha256": "c462f03142c63248045f2d40463494a1fca7abaa905a8a27d30a92e43fd93362",
 			"onset_ms": 1000000000.0,
 			"half_amplitude_ms": 1000000000.0,
 			"duration_s": 0.0,

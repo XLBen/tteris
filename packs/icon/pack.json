@@ -1,0 +1,183 @@
+{
+	"format": 1,
+	"name": "Icon",
+	"author": "Project",
+	"description": "Gold leaf, vermilion and lapis in the manner of an Orthodox icon: enamelled blocks in gold settings, gilded panels, effects of gold light, and domes under a slowly turning nimbus.",
+	"icon": "pack.png",
+	"blocks": {
+		"atlas": "blocks.png",
+		"ghost_alpha": 0.55
+	},
+	"ui": {
+		"panel": {
+			"file": "ui/panel.png",
+			"margin": 8
+		},
+		"card": {
+			"file": "ui/card.png",
+			"margin": 8
+		},
+		"button": {
+			"file": "ui/button.png",
+			"margin": 6
+		},
+		"button_hover": {
+			"file": "ui/button_hover.png",
+			"margin": 6
+		},
+		"button_pressed": {
+			"file": "ui/button_pressed.png",
+			"margin": 6
+		},
+		"button_focus": {
+			"file": "ui/button_focus.png",
+			"margin": 6
+		}
+	},
+	"colors": {
+		"piece_i": "#3aa6cc",
+		"piece_o": "#f0c040",
+		"piece_t": "#8e44a8",
+		"piece_s": "#3c9c62",
+		"piece_z": "#cc3a22",
+		"piece_j": "#2c50b0",
+		"piece_l": "#dc7e28",
+		"garbage": "#7a6c5c",
+		"background_base": "#0c0604",
+		"background_tint": "#6a4a2a",
+		"menu_top": "#2a1208",
+		"menu_bottom": "#0c0604",
+		"area_fill": "#180a06eb",
+		"area_border": "#c8962ea6",
+		"board_fill": "#0a0503f0",
+		"board_border": "#e8b83ad9",
+		"grid": "#f0c0400f",
+		"panel_fill": "#1c0c06e6",
+		"panel_border": "#c8962e99",
+		"veil": "#0c0604a6",
+		"text_title": "#e8b83a",
+		"text_value": "#fff0c8",
+		"text_dim": "#a08458",
+		"accent": "#f0c040",
+		"highlight": "#ffe27a",
+		"good": "#8ccc7a",
+		"bad": "#e8584a",
+		"lamp_off": "#5a4630",
+		"player": "#f0c040",
+		"opponent": "#d8503a",
+		"warning": "#e03a22",
+		"warning_queued": "#8a3a1c",
+		"cancel": "#fff0c8",
+		"tier_easy": "#8ccc7a",
+		"tier_normal": "#6cb4dc",
+		"tier_hard": "#f0a040",
+		"tier_lunatic": "#e8483a",
+		"fx_flash": "#fff0c8",
+		"fx_garbage": "#d8c8a8",
+		"fx_danger": "#e03a22",
+		"fx_ko_veil": "#1c0806c2",
+		"fx_ko_text": "#f0c040",
+		"callout_perfect": "#fff0a8",
+		"callout_tspin": "#d08ae0",
+		"callout_tetris": "#f0c040",
+		"callout_clear": "#ffe27a",
+		"button_fill": "#5a1a10",
+		"button_hover": "#7a2416",
+		"button_pressed": "#3a100a",
+		"button_disabled": "#2a1810",
+		"button_border": "#c8962e",
+		"button_focus": "#ffe27a",
+		"button_text": "#fff0c8",
+		"button_text_disabled": "#8a7458",
+		"window_fill": "#1c0c06f7",
+		"window_border": "#e8b83a"
+	},
+	"effects": {
+		"lock": {
+			"sheet": "fx/lock.png",
+			"frame": [40, 40],
+			"frames": 8,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"hard_drop": {
+			"sheet": "fx/hard_drop.png",
+			"frame": [112, 48],
+			"frames": 14,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "bottom",
+			"glow": 0.35,
+			"replace": true
+		},
+		"garbage": {
+			"sheet": "fx/garbage.png",
+			"frame": [128, 44],
+			"frames": 14,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "bottom",
+			"glow": 0.35,
+			"replace": true
+		},
+		"line_clear": {
+			"sheet": "fx/line_clear.png",
+			"frame": [144, 40],
+			"frames": 18,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"tetris": {
+			"sheet": "fx/tetris.png",
+			"frame": [176, 128],
+			"frames": 30,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"tspin": {
+			"sheet": "fx/tspin.png",
+			"frame": [96, 96],
+			"frames": 24,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"perfect_clear": {
+			"sheet": "fx/perfect_clear.png",
+			"frame": [160, 232],
+			"frames": 42,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		},
+		"ko": {
+			"sheet": "fx/ko.png",
+			"frame": [176, 240],
+			"frames": 45,
+			"fps": 30,
+			"scale": 2,
+			"anchor": "center",
+			"glow": 0.35,
+			"replace": true
+		}
+	},
+	"backdrop": {
+		"sheet": "backdrop.png",
+		"frame": [192, 108],
+		"frames": 72,
+		"fps": 12
+	}
+}

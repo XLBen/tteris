@@ -45,7 +45,7 @@ PASSED_MARKER = "AUDIO ASSET CHECKS PASSED"
 MEASUREMENTS_REL = "assets/assets-measurements.json"
 MANIFEST_REL = "assets/assets-manifest.json"
 PROVENANCE_REL = "assets/assets-provenance.json"
-BGM_DIR_REL = "assets/audio/bgm"
+BGM_DIR_REL = "packs/default/music"
 DIGITAL_DIR_REL = "assets/audio/digital"
 ASSETS_ROOT_REL = "assets"
 

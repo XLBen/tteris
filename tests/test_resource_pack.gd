@@ -40,6 +40,7 @@ static func run_module() -> Dictionary:
 	await _case_mode_select_button_cycles_packs(ctx)
 	_case_runtime_styles_menus_and_interface_sounds(ctx)
 	_remove_test_pack()
+	_case_icon_pack_brings_every_part(ctx)
 	# Put the player's own choice back.
 	if had_choice:
 		ResourcePack.set_enabled(saved_choice)
@@ -127,6 +128,35 @@ static func _case_default_pack_covers_every_scene_request(ctx: Dictionary) -> vo
 		seen.append(ResourcePack.cell_color(value))
 	ok = ok and not seen.has(ResourcePack.cell_color(Board.GARBAGE))
 	_case(ctx, "default_pack_covers_every_scene_request", ok)
+
+
+## The bundled "Icon" pack (2026-10-11, owner: an Orthodox icon theme with
+## its own interface, blocks, effects and background) replaces all four and
+## leaves the rest - the music, the sounds, the layouts - to the default pack.
+static func _case_icon_pack_brings_every_part(ctx: Dictionary) -> void:
+	var plain_accent: Color = ResourcePack.color("accent")
+	ResourcePack.set_enabled(["icon"], false)
+	var ok: bool = ResourcePack.enabled_ids().has("icon")
+	var atlas: Texture2D = ResourcePack.blocks().get("atlas_texture") as Texture2D
+	ok = ok and atlas != null and atlas.resource_path.begins_with("res://packs/icon/") and atlas.get_width() == atlas.get_height() * 9
+	for event: String in ResourcePack.EFFECT_EVENTS:
+		var effect: Dictionary = ResourcePack.effect(event)
+		ok = ok and not effect.is_empty() and (effect["texture"] as Texture2D).resource_path.begins_with("res://packs/icon/fx/")
+	var backdrop: Dictionary = ResourcePack.backdrop()
+	ok = ok and not backdrop.is_empty() and (backdrop["texture"] as Texture2D).resource_path == "res://packs/icon/backdrop.png" \
+		and int(backdrop["frames"]) >= 24
+	for key: String in ["panel", "card", "button", "button_hover", "button_pressed", "button_focus"]:
+		ok = ok and ResourcePack._box(key, Color.BLACK, Color.BLACK, 1) is StyleBoxTexture
+	ok = ok and ResourcePack.color("accent") != plain_accent and ResourcePack.color("accent") != ResourcePack.MISSING_COLOR
+	var seen: Array[Color] = []
+	for value: int in 7:
+		ok = ok and not seen.has(ResourcePack.cell_color(value))
+		seen.append(ResourcePack.cell_color(value))
+	# What it does not bring is still there.
+	ok = ok and ResourcePack.playlist().size() >= 2 and ResourcePack.sound("move") != null and ResourcePack.layout("versus_hud") != null
+	ResourcePack.set_enabled([], false)
+	ok = ok and (ResourcePack.backdrop()["texture"] as Texture2D).resource_path == "res://packs/default/backdrop.png"
+	_case(ctx, "icon_pack_brings_interface_blocks_effects_and_backdrop", ok)
 
 
 static func _case_scene_scripts_name_no_asset(ctx: Dictionary) -> void:

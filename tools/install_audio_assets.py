@@ -14,7 +14,7 @@ Pipeline: pinned HTTPS download -> per-file SHA-256 verification (fail closed
 on mismatch) -> safe temp unpack (traversal/symlink/absolute-path archive
 members rejected) -> ffmpeg/ffprobe re-measurement of candidates -> threshold
 selection (>= 3 seamless BGM loops, 2 crisp replacement SFX) -> staged
-additions-only install into assets/audio/bgm/ and assets/audio/digital/ ->
+additions-only install into packs/default/music/ and assets/audio/digital/ ->
 per-file .import settings written for the BGM tiers (loop=true) followed by
 one headless editor import pass with the pinned Godot executable so load()
 returns AudioStreamOggVorbis with loop == true (replacement SFX stay
@@ -51,7 +51,7 @@ import zipfile
 from pathlib import Path
 
 DEFAULT_MANIFEST = "assets/assets-manifest.json"
-BGM_DIR_REL = "assets/audio/bgm"
+BGM_DIR_REL = "packs/default/music"
 DIGITAL_DIR_REL = "assets/audio/digital"
 INTERFACE_DIR_REL = "assets/audio/interface"
 
@@ -493,7 +493,7 @@ def license_text_bgm(selected: list[dict]) -> str:
     lines += [
         "",
         "Modifications: the loop files were copied verbatim into",
-        "assets/audio/bgm/ without content changes. Per-file Godot import",
+        "packs/default/music/ without content changes. Per-file Godot import",
         "metadata (*.ogg.import) was added beside them so the engine imports",
         "the loops with loop=true; the audio bytes themselves are unmodified.",
         "",

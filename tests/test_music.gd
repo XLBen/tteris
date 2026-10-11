@@ -2,8 +2,8 @@ extends SceneTree
 
 const MODULE_NAME: String = "music"
 
-const BGM_FILE: String = "res://assets/audio/bgm/korobeiniki-120.ogg"
-const BGM_DIR_SUBSTRING: String = "assets/audio/bgm/"
+const BGM_FILE: String = "res://packs/default/music/korobeiniki-120.ogg"
+const BGM_DIR_SUBSTRING: String = "packs/default/music/"
 const OLD_JINGLE_SUBSTRING: String = "assets/music/bgm.ogg"
 const OLD_JINGLE_DIR_SUBSTRING: String = "assets/music/"
 const MIX_SETTLE_SECONDS: float = 0.2
@@ -14,7 +14,7 @@ const MIX_SETTLE_SECONDS: float = 0.2
 # from launch), with the SFX sidechain compressor on the BGM bus retained.
 # Revised 2026-10-10 (owner decision): that stream is the project's own synth
 # arrangement rendered by tools/make_bgm.py (record:
-# assets/audio/bgm/LICENSE-bgm.txt); byte sha256 bound in
+# packs/default/music/LICENSE-bgm.txt); byte sha256 bound in
 # assets/assets-measurements.json.
 # Revised 2026-10-11 (owner decision): a playlist of songs in that
 # arrangement, one playing at a time (scripts/bgm_director.gd): the stream is
@@ -26,10 +26,10 @@ const MAGORY_FILENAMES: Array[String] = [
 	"the_price_of_freedom-loop1.ogg",
 ]
 const REMOVED_TIER_FILES: Array[String] = [
-	"res://assets/audio/bgm/korobeiniki-tier1.ogg",
-	"res://assets/audio/bgm/korobeiniki-tier2.ogg",
-	"res://assets/audio/bgm/korobeiniki-tier3.ogg",
-	"res://assets/audio/bgm/korobeiniki-accent.ogg",
+	"res://packs/default/music/korobeiniki-tier1.ogg",
+	"res://packs/default/music/korobeiniki-tier2.ogg",
+	"res://packs/default/music/korobeiniki-tier3.ogg",
+	"res://packs/default/music/korobeiniki-accent.ogg",
 ]
 const REMOVED_TIER_NAMES: Array[String] = [
 	"korobeiniki-tier1.ogg",
@@ -89,7 +89,7 @@ static func _case_single_bgm_stream_looped_on_bgm_bus(ctx: Dictionary) -> void:
 	# Revised 2026-10-10 (resource packs): the track is named by the default
 	# pack's manifest, not by main.gd.
 	var text: String = FileAccess.get_file_as_string("res://packs/default/pack.json")
-	if not text.contains(BGM_FILE):
+	if not text.contains(BGM_FILE.get_file()):
 		ok = false
 	var player: Variant = main.get("_bgm_player")
 	if not (player is AudioStreamPlayer):
@@ -101,7 +101,7 @@ static func _case_single_bgm_stream_looped_on_bgm_bus(ctx: Dictionary) -> void:
 		var ogg: AudioStreamOggVorbis = bgm_player.stream as AudioStreamOggVorbis
 		if ogg == null or ogg.loop:
 			ok = false
-		elif not text.contains(ogg.resource_path) or not ogg.resource_path.contains(BGM_DIR_SUBSTRING):
+		elif not text.contains(ogg.resource_path.get_file()) or not ogg.resource_path.contains(BGM_DIR_SUBSTRING):
 			ok = false
 		if not bgm_player.playing:
 			ok = false

@@ -5,6 +5,9 @@
 //   node tools/fx_studio/export.js            -> packs/pixelfx/ (and the title
 //                                                into packs/default/)
 //   node tools/fx_studio/export.js <folder>   -> another pack folder
+//   node tools/fx_studio/export.js --pack icon -> packs/icon/: the effects in
+//                                                that pack's colors and its
+//                                                own backdrop
 //
 // Output: fx/<event>.png (frames left to right, top to bottom), pack.png (the
 // icon) and pack.json with one "effects" entry per sheet. Deterministic: the
@@ -92,18 +95,50 @@ function writeLoop(target, def, made, stats) {
 	fs.writeFileSync(path.join(where, file), png(made.width, made.height, made.data));
 	console.log('%s  %dx%d  %d frames @ %d fps, loops from %d  sheet %dx%d  particles born %d, peak %d  -> %s',
 		def.name.padEnd(14), def.w, def.h, def.frames, def.fps, def.loopFrom, made.width, made.height, stats.born, stats.peak, where);
+	return entry;
+}
+
+// A themed pack (--pack <id>) takes the board effects in its own colors:
+// every pixel keeps its brightness and its place and is given the color of
+// that brightness on the theme's ramp.
+const THEMES = {
+	icon: ['#2a0806', '#7a140c', '#b02a1a', '#d88a1c', '#e8b83a', '#ffe27a', '#fff6c8', '#ffffff'],
+};
+
+function recolor(frames, stops) {
+	const ramp = stops.map(FX.hex);
+	for (const frame of frames) {
+		for (let i = 0; i < frame.length; i += 4) {
+			if (frame[i + 3] === 0) continue;
+			const light = (0.3 * frame[i] + 0.59 * frame[i + 1] + 0.11 * frame[i + 2]) / 255;
+			const at = Math.min(ramp.length - 1.001, Math.pow(light, 0.85) * (ramp.length - 1));
+			const low = Math.floor(at), k = at - low;
+			for (let c = 0; c < 3; c++) frame[i + c] = Math.round((ramp[low][c] + (ramp[low + 1][c] - ramp[low][c]) * k) * 255);
+		}
+	}
 }
 
 function main() {
-	const target = path.resolve(process.argv[2] || path.join(__dirname, '..', '..', 'packs', 'pixelfx'));
+	const args = process.argv.slice(2);
+	const theme = args[0] === '--pack' ? args[1] : null;
+	if (theme && !THEMES[theme]) {
+		console.log('no such themed pack: ' + theme + ' (known: ' + Object.keys(THEMES).join(', ') + ')');
+		return 1;
+	}
+	const target = path.resolve(theme ? path.join(__dirname, '..', '..', 'packs', theme) : args[0] || path.join(__dirname, '..', '..', 'packs', 'pixelfx'));
 	fs.mkdirSync(path.join(target, 'fx'), { recursive: true });
 	const effects = {};
+	const loops = {};
 	let problems = 0;
 	for (const def of FX.effectList) {
+		const loop = def.kind === 'title' || def.kind === 'backdrop';
+		// A pack's own loops go to that pack only; the board effects to all.
+		if (loop ? (def.pack || null) !== theme : false) continue;
 		const { frames, stats } = FX.renderFrames(def);
+		if (theme && !loop) recolor(frames, THEMES[theme]);
 		const made = sheet(def, frames);
-		if (def.kind === 'title' || def.kind === 'backdrop') {
-			writeLoop(target, def, made, stats);
+		if (loop) {
+			loops[def.kind] = writeLoop(target, def, made, stats);
 			continue;
 		}
 		fs.writeFileSync(path.join(target, 'fx', def.name + '.png'), png(made.width, made.height, made.data));
@@ -114,16 +149,20 @@ function main() {
 		console.log('%s  %dx%d  %d frames (%s s)  sheet %dx%d  particles born %d, peak %d%s%s',
 			def.name.padEnd(14), def.w, def.h, def.frames, (def.frames / def.fps).toFixed(2), made.width, made.height, stats.born, stats.peak,
 			first === 0 ? '  !! first frame is empty' : '', warn);
-		if (def.name === 'ko') fs.writeFileSync(path.join(target, 'pack.png'), icon(def, frames));
+		if (def.name === 'ko' && !theme) fs.writeFileSync(path.join(target, 'pack.png'), icon(def, frames));
 	}
-	const manifest = {
+	// A themed pack has its own pack.json (colors, blocks, ...): only the
+	// moving parts are written into it.
+	const file = path.join(target, 'pack.json');
+	const manifest = theme && fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {
 		format: 1,
 		name: 'Pixel FX',
 		author: 'Project',
 		description: 'Hand-timed pixel animations for every board event: line clears, Tetris, T-spins, perfect clears, drops, garbage and the K.O. Made with tools/fx_studio.',
-		effects,
 	};
-	fs.writeFileSync(path.join(target, 'pack.json'), JSON.stringify(manifest, null, '\t').replace(/\[\n\t+(\d+),\n\t+(\d+)\n\t+\]/g, '[$1, $2]') + '\n');
+	manifest.effects = effects;
+	if (theme) Object.assign(manifest, loops);
+	fs.writeFileSync(file, JSON.stringify(manifest, null, '\t').replace(/\[\n\t+(\d+),\n\t+(\d+)\n\t+\]/g, '[$1, $2]') + '\n');
 	console.log(problems ? problems + ' effect(s) need attention' : 'ok -> ' + target);
 	return problems ? 1 : 0;
 }

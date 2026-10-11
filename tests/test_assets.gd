@@ -12,10 +12,10 @@ const LEGACY_RECORD_DIRS: Array[String] = [
 	"res://assets/visuals",
 ]
 const AUDIO_RECORD_DIRS: Array[String] = [
-	"res://assets/audio/bgm",
+	"res://packs/default/music",
 	"res://assets/audio/digital",
 ]
-const BGM_PREFIX: String = "res://assets/audio/bgm/"
+const BGM_PREFIX: String = "res://packs/default/music/"
 const SFX_DIGITAL_PREFIX: String = "res://assets/audio/digital/"
 const SFX_DELTA_KEYS: Array[String] = ["tetris", "resume"]
 const SFX_EVENTS: Array[String] = [

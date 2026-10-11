@@ -2,10 +2,13 @@ class_name NowPlaying
 extends Control
 ## The small player in the bottom right corner of a game: which song of the
 ## playlist is on (BgmDirector.song_title(), translated when the language has
-## the title) and at what tempo, beside three bars that bounce with the beat.
-## It only shows; nothing on it can be clicked.
+## the title) and at what tempo, beside three bars that bounce with the beat,
+## and a button that switches between random order and the playlist's own
+## (BgmDirector.set_shuffle; the choice is remembered). The button takes the
+## mouse only: it never holds the keyboard focus the game is played with.
 
-const PANEL_SIZE: Vector2 = Vector2(232.0, 36.0)
+const PANEL_SIZE: Vector2 = Vector2(300.0, 36.0)
+const ORDER_WIDTH: float = 76.0
 const MARGIN: float = 10.0
 const BAR_WIDTH: float = 3.0
 const BAR_GAP: float = 2.0
@@ -16,6 +19,7 @@ const FLASH_SECONDS: float = 1.2
 var _director: BgmDirector
 var _title: Label
 var _tempo: Label
+var _order: Button
 var _song: int = -1
 var _bpm: int = 0
 var _time: float = 0.0
@@ -45,12 +49,33 @@ func _ready() -> void:
 	offset_bottom = -MARGIN
 	_title = _label(13, ResourcePack.color("text_value"))
 	_title.position = Vector2(30.0, 3.0)
-	_title.size = Vector2(PANEL_SIZE.x - 36.0, 16.0)
+	_title.size = Vector2(PANEL_SIZE.x - 40.0 - ORDER_WIDTH, 16.0)
 	_title.clip_text = true
 	_tempo = _label(10, ResourcePack.color("text_dim"))
 	_tempo.position = Vector2(30.0, 20.0)
-	_tempo.size = Vector2(PANEL_SIZE.x - 36.0, 12.0)
+	_tempo.size = Vector2(PANEL_SIZE.x - 40.0 - ORDER_WIDTH, 12.0)
+	_order = Button.new()
+	_order.name = "OrderButton"
+	_order.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
+	_order.focus_mode = Control.FOCUS_NONE
+	_order.position = Vector2(PANEL_SIZE.x - ORDER_WIDTH - 5.0, 5.0)
+	_order.size = Vector2(ORDER_WIDTH, PANEL_SIZE.y - 10.0)
+	_order.add_theme_font_override("font", ResourcePack.font("mini"))
+	_order.add_theme_font_size_override("font_size", 11)
+	_order.pressed.connect(_on_order_pressed)
+	add_child(_order)
 	_refresh()
+
+
+## The order button's text (tests).
+func order_text() -> String:
+	return _order.text
+
+
+func _on_order_pressed() -> void:
+	if _director != null and is_instance_valid(_director):
+		_director.set_shuffle(not _director.shuffled())
+		_refresh()
 
 
 func _label(font_size: int, color: Color) -> Label:
@@ -76,6 +101,7 @@ func _refresh() -> void:
 	visible = _director != null and is_instance_valid(_director) and _director.song() >= 0
 	if not visible:
 		return
+	_order.text = tr("SHUFFLE") if _director.shuffled() else tr("IN ORDER")
 	var bpm: int = roundi(_director.tempo())
 	if _director.song() == _song and bpm == _bpm:
 		return

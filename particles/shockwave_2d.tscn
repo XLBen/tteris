@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://addons/kenney_particle_pack/circle_01.png" id="1_sw2d"]
+
+[sub_resource type="Curve" id="Curve_shock_growth"]
+_data = [Vector2(0, 0.15), 0.0, 0.0, 0, 0, Vector2(1, 0.7), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_shock_fade"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(0.85, 0.92, 1, 0.5, 0.85, 0.92, 1, 0)
+
+[node name="Shockwave2D" type="CPUParticles2D"]
+emitting = false
+amount = 3
+lifetime = 0.45
+one_shot = true
+explosiveness = 0.8
+texture = ExtResource("1_sw2d")
+scale_amount_min = 1.0
+scale_amount_max = 1.0
+scale_amount_curve = SubResource("Curve_shock_growth")
+color_ramp = SubResource("Gradient_shock_fade")

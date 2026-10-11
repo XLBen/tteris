@@ -1,0 +1,41 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/versus.gd" id="1_versus"]
+[ext_resource type="Texture2D" path="res://assets/visuals/background.png" id="2_bg"]
+
+[node name="Versus" type="Node2D"]
+script = ExtResource("1_versus")
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -1
+
+[node name="BackgroundColor" type="ColorRect" parent="Background"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.06, 0.09, 1)
+
+[node name="BackgroundImage" type="TextureRect" parent="Background"]
+modulate = Color(0.35, 0.4, 0.55, 1)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_bg")
+stretch_mode = 6
+
+[node name="GameArea" type="Node2D" parent="."]
+position = Vector2(96, 54)
+
+[node name="AreaFill" type="Polygon2D" parent="GameArea"]
+color = Color(0.09, 0.11, 0.16, 1)
+polygon = PackedVector2Array(0, 0, 960, 0, 960, 540, 0, 540)
+
+[node name="AreaBorder" type="Line2D" parent="GameArea"]
+width = 2.0
+default_color = Color(0.35, 0.8, 0.45, 1)
+points = PackedVector2Array(0, 0, 960, 0, 960, 540, 0, 540, 0, 0)

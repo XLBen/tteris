@@ -1,0 +1,264 @@
+{
+	"files": [
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg",
+			"sha256": "72aea13987b0ecfa4ed2a8f9d22413309ffcc4a72d2cc8137458f68f04129e77",
+			"onset_ms": 0.18140589569160998,
+			"half_amplitude_ms": 4000.249433106576,
+			"duration_s": 87.99201814058956,
+			"head_rms_db": -23.786602056416246,
+			"tail_rms_db": -16.257577809874746,
+			"boundary_step_db": -20.006589749489734
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg.import",
+			"sha256": "b68187cd570f9009b5bfa038af95615177d7a68f44df08dda114148a53124272",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-1.ogg",
+			"sha256": "2bca4ea09c26a6468fc8d58914737567dd20a9ff4654785f72368b82cd353a5b",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.6122448979591837,
+			"duration_s": 76.19047619047619,
+			"head_rms_db": -7.03875985820157,
+			"tail_rms_db": -17.14986728917491,
+			"boundary_step_db": -14.806546678728697
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-1.ogg.import",
+			"sha256": "1f869b8b14f5a71090b4d37ddbfa9fb9e64ee0075ca3652f1da217d1aebbe10a",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-2.ogg",
+			"sha256": "23a00bb69c7513f6d9f48b6ef865afb448c0629c89c59a365997e012e5527d3a",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 3.1065759637188206,
+			"duration_s": 72.72199546485261,
+			"head_rms_db": -9.187641191670089,
+			"tail_rms_db": -16.66712274075965,
+			"boundary_step_db": -24.57692686952582
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-2.ogg.import",
+			"sha256": "d67aae0b42f26dc6d7b851f401d8d237d641a5697070a795a9802c9e29099f97",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-3.ogg",
+			"sha256": "7495d413de45dcefc54ee31c98850429067226070cf67ed144a757f743fcf6cb",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.6122448979591837,
+			"duration_s": 69.55827664399094,
+			"head_rms_db": -7.248929204023552,
+			"tail_rms_db": -14.882846748765981,
+			"boundary_step_db": -14.538877753213038
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-3.ogg.import",
+			"sha256": "f9357c4364cba9008b779ba7f6f0471a63fb0003bf404073fb1078a792cd650c",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-4.ogg",
+			"sha256": "0ff1c3326051866aac77c62cd6cd7714f2b4e781a161ba1c0fed8340f03b907f",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.6122448979591837,
+			"duration_s": 66.6702947845805,
+			"head_rms_db": -10.617263184829199,
+			"tail_rms_db": -11.103276943948746,
+			"boundary_step_db": -18.265217981901444
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-rise-4.ogg.import",
+			"sha256": "c8b081b039c36a90223dbd5757d3378f38dba0f039afcb32f3ef871237e1fb61",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-danger.ogg",
+			"sha256": "088a3d08bbb9b9240c4468c0cef5d7d0cd22f9c308486513e90f9e4972baa166",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.2947845804988662,
+			"duration_s": 64.0,
+			"head_rms_db": -7.205162841588226,
+			"tail_rms_db": -11.40252221618655,
+			"boundary_step_db": -7.195833782271999
+		},
+		{
+			"path": "res://assets/audio/bgm/korobeiniki-coldwar-danger.ogg.import",
+			"sha256": "bec93b060b8bf6a08943098322398bf91547cd105a702518fa55eafa5e6e080a",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/bgm/LICENSE-bgm-coldwar-synth.txt",
+			"sha256": "25538e504b84a9d8c5a55a40c8ff3692bc929dc805e99345d0e3274bedc7a2b3",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/digital/confirmation_003.ogg",
+			"sha256": "3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.06802721088435373,
+			"duration_s": 0.3220181405895692,
+			"head_rms_db": -4.699936525331873,
+			"tail_rms_db": -52.77305096817477,
+			"boundary_step_db": -52.520701782078724
+		},
+		{
+			"path": "res://assets/audio/digital/confirmation_003.ogg.import",
+			"sha256": "d65ab3c525ec207afadd201e9d0117c4ab5f002c69e2fe0309d0aec16d23d03e",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/digital/maximize_009.ogg",
+			"sha256": "b4d56386258b3cc1c8f6e5a22465f8cd65de3d4309e022664050f43151e466cd",
+			"onset_ms": 0.15873015873015872,
+			"half_amplitude_ms": 10.022675736961451,
+			"duration_s": 0.22188208616780045,
+			"head_rms_db": -14.251660572387625,
+			"tail_rms_db": -93.41882644683648,
+			"boundary_step_db": -102.07627896061844
+		},
+		{
+			"path": "res://assets/audio/digital/maximize_009.ogg.import",
+			"sha256": "60e3720b050968f9ef920657d4e2b418bbe4540c580ad1344a4c1d9ffeed3bc1",
+			"onset_ms": 1000000000.0,
+			"half_amplitude_ms": 1000000000.0,
+			"duration_s": 0.0,
+			"head_rms_db": -100.0,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -120.0
+		},
+		{
+			"path": "res://assets/audio/interface/confirmation_002.ogg",
+			"sha256": "33b17a9a9a2397c62b285c52c33a907fdffb476909c99e42dde603f6a7a8b12c",
+			"onset_ms": 0.022675736961451247,
+			"half_amplitude_ms": 0.11337868480725624,
+			"duration_s": 0.5390022675736962,
+			"head_rms_db": -4.567530715037401,
+			"tail_rms_db": -60.7599337089769,
+			"boundary_step_db": -61.056894119163346
+		},
+		{
+			"path": "res://assets/audio/interface/drop_001.ogg",
+			"sha256": "692ee3a6f1821402ca649ff735bee9591dc4846c8098fc7d6a90fd15fa57c1af",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.11337868480725624,
+			"duration_s": 0.13206349206349208,
+			"head_rms_db": -10.357027963751129,
+			"tail_rms_db": -89.30266810769027,
+			"boundary_step_db": -40.76392590187301
+		},
+		{
+			"path": "res://assets/audio/interface/drop_003.ogg",
+			"sha256": "43d086d50f90493a98cd2e09aa6dbf150d164f1578e1ec768d21cb185571ad87",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.18140589569160998,
+			"duration_s": 0.1881859410430839,
+			"head_rms_db": -8.346895307794467,
+			"tail_rms_db": -49.46803676649687,
+			"boundary_step_db": -55.27279766132121
+		},
+		{
+			"path": "res://assets/audio/interface/error_004.ogg",
+			"sha256": "0b574cea597d96507e782ae9764f88482ce49f46e931e57054bf7150047f2d69",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.09070294784580499,
+			"duration_s": 0.10448979591836735,
+			"head_rms_db": -9.396734482935466,
+			"tail_rms_db": -43.766210224650585,
+			"boundary_step_db": -43.05503718339765
+		},
+		{
+			"path": "res://assets/audio/interface/glass_004.ogg",
+			"sha256": "2379b58f953e3d86982aa8cddcae763022c6258e9820171bf905ce58b4e97766",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.022675736961451247,
+			"duration_s": 0.6922675736961451,
+			"head_rms_db": -4.832964701992769,
+			"tail_rms_db": -57.9460988474452,
+			"boundary_step_db": -32.86797821126013
+		},
+		{
+			"path": "res://assets/audio/interface/minimize_002.ogg",
+			"sha256": "670e47846dc003fe29d39c8dfebb8635bfcacae3c0916392c0e8bff659493ad6",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.045351473922902494,
+			"duration_s": 0.2582766439909297,
+			"head_rms_db": -4.329133466713491,
+			"tail_rms_db": -39.95421509377343,
+			"boundary_step_db": -39.81891922320036
+		},
+		{
+			"path": "res://assets/audio/interface/switch_004.ogg",
+			"sha256": "541c19cc1ab712a9efc5765df602e7d0da09d9cafdd297ce1e19b092289fd62f",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.22675736961451248,
+			"duration_s": 0.49709750566893424,
+			"head_rms_db": -12.18575328595827,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -50.46179445875681
+		},
+		{
+			"path": "res://assets/audio/interface/tick_002.ogg",
+			"sha256": "869442f54214be902ec7437f79e400dc91c1bfd90d18a6dd2d5b7e41ffbf457b",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.0,
+			"duration_s": 0.020317460317460317,
+			"head_rms_db": -13.608006466159512,
+			"tail_rms_db": -34.76023119101015,
+			"boundary_step_db": -1.256089539532198
+		},
+		{
+			"path": "res://assets/audio/interface/toggle_003.ogg",
+			"sha256": "7e69aba356d590826cce291bbd9dc6a85d7c53858b0e3712fcad30e1ad080b23",
+			"onset_ms": 0.0,
+			"half_amplitude_ms": 0.13605442176870747,
+			"duration_s": 0.13931972789115646,
+			"head_rms_db": -8.23667622258845,
+			"tail_rms_db": -100.0,
+			"boundary_step_db": -57.66391726478535
+		}
+	]
+}

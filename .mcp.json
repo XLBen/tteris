@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "godot": {
+      "command": "node",
+      "args": [
+        "C:/Users/24083/projects/godot-mcp/build/index.js"
+      ],
+      "env": {
+        "GODOT_PATH": "E:/steam/steamapps/common/Godot Engine/godot.windows.opt.tools.64.exe"
+      }
+    }
+  }
+}

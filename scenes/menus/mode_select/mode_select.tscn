@@ -1,0 +1,72 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/menus/main_menu/main_menu_with_animations.tscn" id="1_mn01"]
+[ext_resource type="Script" path="res://scenes/menus/mode_select/mode_select.gd" id="2_ms01"]
+[ext_resource type="Script" path="res://addons/maaacks_game_template/base/nodes/utilities/capture_focus.gd" id="3_cf01"]
+
+[node name="ModeSelect" instance=ExtResource("1_mn01")]
+script = ExtResource("2_ms01")
+game_scene_path = "res://scenes/main.tscn"
+
+[node name="SubTitleLabel" parent="MenuContainer/SubTitleMargin/SubTitleContainer" index="0"]
+text = "Select Mode"
+
+[node name="NewGameButton" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer"]
+visible = false
+
+[node name="OptionsButton" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer"]
+visible = false
+
+[node name="CreditsButton" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer"]
+visible = false
+
+[node name="ExitButton" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/MenuButtonsBoxContainer"]
+visible = false
+
+[node name="ModeButtonsBoxContainer" type="BoxContainer" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer" index="1"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -96.0
+offset_top = -168.0
+offset_right = 96.0
+offset_bottom = 168.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 12
+alignment = 1
+vertical = true
+script = ExtResource("3_cf01")
+
+[node name="ClassicButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="0"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Classic"
+
+[node name="VersusButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="1"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Versus"
+
+[node name="VersusOptionsBoxContainer" type="BoxContainer" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="2"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+vertical = true
+script = ExtResource("3_cf01")
+
+[node name="BackButton" type="Button" parent="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer" index="3"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Back"
+
+[connection signal="pressed" from="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer/ClassicButton" to="." method="_on_classic_button_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer/VersusButton" to="." method="_on_versus_button_pressed"]
+[connection signal="pressed" from="MenuContainer/MenuButtonsMargin/MenuButtonsContainer/ModeButtonsBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

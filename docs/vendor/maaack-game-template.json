@@ -1,0 +1,504 @@
+{
+  "schema_version": 1,
+  "component": "Maaack's Godot Game Template",
+  "repository": "https://github.com/Maaack/Godot-Game-Template",
+  "commit": "6849d6c352dafe8ed54b5fa4f4b9774adfca31c8",
+  "commit_date": "2026-09-10T12:50:31-07:00",
+  "commit_subject": "Merge pull request #551 from Maaack/fix-for-null-stored-path",
+  "fetched_on": "2026-09-16",
+  "fetch_method": "git clone https://github.com/Maaack/Godot-Game-Template into a temp dir (C:/Users/24083/AppData/Local/Temp/opencode/maaack-template-6849d6c3), then git checkout --detach 6849d6c352dafe8ed54b5fa4f4b9774adfca31c8",
+  "author": "Marek Belski and contributors",
+  "license": "MIT",
+  "license_upstream_file": "LICENSE.txt (Copyright (c) 2022-present Marek Belski)",
+  "license_archived_at": "docs/vendor/maaack-game-template-LICENSE.txt",
+  "bundled_asset_licenses": "Each addon ships its own LICENSE.txt and ATTRIBUTION.md; the Game Template addon additionally bundles: Godot Engine logo (CC BY 4.0, Andrea Calabro), Git logo (CC BY 3.0, Jason Long), Kenney Input Prompts (CC0, kenney.nl), plugin logos (see assets/plugin_logo/LICENSE.txt). No Kaykit assets in this repository.",
+  "copy_roots": [
+    "addons/maaacks_game_template/** (whole tree)",
+    "addons/maaacks_scene_loader/** (whole tree)",
+    "addons/maaacks_music_controller/** (whole tree)",
+    "addons/maaacks_ui_sound_controller/** (whole tree)",
+    "scenes/menus/main_menu/main_menu_with_animations.tscn + .gd + .gd.uid",
+    "scenes/menus/options_menu/** (minimal settings chain)",
+    "scenes/windows/main_menu_options_window.tscn",
+    "scenes/windows/pause_menu.tscn + .gd + .gd.uid + pause_menu_options_window.tscn (WP-pause-1)",
+    "docs/vendor/maaack-game-template-LICENSE.txt"
+  ],
+  "copied_file_count": {
+    "addons": 577,
+    "scenes": 21,
+    "docs_vendor_extra": 1
+  },
+  "scenes_copy_selection": {
+    "main_menu_variant": "main_menu_with_animations (the animated example variant, kept for the later menu-effects outcome; actual upstream filenames are main_menu_with_animations.tscn/.gd, not main_menu.tscn/.gd)",
+    "settings_chain": "main_menu_options_window.tscn -> master_options_menu_with_tabs.tscn -> input/audio/video/game tabs, plus reset_game_control"
+  },
+  "not_copied": [
+    {
+      "upstream_paths": [
+        "scenes/credits/**",
+        "scenes/windows/main_menu_credits_window.tscn + .gd + .gd.uid"
+      ],
+      "reason": "BN-04: credits pages are out of scope this round. The main-menu scene therefore had its credits reference removed (see modifications); the base MainMenu hides the Credits button when credits_packed_scene is unset."
+    },
+    {
+      "upstream_paths": [
+        "scenes/loading_screens/**",
+        "scenes/opening/opening.tscn"
+      ],
+      "reason": "BN-04: loading screens are out of scope this round."
+    },
+    {
+      "upstream_paths": [
+        "scenes/game/** (example game scene, levels, tutorials)",
+        "scenes/end_credits/**"
+      ],
+      "reason": "BN-04 and not required: the product keeps the existing res://scenes/main.tscn game scene; tutorial and end-credits pages are out of scope."
+    },
+    {
+      "upstream_paths": [
+        "scenes/menus/level_select_menu/**"
+      ],
+      "reason": "Not required by this slice (no level-progression system in the product)."
+    },
+    {
+      "upstream_paths": [
+        "scenes/menus/options_menu/mini_options_menu.tscn + .gd + .gd.uid",
+        "scenes/menus/options_menu/input/input_options_menu_with_mouse_sensitivity.tscn",
+        "scenes/menus/options_menu/video/video_options_menu.tscn"
+      ],
+      "reason": "Unreferenced siblings outside the minimal settings chain."
+    },
+    {
+      "upstream_paths": [
+        "scripts/game_state.gd",
+        "scripts/level_state.gd",
+        "scripts/level_and_state_manager.gd"
+      ],
+      "reason": "Outside the T-08 write_scope (scripts/** must not be touched). Consequence recorded in notes: two copied example scripts reference the example class GameState and do not compile until the menu slice adapts them."
+    },
+    {
+      "upstream_paths": [
+        "addons/plugin_updater/**",
+        "addons/clean_copy_examples/**"
+      ],
+      "reason": "Not required by the delivery (plugin tooling only)."
+    },
+    {
+      "upstream_paths": [
+        "Kaykit textures"
+      ],
+      "reason": "BD-09/BN-05: no Kaykit assets are part of this repository or this vendoring; they are excluded from the (separate) marinho effects library."
+    }
+  ],
+  "addons_whole_tree_note": "The four addon directories were copied as whole upstream trees, which include each addon's own examples/, docs/ and media/ subtrees (upstream distribution content; media/ carries .gdignore). Example scenes inside addons/maaacks_game_template/examples/ are self-contained addon examples (they use the example classes GameStateExample/LevelStateExample and res://addons/.../examples/ paths) and are not wired into the product flow.",
+  "generated_by_import": [
+    "addons/maaacks_game_template/base/translations/menus_translations.en.translation (generated by the headless editor import from menus_translations.csv; upstream .gitignore ignores *.translation as an auto-generated import artifact)",
+    "addons/maaacks_game_template/base/translations/menus_translations.fr.translation (same)"
+  ],
+  "byte_identity_evidence": "All 577 upstream-copied addon files were re-hashed after the headless editor import: 0 modified, 0 missing (the two generated *.translation files above are the only additions). The addon tree_sha256 values were computed on the 577-file upstream set before the import.",
+  "modifications": [
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.tscn",
+      "upstream_sha256": "e7e390704731b07e811e76b81cbc866780d432481caec1312bdf436ce4e26087",
+      "copied_sha256": "7b3a019dc70f4ca775d44620235b3e626ffc5659f4750ab30ec2dae308ebeb4b",
+      "edits": [
+        "removed the ext_resource line for res://scenes/windows/main_menu_credits_window.tscn (BN-04: credits page not vendored)",
+        "removed the exported property credits_packed_scene = ExtResource(\"4_vsp5b\") (base MainMenu hides the Credits button when unset)"
+      ],
+      "rationale": "Both upstream main-menu variants hard-reference the credits window chain; the reference had to be dropped so the scene loads without vendoring credits (BN-04). No other byte changed."
+    }
+  ],
+  "notes": [
+    "Copied example scripts main_menu_with_animations.gd and game_options_menu.gd reference the template example class GameState (upstream scripts/game_state.gd, outside write_scope). The scenes still load (an invalid script is dropped by the loader), but those two scripts do not compile until the menu/settings slice adapts them; no product file depends on them yet. While the root script is dropped, the base MainMenu _ready (which hides the Credits button) does not run; that behavior returns as soon as the adapted script compiles.",
+    "project.godot is intentionally unchanged by T-08: the template autoloads (SceneLoader, ProjectMusicController, ProjectUISoundController) and audio buses (e.g. Music) are not registered yet; the integration slice must add them before the menus run for real.",
+    "No http(s) literals were introduced under scenes/ or scripts/ (asset test no-remote-runtime-references stays clean).",
+    "Post-vendoring modifications (T-09, menu/mode wiring slice): 3 copied scene files and 2 vendored addon scripts were adapted in place; see post_vendoring_modifications for the current sha256 and reasons. The addons tree_sha256 values and byte_identity_evidence remain T-08 snapshots of the 577-file vendored set at copy time.",
+    "T-11 review (2026-09-16): ISSUE-01 asked for this sync; the historical statements above were preserved and the current file hashes are recorded per file.",
+    "T-12 (settings-functionality-1): the vendored video options scene received the 1152x648 resolution data row (see post_vendoring_modifications).",
+    "WP-pause-1 (pause-menu slice): copied the upstream scenes/windows pause-menu chain byte-identically (pause_menu.gd, pause_menu.gd.uid, pause_menu_options_window.tscn) plus pause_menu.tscn with the single recorded pauses_game adaptation (see scenes_copies and post_vendoring_modifications). The options button opens the vendored pause_menu_options_window.tscn (same master options chain as main_menu_options_window). main.gd instantiates the scene at runtime into a dedicated PauseLayer canvas layer, syncs its visibility with the existing _paused flag, and resumes on the window's closed signal. No http(s) literals were introduced by this slice. The addon examples/ mirror copies of the same template files (different uids, example-internal paths) remain untouched and unrelated to the product flow."
+  ],
+  "tree_sha256_algorithm": "For each addon tree: sha256 over the UTF-8 text built by concatenating one line per file, '<relative/path/with/forward/slashes>|<lowercase sha256 of file bytes>\\n', with lines sorted by ordinal (case-sensitive) relative path. The digest is the hex tree_sha256.",
+  "addons": [
+    {
+      "name": "maaacks_game_template",
+      "files": 435,
+      "bytes": 5241264,
+      "tree_sha256": "b164873c3e3474b6b24edaa75d4739baaad40c4896b72822945fc7be3356cc7c",
+      "license_and_attribution_files": [
+        "ATTRIBUTION.md",
+        "LICENSE.txt",
+        "assets/git_logo/LICENSE.txt",
+        "assets/godot_engine_logo/LICENSE.txt",
+        "assets/input-icons/License.txt",
+        "assets/plugin_logo/LICENSE.txt",
+        "base/assets/remapping_input_icons/LICENSE.txt",
+        "examples/ATTRIBUTION.md",
+        "examples/assets/git_logo/LICENSE.txt",
+        "examples/assets/godot_engine_logo/LICENSE.txt",
+        "examples/assets/plugin_logo/LICENSE.txt"
+      ]
+    },
+    {
+      "name": "maaacks_scene_loader",
+      "files": 61,
+      "bytes": 1007225,
+      "tree_sha256": "32be11db070cfa568df6bf0a64aa5f67ca5e01368a5bf0dc22e1898e1d377f0d",
+      "license_and_attribution_files": [
+        "ATTRIBUTION.md",
+        "LICENSE.txt",
+        "assets/git_logo/LICENSE.txt",
+        "assets/godot_engine_logo/LICENSE.txt",
+        "assets/plugin_logo/LICENSE.txt"
+      ]
+    },
+    {
+      "name": "maaacks_music_controller",
+      "files": 41,
+      "bytes": 884509,
+      "tree_sha256": "a6682961e990376ef0cd8934e52df82314f79360fed38f87355ea8e3e1161d30",
+      "license_and_attribution_files": [
+        "ATTRIBUTION.md",
+        "LICENSE.txt",
+        "assets/git_logo/LICENSE.txt",
+        "assets/godot_engine_logo/LICENSE.txt",
+        "assets/plugin_logo/LICENSE.txt"
+      ]
+    },
+    {
+      "name": "maaacks_ui_sound_controller",
+      "files": 40,
+      "bytes": 886585,
+      "tree_sha256": "37cf8b61810697b829c74791fe095795e9a4326179419717ea4d096198a78ae7",
+      "license_and_attribution_files": [
+        "ATTRIBUTION.md",
+        "LICENSE.txt",
+        "assets/git_logo/LICENSE.txt",
+        "assets/godot_engine_logo/LICENSE.txt",
+        "assets/plugin_logo/LICENSE.txt"
+      ]
+    }
+  ],
+  "scenes_copies": [
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.tscn",
+      "upstream_path": "scenes/menus/main_menu/main_menu_with_animations.tscn",
+      "upstream_sha256": "e7e390704731b07e811e76b81cbc866780d432481caec1312bdf436ce4e26087",
+      "copied_sha256": "9336f739e84b203b7b79762e4e96c565cb8a45c1ea5e175ac00e0da51507936c",
+      "identical": false,
+      "edits": [
+        "removed ext_resource line for res://scenes/windows/main_menu_credits_window.tscn (BN-04)",
+        "removed credits_packed_scene = ExtResource(\"4_vsp5b\")"
+      ],
+      "sha256_at_T08": "7b3a019dc70f4ca775d44620235b3e626ffc5659f4750ab30ec2dae308ebeb4b",
+      "post_copy_modifications_by_T09": [
+        "T-09: added a StartUp instance node (applies persisted settings at startup, BQ-05)",
+        "T-09: root exported game_scene_path set to res://scenes/menus/mode_select/mode_select.tscn (New Game opens mode select)"
+      ]
+    },
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.gd",
+      "upstream_path": "scenes/menus/main_menu/main_menu_with_animations.gd",
+      "upstream_sha256": "4d77ba2da67d9cca81e335e10a41043ec7b1985c6fd585a515d4dacc8c114c0f",
+      "copied_sha256": "f95166762c40e06ed9507edd2937f5040582538388baf1d4099a824472cc31eb",
+      "identical": false,
+      "sha256_at_T08": "4d77ba2da67d9cca81e335e10a41043ec7b1985c6fd585a515d4dacc8c114c0f",
+      "post_copy_modifications_by_T09": [
+        "T-09: removed all upstream example GameState hooks (start_game/reset/get_levels_reached/continue_game); Continue/Level Select stay hidden and their handlers are no-ops so the .tscn connections do not dangle",
+        "T-09: Intro/OpenMainMenu/OpenSubMenu animation state machine kept unchanged"
+      ]
+    },
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.gd.uid",
+      "upstream_path": "scenes/menus/main_menu/main_menu_with_animations.gd.uid",
+      "upstream_sha256": "7bd5e78d4a6e5f51a122c043937216d58871898002de4d69721ff295ec27c4ef",
+      "copied_sha256": "7bd5e78d4a6e5f51a122c043937216d58871898002de4d69721ff295ec27c4ef",
+      "identical": true
+    },
+    {
+      "path": "scenes/windows/main_menu_options_window.tscn",
+      "upstream_path": "scenes/windows/main_menu_options_window.tscn",
+      "upstream_sha256": "e0fbc85d32eef97418e279055281b3d17523c13fcfbd393fcf88ca6a576d748f",
+      "copied_sha256": "e0fbc85d32eef97418e279055281b3d17523c13fcfbd393fcf88ca6a576d748f",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/master_options_menu_with_tabs.tscn",
+      "upstream_path": "scenes/menus/options_menu/master_options_menu_with_tabs.tscn",
+      "upstream_sha256": "2397fb312d802c505ad6ea96d6b807769025044aeb104032081e193b13daa94e",
+      "copied_sha256": "0545f66d6381400ea9b6d5802e28ce87205a1d3f218a949a78fbdf602d3d8d31",
+      "identical": false,
+      "sha256_at_T08": "2397fb312d802c505ad6ea96d6b807769025044aeb104032081e193b13daa94e",
+      "post_copy_modifications_by_T09": [
+        "T-09: Game/Reset tab instance removed from the TabContainer (BD-07 settings scope for this goal is BGM/SFX volume, key remapping, display; the game/reset tab is not one of the owner-selected items). Companion change already recorded for game_options_menu.gd ('_on_ResetGameControl_reset_confirmed made inert — the game tab is no longer referenced by master_options_menu_with_tabs.tscn'). The .tscn edit itself was missed by the T-09 archive pass; discovered and recorded by WP-verify-1 (test_ui_reference byte-binding case) on 2026-09-16."
+      ]
+    },
+    {
+      "path": "scenes/menus/options_menu/master_options_menu_with_tabs.gd",
+      "upstream_path": "scenes/menus/options_menu/master_options_menu_with_tabs.gd",
+      "upstream_sha256": "a82acc75e888712257989d7516afe8fbee1e3c6b38f224a2f7f60397c3769941",
+      "copied_sha256": "a82acc75e888712257989d7516afe8fbee1e3c6b38f224a2f7f60397c3769941",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/master_options_menu_with_tabs.gd.uid",
+      "upstream_path": "scenes/menus/options_menu/master_options_menu_with_tabs.gd.uid",
+      "upstream_sha256": "b4cfafd2f6a28d711f39c925ed83be46dc930e05f2d75b32e22221d0f5b8c48e",
+      "copied_sha256": "b4cfafd2f6a28d711f39c925ed83be46dc930e05f2d75b32e22221d0f5b8c48e",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/audio/audio_options_menu.tscn",
+      "upstream_path": "scenes/menus/options_menu/audio/audio_options_menu.tscn",
+      "upstream_sha256": "5a6e062cc4776cf4375f50566faa00685d7f831ba296fcad071ee0a833903e9f",
+      "copied_sha256": "5a6e062cc4776cf4375f50566faa00685d7f831ba296fcad071ee0a833903e9f",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/audio/audio_input_option_control.tscn",
+      "upstream_path": "scenes/menus/options_menu/audio/audio_input_option_control.tscn",
+      "upstream_sha256": "d193d6de989d2da9ce182c10acaaddf0d4e9f75801cc8399103909bd22aced98",
+      "copied_sha256": "d193d6de989d2da9ce182c10acaaddf0d4e9f75801cc8399103909bd22aced98",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/audio/audio_input_option_control.gd",
+      "upstream_path": "scenes/menus/options_menu/audio/audio_input_option_control.gd",
+      "upstream_sha256": "2fccf3dc174c778acfcd5ee4f2a6cb6c6c9a7f213e21e6bb9782860e13278df4",
+      "copied_sha256": "2fccf3dc174c778acfcd5ee4f2a6cb6c6c9a7f213e21e6bb9782860e13278df4",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/audio/audio_input_option_control.gd.uid",
+      "upstream_path": "scenes/menus/options_menu/audio/audio_input_option_control.gd.uid",
+      "upstream_sha256": "4b10de07c819951166661c3085141ab96f10bff8abc2a66addac279d124b4bda",
+      "copied_sha256": "4b10de07c819951166661c3085141ab96f10bff8abc2a66addac279d124b4bda",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/input/input_options_menu.tscn",
+      "upstream_path": "scenes/menus/options_menu/input/input_options_menu.tscn",
+      "upstream_sha256": "12f0f6aaafb0fd6ce0f8d890d8f45b08eb79c72360cba1bab3043cb37986e995",
+      "copied_sha256": "12f0f6aaafb0fd6ce0f8d890d8f45b08eb79c72360cba1bab3043cb37986e995",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/input/input_extras_menu.tscn",
+      "upstream_path": "scenes/menus/options_menu/input/input_extras_menu.tscn",
+      "upstream_sha256": "3fbfe43acf8f8c6332d5f47a128f361e905a9e57330d66ca702f80f2fd0450fe",
+      "copied_sha256": "3fbfe43acf8f8c6332d5f47a128f361e905a9e57330d66ca702f80f2fd0450fe",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/input/input_icon_mapper.tscn",
+      "upstream_path": "scenes/menus/options_menu/input/input_icon_mapper.tscn",
+      "upstream_sha256": "f21f03024a35973ba73fa5a6f5103ec0a21c1d7cf66b79563138b6d5106fe4c9",
+      "copied_sha256": "f21f03024a35973ba73fa5a6f5103ec0a21c1d7cf66b79563138b6d5106fe4c9",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/video/video_options_menu_with_extras.tscn",
+      "upstream_path": "scenes/menus/options_menu/video/video_options_menu_with_extras.tscn",
+      "upstream_sha256": "b3a0d0de9749dd8d878da3af053fad16242bfb722aad68e7400f04aff646c74b",
+      "copied_sha256": "c9d8c2a688f5a04de39675b79c0e9d83d682249a5c7f3f007128561c2ee2b884",
+      "identical": false
+    },
+    {
+      "path": "scenes/menus/options_menu/game/game_options_menu.tscn",
+      "upstream_path": "scenes/menus/options_menu/game/game_options_menu.tscn",
+      "upstream_sha256": "c954f46210be7c4de3e7f5fd31310691b88ff33a64218417371b37128b00120e",
+      "copied_sha256": "c954f46210be7c4de3e7f5fd31310691b88ff33a64218417371b37128b00120e",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/game/game_options_menu.gd",
+      "upstream_path": "scenes/menus/options_menu/game/game_options_menu.gd",
+      "upstream_sha256": "cf3bd25890598791775e8a5d74677302530d2299b8a6ac41a9dcd650c4223d99",
+      "copied_sha256": "399991217b4b43def8eaa43e9ac519d8a328f30853db57b5369c356b53a19373",
+      "identical": false,
+      "sha256_at_T08": "cf3bd25890598791775e8a5d74677302530d2299b8a6ac41a9dcd650c4223d99",
+      "post_copy_modifications_by_T09": [
+        "T-09: _on_ResetGameControl_reset_confirmed made inert (the game tab is no longer referenced by master_options_menu_with_tabs.tscn; the script must still compile)"
+      ]
+    },
+    {
+      "path": "scenes/menus/options_menu/game/game_options_menu.gd.uid",
+      "upstream_path": "scenes/menus/options_menu/game/game_options_menu.gd.uid",
+      "upstream_sha256": "8445636053db68dc7a5f76f7d946016046c09ddb214314b3613dcc8ee3c238e9",
+      "copied_sha256": "8445636053db68dc7a5f76f7d946016046c09ddb214314b3613dcc8ee3c238e9",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/game/reset_game_control/reset_game_control.tscn",
+      "upstream_path": "scenes/menus/options_menu/game/reset_game_control/reset_game_control.tscn",
+      "upstream_sha256": "8cc2d0ec99ec26f878e7f65c95e6a034119b7c089824e33185c0b40eeeb72066",
+      "copied_sha256": "8cc2d0ec99ec26f878e7f65c95e6a034119b7c089824e33185c0b40eeeb72066",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/game/reset_game_control/reset_game_control.gd",
+      "upstream_path": "scenes/menus/options_menu/game/reset_game_control/reset_game_control.gd",
+      "upstream_sha256": "1bfd4379205c776c8d05cb01fb85793b384663b113c90e0d8c30fec1903e805b",
+      "copied_sha256": "1bfd4379205c776c8d05cb01fb85793b384663b113c90e0d8c30fec1903e805b",
+      "identical": true
+    },
+    {
+      "path": "scenes/menus/options_menu/game/reset_game_control/reset_game_control.gd.uid",
+      "upstream_path": "scenes/menus/options_menu/game/reset_game_control/reset_game_control.gd.uid",
+      "upstream_sha256": "fcccc0f7aa87297dcc3bcddda347ff721fb2ccf64f5061f051b373939b240fe1",
+      "copied_sha256": "fcccc0f7aa87297dcc3bcddda347ff721fb2ccf64f5061f051b373939b240fe1",
+      "identical": true
+    },
+    {
+      "path": "scenes/windows/pause_menu.tscn",
+      "upstream_path": "scenes/windows/pause_menu.tscn",
+      "upstream_sha256": "08cb74f418fe3989441324a95aca012df783fcf0722a9c35d66df9b90c016fe1",
+      "copied_sha256": "d4a13c92a9c07792ef7e3bb98876050fab83d46d458336d4f51df3a390113800",
+      "identical": false,
+      "added_by": "WP-pause-1",
+      "edits": [
+        "WP-pause-1: root exported pauses_game set from true to false (BS-07 pause semantics stay on the game's existing _paused freeze; a second tree-pause would break the P-toggle and restart-while-paused invariants, BC-02). Buttons, confirmations, options nesting and layout are untouched.",
+        "ui-fx-hud-fix: MainMenuConfirmation title 'Confirm Exit' -> 'Exit to Main Menu' and ExitConfirmation title 'Confirm Exit' -> 'Exit Game' so the two exit paths cannot be confused."
+      ]
+    },
+    {
+      "path": "scenes/windows/pause_menu.gd",
+      "upstream_path": "scenes/windows/pause_menu.gd",
+      "upstream_sha256": "27872445a10bf679853a70f36a2eb4d88dd128246df13339c6ddabdebdb054f7",
+      "copied_sha256": "27872445a10bf679853a70f36a2eb4d88dd128246df13339c6ddabdebdb054f7",
+      "identical": true,
+      "added_by": "WP-pause-1"
+    },
+    {
+      "path": "scenes/windows/pause_menu.gd.uid",
+      "upstream_path": "scenes/windows/pause_menu.gd.uid",
+      "upstream_sha256": "a8189ace7321fc85f95c60a4c2158b3add618776b03045bd2b39033d4d5ccb82",
+      "copied_sha256": "a8189ace7321fc85f95c60a4c2158b3add618776b03045bd2b39033d4d5ccb82",
+      "identical": true,
+      "added_by": "WP-pause-1"
+    },
+    {
+      "path": "scenes/windows/pause_menu_options_window.tscn",
+      "upstream_path": "scenes/windows/pause_menu_options_window.tscn",
+      "upstream_sha256": "411de6d052856da391fb89d92801142d47146b11d8d421871153d1e3c450b258",
+      "copied_sha256": "411de6d052856da391fb89d92801142d47146b11d8d421871153d1e3c450b258",
+      "identical": true,
+      "added_by": "WP-pause-1"
+    }
+  ],
+  "post_vendoring_modifications": [
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.tscn",
+      "sha256_at_that_time": "c9b9086a2d3d3c27b22b1779aba44ebc72072e49e92e5c531a5005de9a214304",
+      "superseded_by": "ui-fx-hud-fix (see the ui-fx-hud-fix entry below for the current bytes)",
+      "by": "T-09",
+      "modifications": [
+        "T-09: added a StartUp instance node (applies persisted settings at startup, BQ-05)",
+        "T-09: root exported game_scene_path set to res://scenes/menus/mode_select/mode_select.tscn (New Game opens mode select)"
+      ]
+    },
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.gd",
+      "current_sha256": "f95166762c40e06ed9507edd2937f5040582538388baf1d4099a824472cc31eb",
+      "by": "T-09",
+      "modifications": [
+        "T-09: removed all upstream example GameState hooks (start_game/reset/get_levels_reached/continue_game); Continue/Level Select stay hidden and their handlers are no-ops so the .tscn connections do not dangle",
+        "T-09: Intro/OpenMainMenu/OpenSubMenu animation state machine kept unchanged"
+      ]
+    },
+    {
+      "path": "scenes/menus/options_menu/game/game_options_menu.gd",
+      "current_sha256": "61be36c3c4906807d77d258a46e3c983a9a7c198a342328491996eb903c1a52c",
+      "by": "T-09",
+      "modifications": [
+        "T-09: _on_ResetGameControl_reset_confirmed made inert (the game tab is no longer referenced by master_options_menu_with_tabs.tscn; the script must still compile)"
+      ]
+    },
+    {
+      "path": "addons/maaacks_game_template/base/nodes/utilities/input_helper.gd",
+      "current_sha256": "726a91f539edac80ac34e6b06d170e1b18a2d84101c89100d5b806b8515a8b8d",
+      "by": "T-09",
+      "modifications": [
+        "T-09: _display_server_supports_keycode_from_physical() gained a headless guard (headless DisplayServer does not implement keyboard_get_keycode_from_physical; the options window otherwise logged 5 engine errors when instantiated headless)"
+      ]
+    },
+    {
+      "path": "addons/maaacks_scene_loader/base/nodes/autoloads/scene_loader/scene_loader.gd",
+      "current_sha256": "deaf51ab34507080cde030b9df6ee0d3a66d1f98665a723650cea65800e22da7",
+      "by": "T-09",
+      "modifications": [
+        "T-09: _check_loading_screen() replaced with has_loading_screen() in load_scene (no loading screen is configured this round; avoids a push_error while behaving like the template without a loading scene)"
+      ]
+    },
+    {
+      "path": "addons/maaacks_game_template/base/nodes/menus/options_menu/video/video_options_menu.tscn",
+      "current_sha256": "bd2ce1e08f1edc0de36cc6fdc1dc81c0b4930c9a68466ab19829b2c1de0a2495",
+      "by": "T-12",
+      "modifications": [
+        "T-12: ResolutionControl option_values/option_titles gained Vector2i(1152, 648) / '1152 x 648' so all three BC-04 16:9 targets are selectable (data rows only, no structural/visual change)"
+      ]
+    },
+    {
+      "path": "addons/maaacks_ui_sound_controller/base/scenes/autoloads/project_ui_sound_controller.tscn",
+      "current_sha256": "3be8548bce6c1e95c03d7579b22d8c665d0b96c452a7fa70239017469c76ac5d",
+      "by": "WP-effects-1",
+      "modifications": [
+        "WP-effects-1: wired the controller's Button sound exports so menu/button hover/click feedback audio plays through the archived Maaack ProjectUISoundController (BQ-11, O-07): button_hovered and button_focused = res://assets/audio/interface/tick_002.ogg, button_pressed = res://assets/audio/interface/confirmation_004.ogg. Both streams are already-archived Kenney CC0 interface sounds (see assets/assets-provenance.json); the upstream template ships no UI sound streams. The scene was byte-identical upstream before this change (see byte_identity_evidence); the addon tree_sha256 values above remain T-08 copy-time snapshots."
+      ]
+    },
+    {
+      "path": "scenes/windows/pause_menu.tscn",
+      "sha256_at_that_time": "200b950a0b2be316a05d0c8c61f2d155f06d3f16cf1c3db10792a479b44ae8ff",
+      "superseded_by": "ui-fx-hud-fix (see the ui-fx-hud-fix entry below for the current bytes)",
+      "by": "WP-pause-1",
+      "modifications": [
+        "WP-pause-1: pauses_game true -> false. The in-game pause flow (O-08) keeps the game's existing _paused freeze as the single pause mechanism (BS-07 'choose one'); with the template's tree-pause the engine stops calling main._process, so the P pause-toggle and the restart action while paused (BC-02 regression invariants) would die. The template script and confirmation popups are byte-identical copies; main.gd additionally sets parent_scene = null at instantiation (runtime-only, hosting choice) so the window renders in the game's own PauseLayer canvas layer instead of the template popup-parent reparenting, which raced the per-frame visibility sync and closed the menu one frame after opening."
+      ]
+    },
+    {
+      "file": "scenes/menus/options_menu/master_options_menu_with_tabs.tscn",
+      "reason": "T-09 (archived late): removed the Game/Reset tab instance per BD-07 settings scope; companion to the recorded game_options_menu.gd inert-reset change. Missed by the T-09 archive pass; recorded after test_ui_reference byte-binding case surfaced the drift (WP-verify-1, 2026-09-16). sha256_at_T08=2397fb312d802c505ad6ea96d6b807769025044aeb104032081e193b13daa94e -> current 0545f66d6381400ea9b6d5802e28ce87205a1d3f218a949a78fbdf602d3d8d31"
+    },
+    {
+      "path": "scenes/menus/main_menu/main_menu_with_animations.tscn",
+      "current_sha256": "9336f739e84b203b7b79762e4e96c565cb8a45c1ea5e175ac00e0da51507936c",
+      "by": "ui-fx-hud-fix",
+      "modifications": [
+        "owner feedback 2026-09-17: Intro animation length 2.4s -> 0.2s (keyframe times 2.4/1.6/0.8 -> 0.2/0.12/0.06). The 2.4s Intro held the menu invisible and unfocusable, reported as slow loading; the only change is the timing, all tracks/targets/values unchanged."
+      ]
+    },
+    {
+      "path": "scenes/windows/pause_menu.tscn",
+      "current_sha256": "d4a13c92a9c07792ef7e3bb98876050fab83d46d458336d4f51df3a390113800",
+      "by": "ui-fx-hud-fix",
+      "modifications": [
+        "ui-fx-hud-fix: MainMenuConfirmation title 'Confirm Exit' -> 'Exit to Main Menu' and ExitConfirmation title 'Confirm Exit' -> 'Exit Game' so the two exit paths cannot be confused."
+      ]
+    },
+    {
+      "path": "scenes/menus/options_menu/game/game_options_menu.tscn",
+      "current_sha256": "5b9b4dad51b14d0d6ad82baffcdd3b901a71bfe3b9e22d9385e0f24830014683",
+      "by": "T-13",
+      "modifications": [
+        "T-13 (S5 l10n infra, BD-14/BD-16): added LanguageControl (HBox: LanguageLabel + LanguageOptionButton) to the existing Game page after ResetGameControl; no new tab (OPTIONS_TAB_COUNT=4 frozen, BC-06); item_selected wired to Localization.set_language"
+      ],
+      "superseded_by": "T-15 (language control moved to the reachable Video page; game_options_menu restored to its previous bytes)"
+    },
+    {
+      "path": "scenes/menus/options_menu/game/game_options_menu.gd",
+      "current_sha256": "8c7af359a69cdd56a5a7c6da3a0d897f64f7fcaed9a101e36ee46167de0c8ec0",
+      "by": "T-13",
+      "modifications": [
+        "T-13 (S5 l10n infra, BD-14/BD-16): _ready populates LanguageOptionButton (English / Chinese native names, not translated), _refresh_language_selection reflects the active language, item_selected -> Localization.set_language (immediate + persisted via PlayerConfig GameSettings/Language); autoload resolved via get_node_or_null(^\"Localization\") per repo pattern"
+      ],
+      "superseded_by": "T-15 (language control moved to the reachable Video page; game_options_menu restored to its previous bytes)"
+    },
+    {
+      "path": "scenes/menus/options_menu/video/video_options_menu_with_extras.tscn",
+      "current_sha256": "c9d8c2a688f5a04de39675b79c0e9d83d682249a5c7f3f007128561c2ee2b884",
+      "by": "T-15",
+      "modifications": [
+        "T-15 (S5 l10n repair, BD-14/BD-16): added LanguageControl (HBox: LanguageLabel + LanguageOptionButton, script scenes/menus/options_menu/video/language_control.gd) to the reachable Video page after CameraShakeControl. Supersedes the T-13 placement on the unreachable Game page (see the superseded T-13 entries above); no options tab added (OPTIONS_TAB_COUNT=4 frozen, BC-06)"
+      ]
+    }
+  ]
+}

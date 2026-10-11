@@ -1,0 +1,199 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/versus_side.gd" id="1_s3bvd"]
+[ext_resource type="Script" path="res://scripts/piece_preview.gd" id="2_5hhjg"]
+[ext_resource type="Script" path="res://scripts/ui/warn_bar.gd" id="3_tu50a"]
+
+[node name="VersusSide" type="VBoxContainer" unique_id=144448068]
+mouse_filter = 2
+theme_override_constants/separation = 6
+script = ExtResource("1_s3bvd")
+
+[node name="Row" type="HBoxContainer" parent="." unique_id=1214457931]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="InfoCard" type="PanelContainer" parent="Row" unique_id=1485851894]
+custom_minimum_size = Vector2(104, 444)
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_type_variation = &"HudCard"
+
+[node name="Content" type="VBoxContainer" parent="Row/InfoCard" unique_id=727843134]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HoldTitle" type="Label" parent="Row/InfoCard/Content" unique_id=1616984717]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "HOLD"
+
+[node name="HoldPreview" type="Control" parent="Row/InfoCard/Content" unique_id=856036733]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(48, 30)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("2_5hhjg")
+cell_size = 12.0
+
+[node name="Rule" type="HSeparator" parent="Row/InfoCard/Content" unique_id=1545440162]
+layout_mode = 2
+
+[node name="SentStat" type="VBoxContainer" parent="Row/InfoCard/Content" unique_id=1092779821]
+layout_mode = 2
+theme_override_constants/separation = -2
+
+[node name="Title" type="Label" parent="Row/InfoCard/Content/SentStat" unique_id=523163264]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "SENT"
+
+[node name="SentValue" type="Label" parent="Row/InfoCard/Content/SentStat" unique_id=725712903]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HudBig"
+text = "0"
+
+[node name="ComboStat" type="VBoxContainer" parent="Row/InfoCard/Content" unique_id=1717787]
+layout_mode = 2
+theme_override_constants/separation = -2
+
+[node name="Title" type="Label" parent="Row/InfoCard/Content/ComboStat" unique_id=383482738]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "COMBO"
+
+[node name="ComboValue" type="Label" parent="Row/InfoCard/Content/ComboStat" unique_id=94970111]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HudBig"
+text = "0"
+
+[node name="PpsStat" type="VBoxContainer" parent="Row/InfoCard/Content" unique_id=2139320879]
+layout_mode = 2
+theme_override_constants/separation = -2
+
+[node name="Title" type="Label" parent="Row/InfoCard/Content/PpsStat" unique_id=748338151]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "PPS"
+
+[node name="PpsValue" type="Label" parent="Row/InfoCard/Content/PpsStat" unique_id=1087533094]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HudBig"
+text = "0"
+
+[node name="Spacer" type="Control" parent="Row/InfoCard/Content" unique_id=1272146789]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="B2BLamp" type="Label" parent="Row/InfoCard/Content" unique_id=93582949]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HudLamp"
+text = "B2B"
+
+[node name="WarnBar" type="Control" parent="Row" unique_id=958884470]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(12, 444)
+layout_mode = 2
+size_flags_vertical = 8
+script = ExtResource("3_tu50a")
+
+[node name="BoardColumn" type="VBoxContainer" parent="Row" unique_id=63800121]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Tags" type="HBoxContainer" parent="Row/BoardColumn" unique_id=2065267790]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="NameTag" type="Label" parent="Row/BoardColumn/Tags" unique_id=2011006116]
+unique_name_in_owner = true
+auto_translate_mode = 2
+layout_mode = 2
+theme_type_variation = &"HudBig"
+text = "YOU"
+
+[node name="TierTag" type="Label" parent="Row/BoardColumn/Tags" unique_id=522665071]
+unique_name_in_owner = true
+auto_translate_mode = 2
+layout_mode = 2
+theme_type_variation = &"HudBig"
+
+[node name="BoardFrame" type="MarginContainer" parent="Row/BoardColumn" unique_id=526860872]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 0
+mouse_filter = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="BoardSlot" type="Control" parent="Row/BoardColumn/BoardFrame" unique_id=1308101876]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 440)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="NextCard" type="PanelContainer" parent="Row" unique_id=593759767]
+custom_minimum_size = Vector2(84, 444)
+layout_mode = 2
+size_flags_vertical = 8
+mouse_filter = 2
+theme_type_variation = &"HudCard"
+
+[node name="Content" type="VBoxContainer" parent="Row/NextCard" unique_id=1231382151]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="NextTitle" type="Label" parent="Row/NextCard/Content" unique_id=1947560616]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "NEXT"
+
+[node name="NextPreviews" type="VBoxContainer" parent="Row/NextCard/Content" unique_id=2065800538]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Next1" type="Control" parent="Row/NextCard/Content/NextPreviews" unique_id=1280174549]
+custom_minimum_size = Vector2(44, 28)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("2_5hhjg")
+cell_size = 11.0
+
+[node name="Next2" type="Control" parent="Row/NextCard/Content/NextPreviews" unique_id=1507097986]
+custom_minimum_size = Vector2(36, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("2_5hhjg")
+cell_size = 9.0
+
+[node name="Next3" type="Control" parent="Row/NextCard/Content/NextPreviews" unique_id=227032864]
+custom_minimum_size = Vector2(36, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("2_5hhjg")
+cell_size = 9.0
+
+[node name="Next4" type="Control" parent="Row/NextCard/Content/NextPreviews" unique_id=1701324594]
+custom_minimum_size = Vector2(36, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("2_5hhjg")
+cell_size = 9.0
+
+[node name="Next5" type="Control" parent="Row/NextCard/Content/NextPreviews" unique_id=815328584]
+custom_minimum_size = Vector2(36, 24)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("2_5hhjg")
+cell_size = 9.0

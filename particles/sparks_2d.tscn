@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Texture2D" path="res://addons/kenney_particle_pack/trace_01.png" id="1_sp2d"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_sparks"]
+offsets = PackedFloat32Array(0, 0.385519, 0.866928)
+colors = PackedColorArray(1, 0.8, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0)
+
+[node name="Sparks2D" type="CPUParticles2D"]
+material = SubResource("CanvasItemMaterial_add")
+emitting = false
+amount = 24
+lifetime = 0.45
+one_shot = true
+explosiveness = 1.0
+texture = ExtResource("1_sp2d")
+direction = Vector2(0, -1)
+spread = 25.0
+gravity = Vector2(0, -120)
+initial_velocity_min = 150.0
+initial_velocity_max = 210.0
+angle_min = -5.0
+angle_max = 5.0
+scale_amount_min = 0.04
+scale_amount_max = 0.06
+color_ramp = SubResource("Gradient_sparks")

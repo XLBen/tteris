@@ -1,0 +1,73 @@
+{
+	"families": [
+		{
+			"source": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+			"author": "Kenney",
+			"license": "CC0",
+			"dest": "res://assets/music",
+			"modifications": []
+		},
+		{
+			"source": "https://kenney.nl/media/pages/assets/background-elements/b66a1ddec7-1677670395/kenney_background-elements.zip",
+			"author": "Kenney",
+			"license": "CC0",
+			"dest": "res://assets/visuals",
+			"modifications": []
+		},
+		{
+			"source": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+			"author": "Kenney",
+			"license": "CC0",
+			"dest": "res://assets/audio/interface",
+			"modifications": []
+		},
+		{
+			"source": "tools/make_coldwar_bgm.py (rendered locally, no download)",
+			"author": "Project",
+			"license": "original arrangement and synthesis made for this project; the underlying melody, Korobeiniki, is a public-domain Russian folk song",
+			"dest": "res://assets/audio/bgm",
+			"modifications": [
+				{
+					"file": "res://assets/audio/bgm/korobeiniki-coldwar-synth.ogg",
+					"note": "1980s-synth arrangement of Korobeiniki (A minor, 120 BPM): a 4-bar intro (8 s) and a 40-bar body (80 s) whose tails are folded onto its own first bar; the game loops the body through the stream loop offset named in packs/default/pack.json. Synthesized by tools/make_coldwar_bgm.py with numpy/scipy and encoded with ffmpeg libvorbis q6 (44.1 kHz stereo); byte sha256 bound in assets/assets-measurements.json; replaced the maki ligon arrangement on 2026-10-10 (owner decision), whose file and license record were moved out of the project"
+				},
+				{
+					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-1.ogg",
+					"note": "the same 40 bars at 126 BPM, rung 1 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+				},
+				{
+					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-2.ogg",
+					"note": "the same 40 bars at 132 BPM, rung 2 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+				},
+				{
+					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-3.ogg",
+					"note": "the same 40 bars at 138 BPM, rung 3 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+				},
+				{
+					"file": "res://assets/audio/bgm/korobeiniki-coldwar-rise-4.ogg",
+					"note": "the same 40 bars at 144 BPM, rung 4 of the six-track ladder from calm to danger (2026-10-11, owner: a gradual change instead of a jump): each rung a little faster and a little harder (more hats, a louder alarm, more of the doubled tune), rendered by the same script"
+				},
+				{
+					"file": "res://assets/audio/bgm/korobeiniki-coldwar-danger.ogg",
+					"note": "the same 40 bars at 150 BPM (64 s, loops whole), the top of the ladder, rendered by the same script; scripts/bgm_director.gd walks the ladder one track per bar, each step on a bar line at the same point of the tune, as the tallest stack grows and shrinks"
+				}
+			]
+		},
+		{
+			"source": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+			"author": "Kenney",
+			"license": "CC0",
+			"dest": "res://assets/audio/digital",
+			"modifications": [
+				{
+					"file": "res://assets/audio/digital/maximize_009.ogg",
+					"note": "copied verbatim from pinned source https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip; installed bytes sha256 (matches assets-measurements.json) b4d56386258b3cc1c8f6e5a22465f8cd65de3d4309e022664050f43151e466cd; kept non-looping"
+				},
+				{
+					"file": "res://assets/audio/digital/confirmation_003.ogg",
+					"note": "copied verbatim from pinned source https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip; installed bytes sha256 (matches assets-measurements.json) 3091bf0be0497f825769ee0733ca7bdc3bcd59bd6c6e8f2ba8f93d580ff38022; kept non-looping"
+				}
+			]
+		}
+	]
+}

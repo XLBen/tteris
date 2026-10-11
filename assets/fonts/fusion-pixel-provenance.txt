@@ -1,0 +1,6 @@
+﻿Fusion Pixel Font (modified by TakWolf)
+Source: https://github.com/TakWolf/fusion-pixel-font/releases/download/2026.09.01/fusion-pixel-font-12px-proportional-ttf-v2026.09.01.zip
+Release tag: 2026.09.01
+Zip SHA256: cf607641a61c721cd58409fa58a1ccf432e97d9ad25e76687948fa3027246fee
+File: fusion-pixel-12px-proportional-zh_hans.ttf (unmodified from zip)
+License: SIL Open Font License 1.1 (see fusion-pixel-OFL.txt)

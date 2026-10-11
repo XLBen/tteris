@@ -1,0 +1,60 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/versus_hud.gd" id="1_14sof"]
+[ext_resource type="PackedScene" path="res://packs/default/ui/versus_side.tscn" id="2_0ptv4"]
+[ext_resource type="Script" path="res://scripts/ui/versus_side.gd" id="3_frq6b"]
+
+[node name="VersusHud" type="Control" unique_id=1041591831]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 1152.0
+offset_bottom = 648.0
+mouse_filter = 2
+script = ExtResource("1_14sof")
+
+[node name="Center" type="CenterContainer" parent="." unique_id=1465227093]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Column" type="VBoxContainer" parent="Center" unique_id=1240757198]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="Center/Column" unique_id=849953559]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="Center/Column/Header" unique_id=1761757978]
+unique_name_in_owner = true
+auto_translate_mode = 2
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+
+[node name="RoundWins" type="Label" parent="Center/Column/Header" unique_id=1142267549]
+unique_name_in_owner = true
+auto_translate_mode = 2
+layout_mode = 2
+theme_type_variation = &"HudBig"
+text = "0 - 0"
+
+[node name="Sides" type="HBoxContainer" parent="Center/Column" unique_id=586659612]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="LeftSide" type="VBoxContainer" parent="Center/Column/Sides" unique_id=144448068 instance=ExtResource("2_0ptv4")]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+script = ExtResource("3_frq6b")
+
+[node name="RightSide" type="VBoxContainer" parent="Center/Column/Sides" unique_id=1082379496 instance=ExtResource("2_0ptv4")]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 6
+script = ExtResource("3_frq6b")
+mirrored = true

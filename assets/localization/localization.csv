@@ -1,0 +1,162 @@
+keys,en,zh
+MENU_NEW_GAME,New Game,新游戏
+MENU_OPTIONS,Options,选项
+MENU_EXIT,Exit,退出
+MENU_SELECT_MODE,Select Mode,选择模式
+MENU_CLASSIC,Classic,经典
+MENU_VERSUS,Versus,对战
+MENU_BACK,Back,返回
+VERSUS_RULES_FIXED,Fixed Speed,固定速度
+VERSUS_FORMAT_SINGLE,Single Match,单局比赛
+VERSUS_FORMAT_BEST_OF_3,Best of 3,三局两胜
+OPTIONS_LANGUAGE,Language,语言
+New Game,New Game,新游戏
+Options,Options,选项
+Exit,Exit,退出
+Select Mode,Select Mode,选择模式
+Classic,Classic,经典
+Versus,Versus,对战
+Back,Back,返回
+Fixed Speed,Fixed Speed,固定速度
+Single Match,Single Match,单局比赛
+Best of 3,Best of 3,三局两胜
+Language,Language,语言
+Paused,Paused,已暂停
+Resume,Resume,继续
+Restart,Restart,重新开始
+Main Menu,Main Menu,主菜单
+Exit Game,Exit Game,退出游戏
+Confirm Restart,Confirm Restart,确认重新开始
+Restart the game?,Restart the game?,重新开始游戏？
+Exit to Main Menu,Exit to Main Menu,退出到主菜单
+Exit to the main menu?,Exit to the main menu?,返回主菜单？
+Exit the game?,Exit the game?,退出游戏？
+GAME OVER,GAME OVER,游戏结束
+PRESS R TO RESTART,PRESS R TO RESTART,按 R 重新开始
+HOLD,HOLD,暂存
+NEXT,NEXT,下一个
+SCORE,SCORE,分数
+LINES,LINES,行数
+LEVEL,LEVEL,等级
+CONTROLS,CONTROLS,操作说明
+MOVE,MOVE,移动
+ROTATE,ROTATE,旋转
+ROTATE CCW,ROTATE CCW,逆时针旋转
+SOFT DROP,SOFT DROP,软降
+HARD DROP,HARD DROP,硬降
+PAUSE,PAUSE,暂停
+RESTART,RESTART,重新开始
+SCORE %d,SCORE %d,得分 %d
+PLAYER WINS ROUND %d,PLAYER WINS ROUND %d,玩家赢下第 %d 局
+AI WINS ROUND %d,AI WINS ROUND %d,AI 赢下第 %d 局
+DRAW - REPLAY,DRAW - REPLAY,平局 - 重赛
+SCORE %d : %d,SCORE %d : %d,比分 %d : %d
+PLAYER WINS MATCH,PLAYER WINS MATCH,玩家赢得比赛
+AI WINS MATCH,AI WINS MATCH,AI 赢得比赛
+FINAL SCORE %d : %d,FINAL SCORE %d : %d,最终比分 %d : %d
+PRESS ENTER FOR MAIN MENU,PRESS ENTER FOR MAIN MENU,按 Enter 返回主菜单
+ROUND WINS %d : %d,ROUND WINS %d : %d,局分 %d : %d
+Exit Game?,Exit Game?,退出游戏？
+Really exit the game?,Really exit the game?,确定要退出游戏吗？
+Credits,Credits,制作人员
+Continue,Continue,继续
+Level Select,Level Select,关卡选择
+Cancel,Cancel,取消
+Confirm,Confirm,确认
+Close,Close,关闭
+Yes,Yes,是
+No,No,否
+OK,OK,确定
+Controls,Controls,控制
+Inputs,Inputs,输入
+Audio,Audio,音频
+Video,Video,视频
+Actions & Inputs,Actions & Inputs,操作与按键
+Reset,Reset,重置
+Reset Game :,Reset Game :,重置游戏：
+Master :,Master :,主音量：
+Music :,Music :,音乐：
+SFX :,SFX :,音效：
+Mute :,Mute :,静音：
+Fullscreen :,Fullscreen :,全屏：
+Resolution :,Resolution :,分辨率：
+V-Sync :,V-Sync :,垂直同步：
+Anti-Aliasing :,Anti-Aliasing :,抗锯齿：
+Camera Shake :,Camera Shake :,镜头震动：
+Input Device :,Input Device :,输入设备：
+Mouse Sensitivity :,Mouse Sensitivity :,鼠标灵敏度：
+Joypad Sensitivity :,Joypad Sensitivity :,手柄灵敏度：
+Reduced,Reduced,减少
+Minimal,Minimal,微量
+None,None,无
+Disabled (Fastest),Disabled (Fastest),禁用（最快）
+8x (Slowest),8x (Slowest),8x（最慢）
+Set Input,Set Input,设置按键
+Focus here to assign inputs.,Focus here to assign inputs.,在此处聚焦以分配按键。
+Listening for input...,Listening for input...,正在等待输入...
+Press again to confirm...,Press again to confirm...,再按一次以确认...
+Already Assigned,Already Assigned,已被占用
+Remove Key,Remove Key,移除按键
+Are you sure you want to remove KEY from ACTION?,Are you sure you want to remove KEY from ACTION?,确定要将 KEY 从 ACTION 中移除吗？
+Reset to Default,Reset to Default,恢复默认
+Are you sure you want to reset controls back to the defaults?,Are you sure you want to reset controls back to the defaults?,确定要将操作恢复为默认设置吗？
+One Input Minimum,One Input Minimum,至少需要一个输入
+Enabled,Enabled,启用
+Disabled,Disabled,禁用
+Adaptive,Adaptive,自适应
+Mailbox,Mailbox,Mailbox
+2x,2x,2x
+4x,4x,4x
+"Are you sure you want to start a new game?
+
+All progress in the current game will be lost.","Are you sure you want to start a new game?
+
+All progress in the current game will be lost.","确定要开始新游戏吗？
+
+当前游戏的所有进度都将丢失。"
+Retry,Retry,再来一次
+Rematch,Rematch,再来一局
+Change Settings,Change Settings,更改设置
+How to Play,How to Play,玩法说明
+Start Match,Start Match,开始对战
+Rising Speed,Rising Speed,逐渐加速
+Speed,Speed,速度
+Level,Level,等级
+CPU,CPU,电脑
+Match,Match,赛制
+YOU,YOU,你
+LEVEL %d,LEVEL %d,等级 %d
+LINES SENT %d : %d,LINES SENT %d : %d,送出行数 %d : %d
+VERSUS_DESC_FIXED,Both sides play at one speed level for the whole match.,整场比赛双方都保持同一个速度等级。
+VERSUS_DESC_RISING,Starts at level 1; both sides speed up one level for every 8 lines cleared between them.,从 1 级开始，双方合计每消 8 行同时加快一级。
+VERSUS_DESC_LEVEL,Speed level %d of 10. Higher levels fall faster.,速度等级 %d（共 10 级），等级越高下落越快。
+VERSUS_DESC_EASY,Easy: slow and careless. Leaves holes and never attacks on purpose.,Easy：动作慢、会留洞，不会主动进攻。
+VERSUS_DESC_NORMAL,Normal: a steady stacker that clears what it can and lands the odd Tetris.,Normal：稳定堆叠，能消就消，偶尔打出 Tetris。
+VERSUS_DESC_HARD,"Hard: fast. Keeps a well for Tetrises, chains combos and cancels your garbage.",Hard：手速快，留井打 Tetris、连击，并会抵消你送来的垃圾行。
+VERSUS_DESC_LUNATIC,Lunatic: very fast and never slips. T-Spins and Back-to-Back chains.,Lunatic：极快且零失误，会打 T-Spin 和 Back-to-Back 连锁。
+VERSUS_DESC_SINGLE,One round decides the match.,一局定胜负。
+VERSUS_DESC_BEST_OF_3,First to win two rounds takes the match.,先赢两局的一方获胜。
+VERSUS_DESC_START,Start the match with the settings above.,按上面的设置开始对战。
+HOWTO_CONTROLS_TITLE,Controls,操作
+HOWTO_SCORING_TITLE,Classic mode,经典模式
+HOWTO_SCORING,"Clear lines to score: 100 / 300 / 500 / 800 x level for 1-4 lines, more for T-Spins. Consecutive clears build a COMBO; consecutive Tetrises or T-Spin clears are Back-to-Back (B2B) and score x1.5. The level rises with your score (bar under LEVEL) up to level 10, and the game ends when the stack reaches the top.",消行得分：消 1-4 行为 100 / 300 / 500 / 800 × 等级，T-Spin 更高。连续消行形成 COMBO（连击）；连续的 Tetris 或 T-Spin 消行为 Back-to-Back（B2B），得分 ×1.5。等级随分数提升（LEVEL 下方的进度条），最高 10 级；方块堆到顶端时游戏结束。
+HOWTO_ATTACK_TITLE,Versus: attacking,对战：进攻
+HOWTO_ATTACK,"Clearing lines sends garbage rows to the opponent: Single 0, Double 1, Triple 2, Tetris 4, T-Spin Single / Double / Triple 2 / 4 / 6, Perfect Clear 10. B2B adds +1 and combos add up to +5. The call-out over your board shows what you scored and the +N rows it sent.",消行会向对手送出垃圾行：单消 0、双消 1、三消 2、Tetris 4，T-Spin 单 / 双 / 三消 2 / 4 / 6，Perfect Clear 10。B2B 额外 +1，连击最多再 +5。棋盘上方的提示会显示你打出的招式和送出的 +N 行。
+HOWTO_GARBAGE_TITLE,Versus: garbage,对战：垃圾行
+HOWTO_GARBAGE,Incoming garbage waits in the red bar beside your board (the number above it is the total). Your own attacks cancel it row for row before anything is sent. Waiting garbage rises from the bottom when you lock a piece without clearing a line - at most 8 rows per piece (bright segments). Clear a line and nothing comes in that turn.,对手送来的垃圾行会先排在棋盘旁的红色预警条里（上方数字是总行数）。你的进攻会先一行抵一行地消掉它，剩余的才送给对手。当你落下一块却没有消行时，等待中的垃圾行会从底部升起——每块最多 8 行（亮色段）。只要这一手消了行，这一手就不会进垃圾。
+HOWTO_LOSING_TITLE,Versus: winning,对战：胜负
+HOWTO_LOSING,Both sides get the same piece order. You lose the round when a new piece has no room to appear or a piece locks entirely above the field. Best of 3 is won by the first side with two rounds. The CPU tag above the right board shows its difficulty.,双方的方块顺序完全相同。当新方块没有出生空间，或方块完全锁在场地上方时，该局判负。三局两胜制中先赢两局者获胜。右侧棋盘上方的 CPU 标签显示当前难度。
+SENT,SENT,送出
+Player,Player,左侧
+You,You,你
+VERSUS_DESC_YOU,You play the left board.,由你操作左侧棋盘。
+VERSUS_DESC_LEFT_CPU,CPU vs CPU: a CPU of this tier plays the left board and you just watch.,电脑对电脑：左侧棋盘交给这一档电脑操作，你只观战。
+CPU %d WINS ROUND %d,CPU %d WINS ROUND %d,电脑 %d 赢下第 %d 局
+CPU %d WINS MATCH,CPU %d WINS MATCH,电脑 %d 赢得比赛
+Resource Pack,Resource Pack,材质包
+Resource Packs,Resource Packs,材质包
+Available,Available,可用
+Enabled,Enabled,已启用
+Open Pack Folder,Open Pack Folder,打开材质包文件夹
+Done,Done,完成
+PACKS_HINT,"Enabled packs are applied from top to bottom: the top one wins, the default pack fills in the rest.",已启用的材质包自上而下生效：最上面的优先，缺的部分由默认包补齐。

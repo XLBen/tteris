@@ -1,0 +1,42 @@
+{
+	"format": 1,
+	"name": "Pixel",
+	"author": "Project",
+	"description": "Chunky 8-pixel blocks and a darker, flatter palette. An example of a small pack.",
+	"blocks": {
+		"atlas": "blocks.png",
+		"filter": "nearest",
+		"ghost_alpha": 0.8
+	},
+	"colors": {
+		"piece_i": "#3cbcfc",
+		"piece_o": "#f8d820",
+		"piece_t": "#b848f8",
+		"piece_s": "#58d854",
+		"piece_z": "#f83800",
+		"piece_j": "#0058f8",
+		"piece_l": "#fc9838",
+		"garbage": "#7c7c7c",
+
+		"background_base": "#000000",
+		"background_tint": "#30304a",
+		"menu_top": "#181828",
+		"menu_bottom": "#08080c",
+		"area_fill": "#0c0c14f2",
+		"area_border": "#fcfcfc66",
+		"board_fill": "#000000f2",
+		"board_border": "#fcfcfccc",
+		"grid": "#ffffff0a",
+		"panel_fill": "#101018f2",
+		"panel_border": "#fcfcfc80",
+
+		"accent": "#f8d820",
+		"highlight": "#f8b800",
+		"button_fill": "#202030",
+		"button_hover": "#303048",
+		"button_border": "#bcbcbc",
+		"button_focus": "#f8d820",
+		"window_fill": "#0c0c14f8",
+		"window_border": "#fcfcfc"
+	}
+}

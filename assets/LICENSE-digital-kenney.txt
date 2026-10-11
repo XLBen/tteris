@@ -1,0 +1,17 @@
+Replacement SFX installed by tools/install_audio_assets.py
+===========================================================
+
+Work:     Kenney Interface Sounds (selected crisp replacements)
+Author:   Kenney (https://kenney.nl)
+License:  Creative Commons Zero (CC0); see License.txt inside the
+          pinned archive. Attribution is not required; this notice is
+          kept as a courtesy record.
+
+Pinned source (verified against its SHA-256 at install time):
+- https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip
+  sha256 f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232
+
+Modifications: the sound files were copied verbatim into
+assets/audio/digital/ without content changes. Per-file Godot
+import metadata (*.ogg.import) was added beside them (non-looping);
+the audio bytes themselves are unmodified.

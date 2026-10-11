@@ -1,0 +1,24 @@
+{
+	"sources": [
+		{
+			"name": "kenney_music-jingles.zip (music-jingles)",
+			"url": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
+			"sha256": "b729ba57959bd58793d2c5cafa348aaf2655d354f3da35ec4729e03ec77197b8"
+		},
+		{
+			"name": "kenney_background-elements.zip (background-elements)",
+			"url": "https://kenney.nl/media/pages/assets/background-elements/b66a1ddec7-1677670395/kenney_background-elements.zip",
+			"sha256": "31ffecec57bd51263f68e96e288ad06ac28eb1dfb41edb06b006a1b42cc10e41"
+		},
+		{
+			"name": "kenney_interface-sounds.zip (interface-sounds)",
+			"url": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
+			"sha256": "f2193d072726d6758a5f7871b2dcc54dcce0d5c35c6f0a62f92549b327c81232"
+		},
+		{
+			"name": "kenney_digital-audio.zip (digital-audio)",
+			"url": "https://kenney.nl/media/pages/assets/digital-audio/216eac4753-1677590265/kenney_digital-audio.zip",
+			"sha256": "24e6ce28b76a6d8c89cff4d331e0965ff5c3de8a73c612028e9d363cc64e4f06"
+		}
+	]
+}

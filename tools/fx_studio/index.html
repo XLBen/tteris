@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pixel FX Studio</title>
+<style>
+	:root {
+		--bg: #0b0d14; --panel: #131724; --panel-2: #1a2032; --line: #2a3350; --text: #dfe7f7; --dim: #7f8aa6;
+		--accent: #66d9ff; --hot: #ffd659; --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+	}
+	* { box-sizing: border-box; }
+	html, body { height: 100%; }
+	body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.45 "Segoe UI", system-ui, sans-serif; display: grid; grid-template-columns: 232px minmax(0, 1fr) 268px; grid-template-rows: minmax(0, 1fr) auto; }
+	h1 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; margin: 0 0 2px; }
+	h2 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin: 18px 0 8px; font-weight: 600; }
+	aside { background: var(--panel); padding: 16px 14px; overflow-y: auto; }
+	aside.left { border-right: 1px solid var(--line); }
+	aside.right { border-left: 1px solid var(--line); }
+	.sub { color: var(--dim); font-size: 12px; }
+	.effects button { display: flex; justify-content: space-between; align-items: baseline; width: 100%; text-align: left; margin: 0 0 4px; padding: 7px 10px; background: transparent; color: var(--text); border: 1px solid transparent; border-radius: 6px; font: inherit; cursor: pointer; }
+	.effects button:hover { background: var(--panel-2); }
+	.effects button[aria-pressed="true"] { background: var(--panel-2); border-color: var(--accent); }
+	.effects small { color: var(--dim); font-family: var(--mono); font-size: 11px; }
+	main { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0; min-height: 0; padding: 14px; gap: 10px; overflow: hidden; }
+	#stage { image-rendering: pixelated; border: 1px solid var(--line); border-radius: 4px; background: #05070c; max-width: 100%; max-height: 100%; min-height: 0; object-fit: contain; }
+	.note { max-width: 62ch; text-align: center; color: var(--dim); font-size: 12px; text-wrap: pretty; }
+	footer { grid-column: 1 / -1; background: var(--panel); border-top: 1px solid var(--line); padding: 10px 14px 12px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; }
+	.transport { display: flex; gap: 6px; }
+	button.tool, select, input[type="number"] { background: var(--panel-2); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; font: inherit; cursor: pointer; }
+	button.tool:hover { border-color: var(--accent); }
+	button.tool[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+	button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+	input[type="number"] { width: 84px; cursor: text; font-family: var(--mono); }
+	.timeline { position: relative; height: 34px; cursor: pointer; touch-action: none; }
+	.phases { position: absolute; inset: 0 0 12px 0; display: flex; border-radius: 4px; overflow: hidden; }
+	.phases span { display: block; padding: 2px 6px; font-size: 11px; white-space: nowrap; overflow: hidden; color: #0b0d14; font-weight: 600; }
+	.ticks { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px var(--tick, 10px)); }
+	.head { position: absolute; top: -3px; bottom: -1px; width: 2px; background: #fff; box-shadow: 0 0 0 1px #000; pointer-events: none; }
+	.readout { font-family: var(--mono); font-size: 12px; color: var(--dim); min-width: 22ch; text-align: right; font-variant-numeric: tabular-nums; }
+	label.check { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+	label.check input { accent-color: var(--accent); }
+	.swatch { width: 34px; height: 8px; border-radius: 2px; margin-left: auto; flex: none; }
+	dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+	dt { color: var(--dim); }
+	dd { margin: 0; text-align: right; }
+	.row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+	#strip { grid-column: 1 / -1; display: flex; gap: 2px; overflow-x: auto; padding-bottom: 2px; }
+	#strip canvas { image-rendering: pixelated; height: 44px; width: auto; background: #05070c; border: 1px solid transparent; flex: none; cursor: pointer; }
+	#strip canvas.now { border-color: #fff; }
+	@media (max-width: 900px) { html, body { height: auto; } body { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; } aside { overflow: visible; } aside.left, aside.right { border: 0; border-bottom: 1px solid var(--line); } main { order: -1; } #stage { max-height: 78vh; } footer { grid-template-columns: minmax(0, 1fr); position: sticky; bottom: 0; } .readout { text-align: left; } }
+</style>
+</head>
+<body>
+<aside class="left">
+	<h1>Pixel FX Studio</h1>
+	<div class="sub">Effects of the Pixel FX resource pack</div>
+	<h2>Effects</h2>
+	<div class="effects" id="effects"></div>
+	<h2>View</h2>
+	<div class="row">
+		<select id="zoom" aria-label="Zoom"><option value="2">2x</option><option value="3" selected>3x</option><option value="4">4x</option></select>
+		<select id="speed" aria-label="Speed"><option value="1">1x speed</option><option value="0.5">0.5x</option><option value="0.25">0.25x</option><option value="0.1">0.1x</option></select>
+	</div>
+	<label class="check"><input type="checkbox" id="board" checked> Board behind it</label>
+	<label class="check"><input type="checkbox" id="bloom" checked> Glow pass</label>
+	<label class="check"><input type="checkbox" id="scan"> Scanlines</label>
+	<label class="check"><input type="checkbox" id="bounds"> Frame bounds</label>
+	<h2>Seed</h2>
+	<div class="row"><input type="number" id="seed" aria-label="Seed"><button class="tool" id="reroll">Reroll</button><button class="tool" id="reseed">Reset</button></div>
+	<h2>Export</h2>
+	<div class="row"><button class="tool" id="save">Save sheet PNG</button></div>
+	<p class="sub">The pack itself is written by <code>node tools/fx_studio/export.js</code>, which renders the same frames with the seeds in effects.js.</p>
+</aside>
+<main>
+	<canvas id="stage" width="570" height="780"></canvas>
+	<div class="note" id="note"></div>
+</main>
+<aside class="right">
+	<h2 style="margin-top:0">Lifecycle</h2>
+	<dl>
+		<dt>phase</dt><dd id="s-phase">-</dd>
+		<dt>frame</dt><dd id="s-frame">-</dd>
+		<dt>time</dt><dd id="s-time">-</dd>
+		<dt>particles alive</dt><dd id="s-alive">-</dd>
+		<dt>born so far</dt><dd id="s-born">-</dd>
+		<dt>died so far</dt><dd id="s-died">-</dd>
+		<dt>peak alive</dt><dd id="s-peak">-</dd>
+		<dt>lit pixels</dt><dd id="s-lit">-</dd>
+	</dl>
+	<h2>Components</h2>
+	<div id="layers"></div>
+	<h2>Sheet</h2>
+	<dl>
+		<dt>frame</dt><dd id="m-frame">-</dd>
+		<dt>frames</dt><dd id="m-frames">-</dd>
+		<dt>anchor</dt><dd id="m-anchor">-</dd>
+		<dt>in game</dt><dd id="m-game">-</dd>
+	</dl>
+</aside>
+<footer>
+	<div class="transport">
+		<button class="tool" id="play" aria-pressed="true">Pause</button>
+		<button class="tool" id="prev" aria-label="Previous frame">&#9664;</button>
+		<button class="tool" id="next" aria-label="Next frame">&#9654;</button>
+		<button class="tool" id="loop" aria-pressed="true">Loop</button>
+	</div>
+	<div class="timeline" id="timeline"><div class="phases" id="phases"></div><div class="ticks" id="ticks"></div><div class="head" id="head"></div></div>
+	<div class="readout" id="readout"></div>
+	<div id="strip"></div>
+</footer>
+<script src="fx_core.js"></script>
+<script src="effects.js"></script>
+<script>
+'use strict';
+(function () {
+	const FX = window.PixelFX;
+	const CELL = 11, COLS = 10, ROWS = 20, MARGIN_X = 40, MARGIN_Y = 20;
+	const STAGE_W = COLS * CELL + MARGIN_X * 2, STAGE_H = ROWS * CELL + MARGIN_Y * 2;
+	const PHASE_COLORS = ['#66d9ff', '#ffd659', '#ff8c66', '#bf66f2', '#8cf299', '#f27373', '#8cccff'];
+	const PIECES = ['#33d9f2', '#f2cc40', '#bf66f2', '#66e680', '#f27373', '#598cf2', '#f29e47', '#8c949e'];
+	// Where each event happens on the mock board, in art pixels from its top-left.
+	const SPOTS = {
+		lock: [5.5 * CELL, 14 * CELL], hard_drop: [5.5 * CELL, 15 * CELL], garbage: [5 * CELL, 20 * CELL],
+		line_clear: [5 * CELL, 17.5 * CELL], tetris: [5 * CELL, 18 * CELL], tspin: [3.5 * CELL, 18 * CELL],
+		perfect_clear: [5 * CELL, 10 * CELL], ko: [5 * CELL, 10 * CELL],
+	};
+	const $ = (id) => document.getElementById(id);
+	const stage = $('stage'), ctx = stage.getContext('2d');
+	const art = document.createElement('canvas'), artCtx = art.getContext('2d');
+	const boardCanvas = document.createElement('canvas');
+
+	const state = { def: FX.effectList[FX.effectList.length - 1], frame: 0, clock: 0, playing: true, loop: true, hidden: {}, frames: [], info: [], seed: 0 };
+
+	// ---------------------------------------------------------- mock board
+	function drawBoard() {
+		boardCanvas.width = STAGE_W;
+		boardCanvas.height = STAGE_H;
+		const c = boardCanvas.getContext('2d');
+		c.fillStyle = '#0d0f17';
+		c.fillRect(0, 0, STAGE_W, STAGE_H);
+		c.fillStyle = '#05080e';
+		c.fillRect(MARGIN_X, MARGIN_Y, COLS * CELL, ROWS * CELL);
+		c.fillStyle = 'rgba(255,255,255,0.05)';
+		for (let x = 1; x < COLS; x++) c.fillRect(MARGIN_X + x * CELL, MARGIN_Y, 1, ROWS * CELL);
+		for (let y = 1; y < ROWS; y++) c.fillRect(MARGIN_X, MARGIN_Y + y * CELL, COLS * CELL, 1);
+		const rng = FX.makeRng(7);
+		for (let row = 15; row < ROWS; row++) {
+			for (let col = 0; col < COLS; col++) {
+				if (row === 15 && (col < 4 || col > 6)) continue;
+				const color = PIECES[rng.int(0, 7)];
+				const x = MARGIN_X + col * CELL, y = MARGIN_Y + row * CELL;
+				c.fillStyle = color;
+				c.fillRect(x, y, CELL, CELL);
+				c.fillStyle = 'rgba(255,255,255,0.35)';
+				c.fillRect(x, y, CELL, 1);
+				c.fillRect(x, y, 1, CELL);
+				c.fillStyle = 'rgba(0,0,0,0.35)';
+				c.fillRect(x, y + CELL - 1, CELL, 1);
+				c.fillRect(x + CELL - 1, y, 1, CELL);
+			}
+		}
+		c.strokeStyle = 'rgba(115,166,230,0.55)';
+		c.strokeRect(MARGIN_X - 0.5, MARGIN_Y - 0.5, COLS * CELL + 1, ROWS * CELL + 1);
+	}
+
+	// ------------------------------------------------------------- baking
+	// Runs the whole timeline once and keeps every frame with what the
+	// simulation looked like at that moment.
+	function bake() {
+		const def = state.def;
+		const sim = new FX.Sim(def, state.seed);
+		for (const layer of sim.layers) layer.visible = !state.hidden[layer.name];
+		state.frames = [];
+		state.info = [];
+		for (let i = 0; i < def.frames; i++) {
+			sim.advanceFrame();
+			const pixels = sim.render(new Uint8ClampedArray(def.w * def.h * 4));
+			let lit = 0;
+			for (let j = 3; j < pixels.length; j += 4) if (pixels[j]) lit++;
+			state.frames.push(new ImageData(pixels, def.w, def.h));
+			state.info.push({ phase: sim.phase().name, alive: sim.stats.alive, born: sim.stats.born, died: sim.stats.died, peak: sim.stats.peak, lit });
+		}
+		state.layers = sim.layers.map((layer) => ({ name: layer.name, kind: layer.kind, ramp: layer.ramp, fire: !!layer.fire, persist: !!layer.persist }));
+		art.width = def.w;
+		art.height = def.h;
+		buildStrip();
+	}
+
+	function buildStrip() {
+		const strip = $('strip');
+		strip.textContent = '';
+		state.frames.forEach((frame, index) => {
+			const cell = document.createElement('canvas');
+			cell.width = frame.width;
+			cell.height = frame.height;
+			cell.getContext('2d').putImageData(frame, 0, 0);
+			cell.title = 'frame ' + (index + 1);
+			cell.addEventListener('click', () => { state.playing = false; seek(index); syncButtons(); });
+			strip.appendChild(cell);
+		});
+	}
+
+	// ------------------------------------------------------------ drawing
+	function draw() {
+		const def = state.def, zoom = Number($('zoom').value);
+		if (stage.width !== STAGE_W * zoom) {
+			stage.width = STAGE_W * zoom;
+			stage.height = STAGE_H * zoom;
+		}
+		ctx.imageSmoothingEnabled = false;
+		ctx.globalCompositeOperation = 'source-over';
+		ctx.filter = 'none';
+		ctx.globalAlpha = 1;
+		if ($('board').checked) ctx.drawImage(boardCanvas, 0, 0, stage.width, stage.height);
+		else { ctx.fillStyle = '#05070c'; ctx.fillRect(0, 0, stage.width, stage.height); }
+		const spot = SPOTS[def.name];
+		const x = MARGIN_X + spot[0] - def.w / 2, y = MARGIN_Y + spot[1] - (def.anchor === 'bottom' ? def.h : def.h / 2);
+		artCtx.putImageData(state.frames[state.frame], 0, 0);
+		ctx.drawImage(art, Math.round(x) * zoom, Math.round(y) * zoom, def.w * zoom, def.h * zoom);
+		if ($('bloom').checked) {
+			// The game's "glow": the same frame once more, added on top - here
+			// blurred as well, to show what a bloom would do with it.
+			ctx.globalCompositeOperation = 'lighter';
+			ctx.globalAlpha = 0.35;
+			ctx.drawImage(art, Math.round(x) * zoom, Math.round(y) * zoom, def.w * zoom, def.h * zoom);
+			ctx.filter = 'blur(' + zoom * 2 + 'px)';
+			ctx.globalAlpha = 0.45;
+			ctx.drawImage(art, Math.round(x) * zoom, Math.round(y) * zoom, def.w * zoom, def.h * zoom);
+			ctx.filter = 'none';
+			ctx.globalAlpha = 1;
+			ctx.globalCompositeOperation = 'source-over';
+		}
+		if ($('bounds').checked) {
+			ctx.strokeStyle = 'rgba(255,214,89,0.8)';
+			ctx.setLineDash([4, 4]);
+			ctx.strokeRect(Math.round(x) * zoom + 0.5, Math.round(y) * zoom + 0.5, def.w * zoom - 1, def.h * zoom - 1);
+			ctx.setLineDash([]);
+		}
+		if ($('scan').checked) {
+			ctx.fillStyle = 'rgba(0,0,0,0.22)';
+			for (let row = 0; row < stage.height; row += zoom) ctx.fillRect(0, row + zoom - 1, stage.width, 1);
+		}
+		const info = state.info[state.frame];
+		$('s-phase').textContent = info.phase;
+		$('s-frame').textContent = (state.frame + 1) + ' / ' + def.frames;
+		$('s-time').textContent = ((state.frame + 1) / def.fps).toFixed(3) + ' s';
+		$('s-alive').textContent = info.alive;
+		$('s-born').textContent = info.born;
+		$('s-died').textContent = info.died;
+		$('s-peak').textContent = info.peak;
+		$('s-lit').textContent = info.lit;
+		$('head').style.left = ((state.frame + 0.5) / def.frames * 100) + '%';
+		$('readout').textContent = def.name + '  ' + String(state.frame + 1).padStart(2, '0') + '/' + def.frames + '  ' + info.phase;
+		const cells = $('strip').children;
+		for (let i = 0; i < cells.length; i++) cells[i].classList.toggle('now', i === state.frame);
+	}
+
+	function seek(frame) {
+		state.frame = Math.max(0, Math.min(state.def.frames - 1, frame));
+		state.clock = state.frame / state.def.fps;
+		draw();
+	}
+
+	// ----------------------------------------------------------------- ui
+	function select(def) {
+		state.def = def;
+		state.seed = def.seed;
+		state.hidden = {};
+		$('seed').value = def.seed;
+		for (const button of $('effects').children) button.setAttribute('aria-pressed', String(button.dataset.name === def.name));
+		$('note').textContent = def.note;
+		$('m-frame').textContent = def.w + ' x ' + def.h;
+		$('m-frames').textContent = def.frames + ' @ ' + def.fps + ' fps';
+		$('m-anchor').textContent = def.anchor;
+		$('m-game').textContent = (def.w * def.scale) + ' x ' + (def.h * def.scale) + ' px';
+		const total = def.frames / def.fps;
+		const phases = $('phases');
+		phases.textContent = '';
+		def.phases.forEach((phase, index) => {
+			const end = index + 1 < def.phases.length ? def.phases[index + 1].at : total;
+			const span = document.createElement('span');
+			span.textContent = phase.name;
+			span.title = phase.name + ': ' + phase.at.toFixed(2) + ' - ' + end.toFixed(2) + ' s';
+			span.style.width = ((end - phase.at) / total * 100) + '%';
+			span.style.background = PHASE_COLORS[index % PHASE_COLORS.length];
+			phases.appendChild(span);
+		});
+		$('ticks').style.setProperty('--tick', (100 / def.frames) + '%');
+		bake();
+		buildLayers();
+		state.playing = true;
+		syncButtons();
+		seek(0);
+	}
+
+	function buildLayers() {
+		const box = $('layers');
+		box.textContent = '';
+		for (const layer of state.layers) {
+			const label = document.createElement('label');
+			label.className = 'check';
+			const input = document.createElement('input');
+			input.type = 'checkbox';
+			input.checked = !state.hidden[layer.name];
+			input.addEventListener('change', () => { state.hidden[layer.name] = !input.checked; bake(); draw(); });
+			const name = document.createElement('span');
+			name.textContent = layer.name + (layer.fire ? ' (fire field)' : layer.persist ? ' (trail)' : layer.kind === 'color' ? ' (chips)' : '');
+			const swatch = document.createElement('span');
+			swatch.className = 'swatch';
+			swatch.style.background = layer.ramp
+				? 'linear-gradient(90deg,' + layer.ramp.map((c) => 'rgb(' + c.slice(0, 3).map((v) => Math.round(v * 255)).join(',') + ')').join(',') + ')'
+				: 'linear-gradient(90deg,' + PIECES.join(',') + ')';
+			label.append(input, name, swatch);
+			box.appendChild(label);
+		}
+	}
+
+	function syncButtons() {
+		$('play').textContent = state.playing ? 'Pause' : 'Play';
+		$('play').setAttribute('aria-pressed', String(state.playing));
+		$('loop').setAttribute('aria-pressed', String(state.loop));
+	}
+
+	for (const def of FX.effectList) {
+		const button = document.createElement('button');
+		button.dataset.name = def.name;
+		button.innerHTML = '<span></span><small></small>';
+		button.firstChild.textContent = def.title;
+		button.lastChild.textContent = def.frames + 'f';
+		button.addEventListener('click', () => select(def));
+		$('effects').appendChild(button);
+	}
+	$('play').addEventListener('click', () => {
+		state.playing = !state.playing;
+		if (state.playing && state.frame >= state.def.frames - 1) seek(0);
+		syncButtons();
+	});
+	$('loop').addEventListener('click', () => { state.loop = !state.loop; syncButtons(); });
+	$('prev').addEventListener('click', () => { state.playing = false; syncButtons(); seek(state.frame - 1); });
+	$('next').addEventListener('click', () => { state.playing = false; syncButtons(); seek(state.frame + 1); });
+	for (const id of ['zoom', 'board', 'bloom', 'scan', 'bounds']) $(id).addEventListener('change', draw);
+	const reseed = (seed) => { state.seed = seed >>> 0; $('seed').value = state.seed; bake(); draw(); };
+	$('seed').addEventListener('change', () => reseed(Number($('seed').value) || 0));
+	$('reroll').addEventListener('click', () => reseed(Math.floor(Math.random() * 99999) + 1));
+	$('reseed').addEventListener('click', () => reseed(state.def.seed));
+	$('save').addEventListener('click', () => {
+		const def = state.def, columns = Math.min(def.frames, Math.max(1, Math.floor(1536 / def.w)));
+		const sheet = document.createElement('canvas');
+		sheet.width = columns * def.w;
+		sheet.height = Math.ceil(def.frames / columns) * def.h;
+		const sheetCtx = sheet.getContext('2d');
+		state.frames.forEach((frame, index) => sheetCtx.putImageData(frame, (index % columns) * def.w, Math.floor(index / columns) * def.h));
+		sheet.toBlob((blob) => {
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = def.name + '.png';
+			link.click();
+			setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+		});
+	});
+	const timeline = $('timeline');
+	const scrub = (event) => {
+		const box = timeline.getBoundingClientRect();
+		state.playing = false;
+		syncButtons();
+		seek(Math.floor((event.clientX - box.left) / box.width * state.def.frames));
+	};
+	timeline.addEventListener('pointerdown', (event) => { timeline.setPointerCapture(event.pointerId); scrub(event); });
+	timeline.addEventListener('pointermove', (event) => { if (event.buttons) scrub(event); });
+	window.addEventListener('keydown', (event) => {
+		if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') return;
+		if (event.key === ' ') { event.preventDefault(); $('play').click(); }
+		if (event.key === 'ArrowLeft') $('prev').click();
+		if (event.key === 'ArrowRight') $('next').click();
+	});
+
+	let last = performance.now();
+	function loop(now) {
+		const dt = Math.max(0, Math.min(0.1, (now - last) / 1000));
+		last = now;
+		if (state.playing) {
+			const total = state.def.frames / state.def.fps;
+			state.clock += dt * Number($('speed').value);
+			// A short breath of empty board between two loops.
+			if (state.clock >= total + 0.35) {
+				if (state.loop) state.clock = 0;
+				else { state.playing = false; state.clock = total - 0.001; syncButtons(); }
+			}
+			const frame = Math.min(state.def.frames - 1, Math.floor(state.clock * state.def.fps));
+			if (frame !== state.frame) { state.frame = frame; draw(); }
+		}
+		requestAnimationFrame(loop);
+	}
+
+	drawBoard();
+	select(state.def);
+	requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

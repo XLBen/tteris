@@ -63,6 +63,9 @@ static func run_module() -> Dictionary:
 	_case_tetris_mode_stacks_flat_around_a_well(ctx)
 	_case_perfect_clears_are_found_and_played(ctx)
 	_case_tspin_builds_give_up_and_spins_must_clear(ctx)
+	_case_tucks_reach_under_overhangs(ctx)
+	await _case_lookahead_plays_the_held_piece(ctx)
+	_case_digging_speeds_up_with_the_height(ctx)
 	return ctx
 
 
@@ -476,3 +479,128 @@ static func _case_tspin_builds_give_up_and_spins_must_clear(ctx: Dictionary) -> 
 			(ctx["lines"] as Array).append("INFO %s, empty spins %s: %d spins that cleared nothing in %d pieces" % [tier, "allowed" if spins_empty else "off", empty, solo.pieces_placed(1)])
 		ok = ok and int(counts[false]) <= 1 and int(counts[false]) <= int(counts[true])
 	_case(ctx, "tspin_builds_give_up_and_spins_must_clear", ok)
+
+
+
+## Tucks (2026-10-12, owner): the upper tiers also plan the places only a
+## slide or a turn after the soft drop reaches - here the I turned in under an
+## overhang to finish the bottom row - and play them.
+static func _case_tucks_reach_under_overhangs(ctx: Dictionary) -> void:
+	var cave: Array[String] = ["#...######", "....######"]
+	var ok: bool = int(VersusAI.DIFFICULTY_PROFILES[&"normal"].get("tuck_depth", 0)) == 0
+	for tier: StringName in [&"hard", &"lunatic"]:
+		ok = ok and int(VersusAI.DIFFICULTY_PROFILES[tier]["tuck_depth"]) >= 1
+		var battle: VersusBattle = _battle_with(cave)
+		# (Without the hold: an I that scores no Tetris would be put away.)
+		var profile: Dictionary = (VersusAI.DIFFICULTY_PROFILES[tier] as Dictionary).duplicate()
+		profile["hold_policy"] = &"none"
+		var ai: VersusAI = VersusAI.new(battle, 1, profile, SEED)
+		var grid: Array = ai._copy_board_grid(battle.board(1))
+		# No straight drop lays the I on the floor under the overhang; a drop
+		# beside it and one grounded move does.
+		var floor_row: int = Board.BOARD_HEIGHT - 1
+		var under: Dictionary = {}
+		for entry: Dictionary in ai._reachable_tucks(grid, Tetromino.PieceType.I, {}):
+			var cells: Array[Vector2i] = entry["cells"]
+			var columns: Array[int] = []
+			for cell: Vector2i in cells:
+				if int(entry["y"]) + cell.y == floor_row:
+					columns.append(int(entry["x"]) + cell.x)
+			columns.sort()
+			if columns == [0, 1, 2, 3]:
+				under = entry
+		ok = ok and not under.is_empty() and bool(under["tuck"]) and (under["moves"] as Array).size() == 1
+		ok = ok and ai._drop_y(grid, VersusAI._piece_shapes(Tetromino.PieceType.I)[0], 0) < int(under.get("y", 0))
+		# Played for real: the row is cleared with that one piece.
+		battle.debug_force_piece(1, Tetromino.PieceType.I, 0, battle.piece_pos(1), false, -1)
+		var steps: int = 0
+		while battle.pieces_placed(1) == 0 and steps < 1800:
+			battle.tick(1.0 / 60.0)
+			ai.tick(1.0 / 60.0)
+			steps += 1
+		ok = ok and battle.pieces_placed(1) == 1 and battle.lines(1) == 1 and ai.tucks_planned() == 1 and ai.stuck_drops() == 0
+		# A tier that does not tuck finds no such place.
+		var plain: VersusAI = _ai(battle, &"normal", false)
+		ok = ok and plain._reachable_tucks(grid, Tetromino.PieceType.I, {}).is_empty()
+	_case(ctx, "tucks_reach_under_overhangs", ok)
+
+
+## Hold inside the lookahead (2026-10-12, owner): on the upper tiers every
+## step of the search may play the held piece instead of the queued one, and
+## the hold tap itself is decided by comparing the two lines. While digging
+## only: building an attack, the slot is for the I and the T kept for it
+## (measured: with the search holding there too, the tiers stacked half as
+## many Tetrises).
+static func _case_lookahead_plays_the_held_piece(ctx: Dictionary) -> void:
+	var o: int = Tetromino.PieceType.O
+	var s: int = Tetromino.PieceType.S
+	var slot: Array[String] = ["########..", "########.."]
+	var ok: bool = not bool(VersusAI.DIFFICULTY_PROFILES[&"normal"].get("hold_lookahead", false))
+	for tier: StringName in [&"hard", &"lunatic"]:
+		ok = ok and bool(VersusAI.DIFFICULTY_PROFILES[tier]["hold_lookahead"])
+		var battle: VersusBattle = _battle_with(slot)
+		var ai: VersusAI = _ai(battle, tier, false)
+		var grid: Array = ai._copy_board_grid(battle.board(1))
+		var queue: Array[int] = [s, s]
+		var base: int = ai._score_placement(grid, 0, 10)
+		# The S alone cannot use the gap; with an O on hold the step plays it.
+		ai._plan_sims = 0
+		var as_it_comes: int = await ai._beam_follow_value(grid, queue, 0, 1, base)
+		ai._plan_sims = 0
+		var with_hold: int = await ai._beam_follow_value(grid, queue, 0, 1, base, false, o)
+		ai._plan_sims = 0
+		var empty_slot: int = await ai._beam_follow_value(grid, queue, 0, 1, base, false, -1)
+		ok = ok and with_hold > as_it_comes + 1000 and empty_slot == as_it_comes
+		# With the slot empty the hold tap brings the next piece.
+		queue = [s, o]
+		ai._plan_sims = 0
+		ok = ok and await ai._beam_follow_value(grid, queue, 0, 1, base, false, -1) == with_hold
+		# Buried, the lookahead decides hold taps; on a calm board it does not.
+		ok = ok and not bool(VersusAI.DIFFICULTY_PROFILES[tier].get("hold_lookahead_attack", false))
+		var calm: VersusBattle = _battle_with(FLAT, 2)
+		var calm_ai: VersusAI = _ai(calm, tier, false)
+		calm_ai._build_plan(calm.current_piece(1))
+		ok = ok and not calm_ai._ctx_hold_search
+		var solo: VersusBattle = _battle_with(FLAT, 13)
+		var player: VersusAI = _ai(solo, tier, false)
+		var elapsed: float = 0.0
+		while solo.phase() == VersusBattle.Phase.PLAYING and elapsed < 30.0 and solo.pieces_placed(1) < 40:
+			solo.tick(TICK)
+			player.tick(TICK)
+			elapsed += TICK
+		(ctx["lines"] as Array).append("INFO %s: %d of %d hold taps decided by the lookahead in %d pieces" % [tier, player.searched_holds(), player.holds_made(), solo.pieces_placed(1)])
+		ok = ok and solo.phase() == VersusBattle.Phase.PLAYING and player.searched_holds() >= 1
+	_case(ctx, "lookahead_plays_the_held_piece", ok)
+
+
+## The higher the stack, the faster the digging (2026-10-12, owner): the time
+## per piece shrinks step by step from attack_rows up, and never grows.
+static func _case_digging_speeds_up_with_the_height(ctx: Dictionary) -> void:
+	var ok: bool = VersusAI.DANGER_PACE_TOP < VersusAI.DANGER_PACE
+	for tier: StringName in [&"easy", &"normal", &"hard", &"lunatic"]:
+		var battle: VersusBattle = _battle_with(FLAT, 2)
+		var ai: VersusAI = _ai(battle, tier, false)
+		var danger_rows: int = int(VersusAI.DIFFICULTY_PROFILES[tier]["danger_rows"])
+		var attack_rows: int = int(VersusAI.DIFFICULTY_PROFILES[tier]["attack_rows"])
+		var before: float = 1.0
+		for rows: int in range(0, Board.BOARD_HEIGHT + 4):
+			ai._ctx_pressure = rows
+			var pace: float = ai._dig_pace()
+			ok = ok and pace <= before + 0.0001
+			before = pace
+		ai._ctx_pressure = attack_rows
+		ok = ok and is_equal_approx(ai._dig_pace(), 1.0)
+		ai._ctx_pressure = danger_rows
+		ok = ok and is_equal_approx(ai._dig_pace(), VersusAI.DANGER_PACE)
+		ai._ctx_pressure = VersusAI.DANGER_TOP_ROWS
+		ok = ok and is_equal_approx(ai._dig_pace(), VersusAI.DANGER_PACE_TOP)
+		# Buried, the tier really plays faster than its cruise pace.
+		var deep: VersusBattle = _battle_with(FLAT, 14)
+		var digger: VersusAI = _ai(deep, tier, false)
+		var elapsed: float = 0.0
+		while deep.phase() == VersusBattle.Phase.PLAYING and deep.pieces_placed(1) < 6 and elapsed < 60.0:
+			deep.tick(1.0 / 60.0)
+			digger.tick(1.0 / 60.0)
+			elapsed += 1.0 / 60.0
+		ok = ok and deep.pieces_placed(1) == 6 and 6.0 / elapsed > 1.1 * float(VersusAI.DIFFICULTY_PROFILES[tier]["pps"])
+	_case(ctx, "digging_speeds_up_with_the_height", ok)

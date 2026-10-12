@@ -8,6 +8,7 @@ extends SceneTree
 ##     rows=13     garbage rows the board starts with
 ##     level=1     speed level
 ##     tiers=hard,lunatic
+##     set=key:value;key:value   profile numbers to try instead of the tier's
 
 const TICK: float = 1.0 / 30.0
 const CAP_SECONDS: float = 90.0
@@ -30,7 +31,10 @@ func _initialize() -> void:
 		var pieces: Array[float] = [0.0, 0.0, 0.0]
 		var sent: int = 0
 		for i: int in seeds:
-			var result: Dictionary = dig(StringName(tier), int(options["level"]), BASE_SEED + i, int(options["rows"]))
+			var profile: Dictionary = (VersusAI.DIFFICULTY_PROFILES[StringName(tier)] as Dictionary).duplicate()
+			for change: String in String(options.get("set", "")).split(";", false):
+				profile[change.get_slice(":", 0)] = float(change.get_slice(":", 1))
+			var result: Dictionary = dig(profile, int(options["level"]), BASE_SEED + i, int(options["rows"]))
 			deaths += 1 if bool(result["died"]) else 0
 			sent += int(result["sent"])
 			for target: int in TARGETS.size():
@@ -50,7 +54,8 @@ func _initialize() -> void:
 ## to four rows, each batch with its own hole), against a frozen side 0.
 ## "seconds" / "pieces": when the stack first came down to each of TARGETS
 ## (-1 when it never did before the cap or the top-out).
-static func dig(tier: StringName, level: int, match_seed: int, rows: int, tick: float = TICK) -> Dictionary:
+## `tier` is a tier name or a whole profile.
+static func dig(tier: Variant, level: int, match_seed: int, rows: int, tick: float = TICK) -> Dictionary:
 	var battle: VersusBattle = VersusBattle.new()
 	battle.setup(VersusBattle.Rules.FIXED, level, VersusBattle.MatchFormat.SINGLE, match_seed)
 	battle.debug_freeze_side(0, true)
@@ -61,7 +66,7 @@ static func dig(tier: StringName, level: int, match_seed: int, rows: int, tick: 
 		var batch: int = mini(left, random.randi_range(1, 4))
 		battle.board(1).insert_garbage_rows(batch, random.randi_range(0, Board.BOARD_WIDTH - 1))
 		left -= batch
-	var ai: VersusAI = VersusAI.new(battle, 1, VersusAI.DIFFICULTY_PROFILES[tier], match_seed)
+	var ai: VersusAI = VersusAI.new(battle, 1, tier if tier is Dictionary else VersusAI.DIFFICULTY_PROFILES[tier], match_seed)
 	var elapsed: float = 0.0
 	var seconds: Array[float] = [-1.0, -1.0, -1.0]
 	var pieces: Array[int] = [-1, -1, -1]

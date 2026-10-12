@@ -141,6 +141,18 @@ const WELL_COLUMN: int = Board.BOARD_WIDTH - 1
 ##   tspin_patience        pieces a T-Spin build may take before the tier
 ##                         stacks for a Tetris instead (0 = as long as it takes)
 ##   empty_spins           also spin the T into places where it clears nothing
+##   hold_lookahead        the lookahead also plays the held piece (or the
+##                         next one, with the slot empty) at every step, and
+##                         the hold tap is decided by comparing the two lines
+##                         instead of the two pieces' best single placements;
+##                         hold_search_share of the simulations is kept for
+##                         the line that starts with the hold tap. Only
+##                         while digging, unless hold_lookahead_attack: when
+##                         building an attack the slot belongs to the I and
+##                         the T that are kept for it
+##   tuck_depth            grounded moves (a slide or a rotation after the
+##                         soft drop) a placement may take: places under an
+##                         overhang that no straight drop reaches (0 = none)
 ## An empty profile resolves to the normal entry.
 const DIFFICULTY_PROFILES: Dictionary = {
 	&"easy": {
@@ -226,6 +238,8 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"tetris_share": 0.5,
 		"pc_pieces": 4,
 		"tspin_patience": 14,
+		"tuck_depth": 1,
+		"hold_lookahead": true,
 	},
 	&"lunatic": {
 		# 2.5 on average: about 2.2 between bursts, 5 inside them (see
@@ -266,6 +280,8 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"tetris_share": 0.4,
 		"pc_pieces": 5,
 		"tspin_patience": 14,
+		"tuck_depth": 2,
+		"hold_lookahead": true,
 	},
 }
 ## Safety valve: an unreachable plan (walled-in piece) forces a hard drop
@@ -291,6 +307,8 @@ const LOW_PLACEMENT_WEIGHT: int = 6
 const FOLLOW_BEAM: int = 2
 const FOLLOW_DEAD_END: int = -100000
 const HOLD_EVAL_RESERVE: int = 64
+## _beam_follow_value's `stored` when the tier's lookahead does not hold.
+const HOLD_NOT_SEARCHED: int = -2
 ## A root candidate whose after-board reaches more than the profile's
 ## `danger_soft_rows` above the floor loses FOLLOW_DANGER_STEP points per row
 ## beyond that, so a promising setup can never walk the stack into the spawn.
@@ -306,12 +324,20 @@ const MODE_NAMES: Array[String] = ["STACK", "TETRIS", "T-SPIN", "DIG"]
 const TETRIS_CLEAR_VALUES: Array[int] = [0, -400, -500, -400, 1600]
 ## Perfect Clear search: the rows it may still have to clear, and the
 ## placements one search may try.
+## A tuck takes a soft drop and its grounded moves: it has to be this much
+## better than a straight drop to be worth them.
+const TUCK_COST: int = 60
 const PC_MAX_ROWS: int = 4
 const PC_NODE_BUDGET: int = 1500
 ## While digging: cost per row of the tallest column, and the share of the
 ## usual time a piece gets (a player in trouble plays faster).
 const DANGER_PEAK_WEIGHT: int = 60
 const DANGER_PACE: float = 0.7
+## The higher the stack, the faster the digging: the time per piece falls from
+## the full budget at attack_rows to DANGER_PACE of it at danger_rows and on to
+## DANGER_PACE_TOP at DANGER_TOP_ROWS.
+const DANGER_PACE_TOP: float = 0.5
+const DANGER_TOP_ROWS: int = 18
 ## A burst is this much likelier to start on a piece planned under pressure.
 const BURST_PRESSURE_FACTOR: float = 3.0
 ## Pieces the pace is averaged over, the share of the time lost (or gained)
@@ -414,6 +440,8 @@ var _cover_weight: int = 0
 var _ctx_b2b: bool = false
 var _ctx_combo: int = 0
 var _ctx_danger: bool = false
+## Stack height plus incoming garbage of the piece being planned, in rows.
+var _ctx_pressure: int = 0
 ## The mode state machine (see the header): the mode, the column kept empty
 ## while stacking for a Tetris, whether the piece just planned lands an attack
 ## (the next mode is drawn after it), and how often the mode changed.
@@ -436,6 +464,8 @@ var _pc_failed: Dictionary = {}
 var _pc_first: Dictionary = {}
 var _pc_queue: Array[int] = []
 var _pc_plans: int = 0
+## Pieces dropped where they stood because their plan could not be reached.
+var _stuck_drops: int = 0
 var _ctx_follow: bool = false
 ## Board-value half of the most recent _score_placement result (the other
 ## half is the placement's reward).
@@ -495,6 +525,20 @@ var _ground_moves: Array = []
 var _ctx_t_near: bool = false
 var _ctx_slot_started: bool = false
 var _spins_planned: int = 0
+## Tucks (see _reachable_tucks): the profile's depth, and the plans made.
+var _tuck_depth: int = 0
+## Hold inside the lookahead (profile keys hold_lookahead, hold_search_share).
+var _hold_lookahead: bool = false
+var _hold_lookahead_attack: bool = false
+## Whether the piece being planned is searched with the hold (see _build_plan).
+var _ctx_hold_search: bool = false
+var _hold_search_share: float = 0.35
+## Simulations the lookahead leaves for what comes after it.
+var _follow_reserve: int = HOLD_EVAL_RESERVE
+## -1 while the hold tap was not decided by the lookahead, else 0 / 1.
+var _searched_hold: int = -1
+var _searched_holds: int = 0
+var _tucks_planned: int = 0
 var _slot_plans: int = 0
 ## Set by the slot scan when it found a spinnable (overhang in place) slot.
 var _slot_is_ready: bool = false
@@ -563,6 +607,10 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_pc_pieces = int(_profile.get("pc_pieces", 0))
 	_tspin_patience = int(_profile.get("tspin_patience", 0))
 	_empty_spins = bool(_profile.get("empty_spins", false))
+	_tuck_depth = int(_profile.get("tuck_depth", 0))
+	_hold_lookahead = bool(_profile.get("hold_lookahead", false)) and _hold_policy != &"none"
+	_hold_lookahead_attack = bool(_profile.get("hold_lookahead_attack", false))
+	_hold_search_share = clampf(float(_profile.get("hold_search_share", 0.35)), 0.0, 0.8)
 	_mode = _draw_attack_mode()
 
 
@@ -592,6 +640,21 @@ func well_column() -> int:
 ## Pieces placed on a found Perfect Clear line so far (calibration read).
 func perfect_clear_plans() -> int:
 	return _pc_plans
+
+
+## Pieces that never reached their planned place (calibration read).
+func stuck_drops() -> int:
+	return _stuck_drops
+
+
+## Placements planned with grounded moves that were no T-Spin (calibration read).
+func tucks_planned() -> int:
+	return _tucks_planned
+
+
+## Hold taps decided by the lookahead (calibration read).
+func searched_holds() -> int:
+	return _searched_holds
 
 
 ## Times the mode changed so far (calibration read).
@@ -874,14 +937,18 @@ func _schedule_beats(piece: Tetromino, swapped_in: bool) -> void:
 			_pace_marks.append(_sim_time)
 		if _pace_marks.size() > PACE_WINDOW:
 			_pace_marks.pop_front()
-		if pace < _burst_pps and _pace_marks.size() >= 4:
+		if _ctx_danger:
+			# Digging is meant to run ahead of the average: nothing of it is
+			# held against the pace, now or afterwards.
+			_pace_marks.clear()
+		elif pace < _burst_pps and _pace_marks.size() >= 4:
 			var late: float = _sim_time - _pace_marks[0] - float(_pace_marks.size() - 1) / _pps
 			budget -= clampf(late * PACE_CORRECTION, -PACE_CORRECTION_MAX * budget, PACE_CORRECTION_MAX * budget)
 			budget = maxf(budget, 1.0 / _burst_pps)
 	if swapped_in:
 		budget *= 0.5
-	if _ctx_danger and pace != _burst_pps:
-		budget *= DANGER_PACE
+	if _ctx_danger:
+		budget = minf(budget, (1.0 / _cruise_pps) * _dig_pace())
 	var key: float = maxf(MIN_KEY_INTERVAL, budget * (1.0 - _think_share) / float(keys))
 	var think: float = maxf(MIN_THINK_INTERVAL, budget - key * float(keys - 1))
 	# Sideways moves must finish while the piece is still above every column,
@@ -903,6 +970,13 @@ func _schedule_beats(piece: Tetromino, swapped_in: bool) -> void:
 	_key_interval = key
 
 
+## Share of a piece's time budget left while digging at the current height.
+func _dig_pace() -> float:
+	if _ctx_pressure <= _danger_rows:
+		return lerpf(1.0, DANGER_PACE, clampf(inverse_lerp(float(_attack_rows), float(_danger_rows), float(_ctx_pressure)), 0.0, 1.0))
+	return lerpf(DANGER_PACE, DANGER_PACE_TOP, clampf(inverse_lerp(float(_danger_rows), float(maxi(DANGER_TOP_ROWS, _danger_rows + 1)), float(_ctx_pressure)), 0.0, 1.0))
+
+
 ## Returns true when the action budget was exhausted and a hard-drop fallback
 ## was issued instead of the planned step.
 ## True once this frame's share of the plan is used up (see frame_budget_usec).
@@ -922,6 +996,7 @@ func _consume_step() -> bool:
 	if _execute_steps <= MAX_EXECUTE_STEPS:
 		return false
 	_execute_steps = 0
+	_stuck_drops += 1
 	_log_action(VersusBattle.ACTION_HARD_DROP)
 	_battle.tap(_side, VersusBattle.ACTION_HARD_DROP)
 	return true
@@ -968,8 +1043,13 @@ func _build_plan(piece: Tetromino) -> void:
 	# Near death the AI switches to digging: clear lines now, keep the peak
 	# down, no setups - and it stays that way until the stack is well clear of
 	# the line again, instead of flipping back the moment one row is gone.
-	_update_mode(grid, _max_height(grid) + _battle.pending_garbage(_side))
+	_ctx_pressure = _max_height(grid) + _battle.pending_garbage(_side)
+	_update_mode(grid, _ctx_pressure)
 	_ctx_danger = _mode == Mode.DIG
+	if _ctx_danger:
+		# Less time per piece, less search per piece: the thinking must not
+		# be what holds the faster pace back.
+		_plan_sim_budget = int(float(_plan_sim_budget) * _dig_pace())
 	_ctx_t_near = _t_at_hand(piece.piece_type)
 	_slot_is_ready = false
 	_slot_fill_seen = 0
@@ -1159,6 +1239,44 @@ func _build_plan(piece: Tetromino) -> void:
 				safe_best_is_spin = false
 				safe_best_spin = {}
 				safe_best_cleared = int(simulation["cleared"])
+	# Tucks: the places only a slide or a turn after the soft drop reaches.
+	# They are planned and played like the spin entries (a drop, then the
+	# grounded moves), but scored as the plain landings they are.
+	if _tuck_depth > 0:
+		for entry: Dictionary in _reachable_tucks(grid, piece.piece_type, seen_placements):
+			if _plan_sims >= _plan_sim_budget:
+				break
+			if _frame_spent():
+				await _next_frame()
+			var tuck_cells: Array[Vector2i] = entry["cells"]
+			var tuck_x: int = int(entry["x"])
+			var tuck_y: int = int(entry["y"])
+			_plan_sims += 1
+			var tuck_simulation: Dictionary = _simulate_placement(grid, tuck_cells, tuck_x, tuck_y)
+			var tuck_score: int = _score_placement(tuck_simulation["after"], int(tuck_simulation["cleared"]), tuck_y)
+			var tuck_board: int = _last_board_value
+			tuck_score += _style_jitter() - TUCK_COST
+			if _ctx_slot_started and piece.piece_type == Tetromino.PieceType.T:
+				tuck_score -= _t_waste_penalty
+			if _is_lethal_landing(tuck_cells, tuck_x, tuck_y, tuck_simulation["after"], next_type):
+				continue
+			entry["cleared"] = int(tuck_simulation["cleared"])
+			cand_scores.append(tuck_score)
+			cand_rotations.append(int(entry["rotation"]))
+			cand_xs.append(int(entry["pre_x"]))
+			cand_afters.append(tuck_simulation["after"])
+			cand_boards.append(tuck_board)
+			cand_is_spin.append(true)
+			cand_spin.append(entry)
+			cand_cleared.append(int(tuck_simulation["cleared"]))
+			if not found_safe or tuck_score > safe_best_score:
+				found_safe = true
+				safe_best_score = tuck_score
+				safe_best_rotation = int(entry["rotation"])
+				safe_best_x = int(entry["pre_x"])
+				safe_best_is_spin = true
+				safe_best_spin = entry
+				safe_best_cleared = int(tuck_simulation["cleared"])
 	# Final ranking. `pre` is the 1-ply ranking (ties keep the enumeration
 	# order). Depth 1 plays its head. Depth >= 2 searches the top
 	# `follow_candidates` of it deeper and plays the best path (see the
@@ -1177,15 +1295,29 @@ func _build_plan(piece: Tetromino) -> void:
 	var chosen_is_spin: bool = safe_best_is_spin
 	var chosen_spin: Dictionary = safe_best_spin
 	var chosen_cleared: int = safe_best_cleared
+	_searched_hold = -1
+	_follow_reserve = HOLD_EVAL_RESERVE
 	if _lookahead_depth >= 2 and found_safe and cand_scores.size() >= 2:
 		var queue: Array[int] = _battle.next_queue(_side)
+		var stored: int = _battle.hold_type(_side)
+		# The line that starts with a hold tap is searched after this one
+		# (see _swap_line_value), from the simulations kept for it. A T that
+		# may spin and an I kept for the well come out by their own rules
+		# (_hold_swap_beats_current): a few plain drops ahead say nothing of
+		# what they were put away for.
+		var swap_type: int = stored if stored >= 0 else _queue_type(queue, 0)
+		_ctx_hold_search = _hold_lookahead and (_ctx_danger or _hold_lookahead_attack)
+		var compare_hold: bool = _ctx_hold_search and not _held_this_drop and swap_type >= 0 and swap_type != piece.piece_type \
+			and not (swap_type == Tetromino.PieceType.T and _tspin_policy != &"none") 			and not (stored == Tetromino.PieceType.I and _well_weight > 0 and not _ctx_danger)
+		if compare_hold:
+			_follow_reserve = int(float(_plan_sim_budget) * _hold_search_share)
 		var best_total: int = 0
 		var have_total: bool = false
 		for rank: int in mini(_follow_candidates, pre.size()):
 			var index: int = int(pre[rank]["index"])
 			var reward: int = cand_scores[index] - cand_boards[index]
 			var total: int = reward + await _beam_follow_value(cand_afters[index], queue, 0, _lookahead_depth - 1, cand_boards[index],
-				_battle.hold_type(_side) == Tetromino.PieceType.T)
+				stored == Tetromino.PieceType.T, stored if _ctx_hold_search else HOLD_NOT_SEARCHED)
 			total -= _follow_danger(cand_afters[index])
 			if not have_total or total > best_total:
 				have_total = true
@@ -1195,6 +1327,11 @@ func _build_plan(piece: Tetromino) -> void:
 				chosen_is_spin = cand_is_spin[index]
 				chosen_spin = cand_spin[index]
 				chosen_cleared = cand_cleared[index]
+		_follow_reserve = 0
+		if compare_hold and have_total and not (chosen_is_spin and not bool(chosen_spin.get("tuck", false))):
+			var swap_total: int = await _swap_line_value(grid, swap_type, queue, 0 if stored >= 0 else 1, piece.piece_type)
+			_searched_hold = 1 if swap_total > FOLLOW_DEAD_END and swap_total > best_total + _hold_gain_margin else 0
+		_follow_reserve = HOLD_EVAL_RESERVE
 	if found_safe:
 		_plan_rotation = chosen_rotation
 		_plan_x = chosen_x
@@ -1219,13 +1356,17 @@ func _build_plan(piece: Tetromino) -> void:
 	# rotation of the entry's start) followed by its grounded moves; tick()
 	# finishes with the zero-travel hard drop (see the spin phases there).
 	_spin_plan = chosen_is_spin and not chosen_spin.is_empty()
+	var tucked: bool = _spin_plan and bool(chosen_spin.get("tuck", false))
 	# An attack is about to land: the next one is drawn afresh (_update_mode).
-	_attack_landed = found_safe and (chosen_cleared >= 4 or (_spin_plan and chosen_cleared >= 2))
+	_attack_landed = found_safe and (chosen_cleared >= 4 or (_spin_plan and not tucked and chosen_cleared >= 2))
 	if _spin_plan:
 		_plan_rotation = int(chosen_spin["pre_rotation"])
 		_plan_x = int(chosen_spin["pre_x"])
 		_ground_moves = (chosen_spin["moves"] as Array).duplicate()
-		_spins_planned += 1
+		if tucked:
+			_tucks_planned += 1
+		else:
+			_spins_planned += 1
 	# The profiled hold policy answers BEFORE the fallback plan above is ever
 	# executed: it either taps hold (the plan waits for the swap) or leaves
 	# the fallback in place (hold unavailable / easy). The margin comparison
@@ -1237,7 +1378,7 @@ func _build_plan(piece: Tetromino) -> void:
 		# Spread over frames, and the piece is gone: nothing left to decide.
 		return
 	_evaluate_hold(grid, piece, found_safe, safe_best_score, safe_best_cleared,
-		_spin_plan and int(chosen_spin.get("cleared", 0)) >= 2)
+		_spin_plan and not tucked and int(chosen_spin.get("cleared", 0)) >= 2)
 	if _ctx_slot_started:
 		_slot_plans += 1
 
@@ -1578,6 +1719,74 @@ static func _state_key(x: int, y: int, rotation: int) -> int:
 	return (x + 4) + 32 * (y + 4) + 2048 * rotation
 
 
+## Places a piece can only reach on the ground: it drops straight down in any
+## rotation and column, then makes up to `tuck_depth` grounded moves - a slide
+## or a rotation through the SRS kicks (the first fitting kick, as the battle
+## plays it) - settling after each. Returned are the resting places that are
+## not in `taken` (the placement keys already planned: the straight drops and
+## the T's spin entries), one entry per place, the shortest way in: "tuck",
+## the final "rotation" / "x" / "y" / "cells", the start "pre_rotation" /
+## "pre_x", and "moves", the grounded actions to play.
+func _reachable_tucks(grid: Array, piece_type: int, taken: Dictionary) -> Array:
+	var shapes: Array = _piece_shapes(piece_type)
+	var tops: PackedInt32Array = _column_tops(grid)
+	var seen: Dictionary = {}
+	var frontier: Array = []
+	for rotation: int in 4:
+		for x: int in range(-3, Board.BOARD_WIDTH):
+			var y: int = _drop_y_fast(grid, shapes[rotation], x, tops)
+			if y < 0:
+				continue
+			seen[_state_key(x, y, rotation)] = true
+			frontier.append({"x": x, "y": y, "rotation": rotation, "pre_x": x, "pre_rotation": rotation, "moves": []})
+	var finals: Dictionary = {}
+	for depth: int in _tuck_depth:
+		var next_frontier: Array = []
+		for state: Dictionary in frontier:
+			var x: int = int(state["x"])
+			var y: int = int(state["y"])
+			var rotation: int = int(state["rotation"])
+			for step: int in [-1, 1]:
+				if _can_place(grid, shapes[rotation], x + step, y):
+					var slide: StringName = VersusBattle.ACTION_MOVE_LEFT if step < 0 else VersusBattle.ACTION_MOVE_RIGHT
+					_push_ground_state(grid, shapes, seen, next_frontier, state, x + step, y, rotation, (state["moves"] as Array) + [slide])
+			if piece_type == Tetromino.PieceType.O:
+				continue
+			for direction: int in [1, -1]:
+				var action: StringName = VersusBattle.ACTION_ROTATE if direction == 1 else VersusBattle.ACTION_ROTATE_CCW
+				var to_rotation: int = (rotation + direction + 4) % 4
+				var kicks: Array[Vector2i] = SRS.get_grid_kicks(piece_type, rotation, direction)
+				for kick: Vector2i in kicks:
+					if _can_place(grid, shapes[to_rotation], x + kick.x, y + kick.y):
+						_push_ground_state(grid, shapes, seen, next_frontier, state, x + kick.x, y + kick.y, to_rotation, (state["moves"] as Array) + [action])
+						break
+		for state: Dictionary in next_frontier:
+			var cells: Array[Vector2i] = shapes[int(state["rotation"])]
+			var key: int = _placement_key(cells, int(state["x"]), int(state["y"]))
+			if taken.has(key) or finals.has(key):
+				continue
+			var entry: Dictionary = state.duplicate()
+			entry["tuck"] = true
+			entry["cells"] = cells
+			finals[key] = entry
+		frontier = next_frontier
+	return finals.values()
+
+
+static var _piece_shape_cache: Dictionary = {}
+
+## A piece's cells in its four rotations.
+static func _piece_shapes(piece_type: int) -> Array:
+	if not _piece_shape_cache.has(piece_type):
+		var shapes: Array = []
+		for rotation: int in 4:
+			var probe: Tetromino = Tetromino.new(piece_type)
+			probe.rotation = rotation
+			shapes.append(probe.get_cells())
+		_piece_shape_cache[piece_type] = shapes
+	return _piece_shape_cache[piece_type]
+
+
 static var _t_shape_cache: Array = []
 
 ## The T's cells in its four rotations.
@@ -1860,16 +2069,48 @@ static func _placement_key(cells: Array[Vector2i], x: int, y: int) -> int:
 ## returned when there is nothing to search: no levels left, the queue ended,
 ## or the shared budget was spent before a single simulation. A piece with no
 ## non-lethal landing is a FOLLOW_DEAD_END.
-func _beam_follow_value(board: Array, queue: Array[int], queue_index: int, levels: int, fallback: int, held_t: bool = false) -> int:
+## `stored` is the piece in the hold slot at this step on tiers whose
+## lookahead holds (-1 = empty; HOLD_NOT_SEARCHED = the lookahead plays the
+## queue as it comes): the step then also tries the piece a hold tap brings.
+func _beam_follow_value(board: Array, queue: Array[int], queue_index: int, levels: int, fallback: int, held_t: bool = false, stored: int = HOLD_NOT_SEARCHED) -> int:
 	if levels <= 0:
 		return fallback
-	var piece_type: int = _queue_type(queue, queue_index)
-	if piece_type < 0 or piece_type >= Tetromino.SHAPES.size():
+	var first_type: int = _queue_type(queue, queue_index)
+	if first_type < 0 or first_type >= Tetromino.SHAPES.size():
 		return fallback
-	var follower_index: int = queue_index + 1
-	var usable: int = _plan_sim_budget - HOLD_EVAL_RESERVE
+	var usable: int = _plan_sim_budget - _follow_reserve
 	var sims_at_entry: int = _plan_sims
 	var rows: Array = []
+	# The piece as it comes, then the one a hold tap would bring instead:
+	# [piece, the slot afterwards, the queue index that follows].
+	var options: Array = [[first_type, stored, queue_index + 1]]
+	if stored != HOLD_NOT_SEARCHED:
+		# The held T is one of the options here.
+		held_t = false
+		if stored >= 0 and stored != first_type:
+			options.append([stored, first_type, queue_index + 1])
+		elif stored < 0:
+			var second_type: int = _queue_type(queue, queue_index + 1)
+			if second_type >= 0 and second_type != first_type:
+				options.append([second_type, first_type, queue_index + 2])
+	for option: Array in options:
+		await _follow_rows(rows, board, queue, int(option[0]), int(option[1]), int(option[2]), held_t, usable)
+	_ctx_follow = false
+	if rows.is_empty():
+		return FOLLOW_DEAD_END if _plan_sims > sims_at_entry else fallback
+	rows.sort_custom(_row_scores_beats)
+	if levels == 1:
+		return int(rows[0]["score"])
+	var best: int = FOLLOW_DEAD_END
+	for index: int in mini(FOLLOW_BEAM, rows.size()):
+		var row: Dictionary = rows[index]
+		var reward: int = int(row["score"]) - int(row["board"])
+		best = maxi(best, reward + await _beam_follow_value(row["after"], queue, int(row["next"]), levels - 1, int(row["board"]), bool(row["held_t"]), int(row["stored"])))
+	return best
+
+
+## One step's placements of `piece_type` on `board`, appended to `rows`.
+func _follow_rows(rows: Array, board: Array, queue: Array[int], piece_type: int, stored_after: int, follower_index: int, held_t: bool, usable: int) -> void:
 	var seen_placements: Dictionary = {}
 	_ctx_follow = true
 	# The Double: the queued T, or the held one swapped in for this piece
@@ -1888,8 +2129,10 @@ func _beam_follow_value(board: Array, queue: Array[int], queue_index: int, level
 				"score": fire_score + _tspin_candidate_bonus(2, Scoring.TSpinKind.FULL) / 2,
 				"board": fire_board,
 				"after": fired["after"],
-				"order": 0,
+				"order": rows.size(),
 				"held_t": held_t and is_t,
+				"stored": stored_after,
+				"next": follower_index,
 			})
 	var tops: PackedInt32Array = _column_tops(board)
 	var scan_from: int = Board.BOARD_HEIGHT
@@ -1924,19 +2167,9 @@ func _beam_follow_value(board: Array, queue: Array[int], queue_index: int, level
 				"after": simulation["after"],
 				"order": rows.size(),
 				"held_t": held_t,
+				"stored": stored_after,
+				"next": follower_index,
 			})
-	_ctx_follow = false
-	if rows.is_empty():
-		return FOLLOW_DEAD_END if _plan_sims > sims_at_entry else fallback
-	rows.sort_custom(_row_scores_beats)
-	if levels == 1:
-		return int(rows[0]["score"])
-	var best: int = FOLLOW_DEAD_END
-	for index: int in mini(FOLLOW_BEAM, rows.size()):
-		var row: Dictionary = rows[index]
-		var reward: int = int(row["score"]) - int(row["board"])
-		best = maxi(best, reward + await _beam_follow_value(row["after"], queue, follower_index, levels - 1, int(row["board"]), bool(row["held_t"])))
-	return best
 
 
 ## Distinct landing cell sets over the four rotations of `piece_type`
@@ -1993,7 +2226,13 @@ func _evaluate_hold(grid: Array, piece: Tetromino, found_safe: bool, safe_best_s
 	var regular_gain: bool = false
 	if not bottom_out and _hold_policy == &"regular":
 		regular_gain = _stash_i_piece(piece.piece_type, safe_best_cleared) or _stash_t_piece(piece.piece_type, spin_planned)
-		if not regular_gain and _plan_sims < _plan_sim_budget:
+		if not regular_gain and _searched_hold >= 0:
+			# Decided by the lookahead: the line through the other piece
+			# against the line through this one.
+			regular_gain = _searched_hold == 1
+			if regular_gain:
+				_searched_holds += 1
+		elif not regular_gain and _plan_sims < _plan_sim_budget:
 			regular_gain = _hold_swap_beats_current(grid, piece.piece_type, safe_best_score)
 	if not bottom_out and not regular_gain:
 		return
@@ -2036,6 +2275,49 @@ func _stash_t_piece(piece_type: int, spin_planned: bool) -> bool:
 		var queue: Array[int] = _battle.next_queue(_side)
 		return not queue.is_empty() and queue[0] != Tetromino.PieceType.T
 	return true
+
+
+## Value of the line that starts with a hold tap: `swap_type` comes in and is
+## placed (plain drops, the best few of them searched on like the main line),
+## `stored_after` waits in the slot; `queue_index` is the piece that follows.
+## FOLLOW_DEAD_END when the piece has no safe landing.
+func _swap_line_value(grid: Array, swap_type: int, queue: Array[int], queue_index: int, stored_after: int) -> int:
+	var rows: Array = []
+	var seen_placements: Dictionary = {}
+	var tops: PackedInt32Array = _column_tops(grid)
+	var scan_from: int = Board.BOARD_HEIGHT
+	for top: int in tops:
+		scan_from = mini(scan_from, top)
+	var follower: int = _queue_type(queue, queue_index)
+	for cells: Array[Vector2i] in _unique_rotations(swap_type):
+		for x: int in range(-3, Board.BOARD_WIDTH):
+			if _plan_sims >= _plan_sim_budget:
+				break
+			if _frame_spent():
+				await _next_frame()
+			var y: int = _drop_y_fast(grid, cells, x, tops)
+			if y < 0:
+				continue
+			var placement_key: int = _placement_key(cells, x, y)
+			if seen_placements.has(placement_key):
+				continue
+			seen_placements[placement_key] = true
+			_plan_sims += 1
+			var simulation: Dictionary = _simulate_placement(grid, cells, x, y)
+			var candidate: int = _score_placement(simulation["after"], int(simulation["cleared"]), y, Scoring.TSpinKind.NONE, mini(scan_from, y))
+			if _is_lethal_landing(cells, x, y, simulation["after"], follower):
+				continue
+			rows.append({"score": candidate, "board": _last_board_value, "after": simulation["after"], "order": rows.size()})
+	if rows.is_empty():
+		return FOLLOW_DEAD_END
+	rows.sort_custom(_row_scores_beats)
+	var best: int = FOLLOW_DEAD_END
+	for index: int in mini(_follow_candidates, rows.size()):
+		var row: Dictionary = rows[index]
+		var total: int = int(row["score"]) - int(row["board"]) + await _beam_follow_value(row["after"], queue, queue_index, _lookahead_depth - 1, int(row["board"]),
+			false, stored_after)
+		best = maxi(best, total - _follow_danger(row["after"]))
+	return best
 
 
 ## Regular-trigger score comparison: best non-lethal score of the piece the

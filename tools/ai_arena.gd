@@ -12,7 +12,8 @@ extends SceneTree
 ##                  matches, with what the attacks were made of
 ##     ab=tier      only the A/B report of one tier: the tier against itself
 ##                  with one profile key changed (AB_VARIANTS), so each
-##                  behaviour can be judged on its own
+##                  behaviour can be judged on its own (first=n: only the
+##                  first n of them)
 ##
 ## Duel: side 0 plays the row tier, side 1 the column tier; a match that is
 ## still running after MATCH_SECONDS goes to the side that sent more garbage.
@@ -28,13 +29,13 @@ const SOLO_LEVELS: Array[int] = [1, 5, 10]
 const BASE_SEED: int = 20261010
 ## Profile changes the A/B report tries, one at a time.
 const AB_VARIANTS: Array[Dictionary] = [
+	{"hold_lookahead": false},
+	{"hold_lookahead_attack": true},
+	{"tuck_depth": 0},
+	{"hold_lookahead": false, "tuck_depth": 0},
 	{"pc_pieces": 0},
 	{"tspin_patience": 0},
 	{"empty_spins": true},
-	{"pc_pieces": 0, "tspin_patience": 0, "empty_spins": true},
-	{"tspin_patience": 8},
-	{"tetris_share": 0.7},
-	{"tetris_share": 1.0},
 ]
 
 
@@ -48,7 +49,7 @@ func _initialize() -> void:
 	var level: int = int(options["level"])
 	if options.has("ab"):
 		var tier: StringName = StringName(String(options["ab"]))
-		for change: Dictionary in AB_VARIANTS:
+		for change: Dictionary in AB_VARIANTS.slice(0, int(options.get("first", "99"))):
 			var other: Dictionary = (VersusAI.DIFFICULTY_PROFILES[tier] as Dictionary).duplicate()
 			other.merge(change, true)
 			var wins: Array[int] = [0, 0]

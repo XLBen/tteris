@@ -10,6 +10,12 @@ extends SceneTree
 ##     pairs=all    "all" for the full matrix, "ladder" for adjacent tiers only
 ##     style=tier   only the style report of one tier (or "all"): mirror
 ##                  matches, with what the attacks were made of
+##     job=file     only the matches a JSON file asks for (tools/train): {"a":
+##                  side, "b": side, "seeds": [..], "level": 1, "cap": 240}, a
+##                  side being {"tier": name, "set": {profile key: value}}.
+##                  Seats swap on every other seed. Prints one line, "RESULT "
+##                  and a JSON list with one entry per match: a's win (1, 0,
+##                  0.5 for a dead heat), the rows a and b sent, the seconds.
 ##     ab=tier      only the A/B report of one tier: the tier against itself
 ##                  with one profile key changed (AB_VARIANTS), so each
 ##                  behaviour can be judged on its own (first=n: only the
@@ -47,6 +53,27 @@ func _initialize() -> void:
 			options[parts[0]] = parts[1]
 	var seeds: int = int(options["seeds"])
 	var level: int = int(options["level"])
+	if options.has("job"):
+		var job: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(String(options["job"])))
+		var sides: Array[Dictionary] = []
+		for key: String in ["a", "b"]:
+			var side: Dictionary = (VersusAI.DIFFICULTY_PROFILES[StringName(String(job[key]["tier"]))] as Dictionary).duplicate()
+			var changes: Dictionary = job[key].get("set", {})
+			for name: String in changes:
+				# JSON has no StringName: the policies come as text.
+				side[name] = StringName(changes[name]) if changes[name] is String else changes[name]
+			sides.append(side)
+		var out: Array = []
+		var job_seeds: Array = job["seeds"]
+		for i: int in job_seeds.size():
+			var flip: bool = i % 2 == 1
+			var result: Dictionary = duel(sides[1] if flip else sides[0], sides[0] if flip else sides[1], int(job.get("level", 1)), int(job_seeds[i]), TICK, float(job.get("cap", MATCH_SECONDS)))
+			var winner: int = int(result["winner"])
+			var a_seat: int = 1 if flip else 0
+			out.append([0.5 if winner < 0 else (1.0 if winner == a_seat else 0.0), int(result["sent"][a_seat]), int(result["sent"][1 - a_seat]), snappedf(float(result["seconds"]), 0.1)])
+		print("RESULT " + JSON.stringify(out))
+		quit(0)
+		return
 	if options.has("ab"):
 		var tier: StringName = StringName(String(options["ab"]))
 		for change: Dictionary in AB_VARIANTS.slice(0, int(options.get("first", "99"))):

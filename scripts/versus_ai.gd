@@ -150,6 +150,11 @@ const WELL_COLUMN: int = Board.BOARD_WIDTH - 1
 ##                         while digging, unless hold_lookahead_attack: when
 ##                         building an attack the slot belongs to the I and
 ##                         the T that are kept for it
+##   height_weight, bumpiness_weight, deep_well_weight, low_placement_weight,
+##   danger_peak_weight, follow_danger_step, tuck_cost
+##                         the weights every tier shares (the constants of the
+##                         same names); a profile names one only to try another
+##                         value (tools/train)
 ##   tuck_depth            grounded moves (a slide or a rotation after the
 ##                         soft drop) a placement may take: places under an
 ##                         overhang that no straight drop reaches (0 = none)
@@ -434,6 +439,13 @@ var _danger_rows: int = 99
 var _well_weight: int = 0
 var _hole_weight: int = 60
 var _cover_weight: int = 0
+var _height_weight: int = HEIGHT_WEIGHT
+var _bumpiness_weight: int = BUMPINESS_WEIGHT
+var _deep_well_weight: int = DEEP_WELL_WEIGHT
+var _low_placement_weight: int = LOW_PLACEMENT_WEIGHT
+var _danger_peak_weight: int = DANGER_PEAK_WEIGHT
+var _follow_danger_step: int = FOLLOW_DANGER_STEP
+var _tuck_cost: int = TUCK_COST
 ## Per-plan scoring context: the side's live B2B/combo state, whether the
 ## board is in danger, and whether the scorer is inside the follow search
 ## (whose pieces do not continue the current combo).
@@ -579,6 +591,13 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_well_weight = int(_profile.get("well_weight", 0))
 	_hole_weight = int(_profile.get("hole_weight", 60))
 	_cover_weight = int(_profile.get("cover_weight", 0))
+	_height_weight = int(_profile.get("height_weight", HEIGHT_WEIGHT))
+	_bumpiness_weight = int(_profile.get("bumpiness_weight", BUMPINESS_WEIGHT))
+	_deep_well_weight = int(_profile.get("deep_well_weight", DEEP_WELL_WEIGHT))
+	_low_placement_weight = int(_profile.get("low_placement_weight", LOW_PLACEMENT_WEIGHT))
+	_danger_peak_weight = int(_profile.get("danger_peak_weight", DANGER_PEAK_WEIGHT))
+	_follow_danger_step = int(_profile.get("follow_danger_step", FOLLOW_DANGER_STEP))
+	_tuck_cost = int(_profile.get("tuck_cost", TUCK_COST))
 	_lookahead_depth = int(_profile.get("lookahead_depth", 1))
 	_follow_candidates = int(_profile.get("follow_candidates", 0))
 	_danger_soft_rows = int(_profile.get("danger_soft_rows", 12))
@@ -1255,7 +1274,7 @@ func _build_plan(piece: Tetromino) -> void:
 			var tuck_simulation: Dictionary = _simulate_placement(grid, tuck_cells, tuck_x, tuck_y)
 			var tuck_score: int = _score_placement(tuck_simulation["after"], int(tuck_simulation["cleared"]), tuck_y)
 			var tuck_board: int = _last_board_value
-			tuck_score += _style_jitter() - TUCK_COST
+			tuck_score += _style_jitter() - _tuck_cost
 			if _ctx_slot_started and piece.piece_type == Tetromino.PieceType.T:
 				tuck_score -= _t_waste_penalty
 			if _is_lethal_landing(tuck_cells, tuck_x, tuck_y, tuck_simulation["after"], next_type):
@@ -1584,7 +1603,7 @@ func _style_jitter() -> int:
 ## healthy boards, so only near-top play is re-weighted (deterministic, no
 ## simulations).
 func _follow_danger(after: Array) -> int:
-	return maxi(0, _max_height(after) - _danger_soft_rows) * FOLLOW_DANGER_STEP
+	return maxi(0, _max_height(after) - _danger_soft_rows) * _follow_danger_step
 
 
 ## Tallest column of a grid, in rows above the floor.
@@ -2581,18 +2600,18 @@ func _score_placement(after: Array, cleared: int, y: int, spin_kind: int = Scori
 	if cleared > 0 and _attack_weight > 0 and (cleared >= 4 or _mode != Mode.TETRIS or perfect_clear):
 		var combo_count: int = 1 if _ctx_follow else _ctx_combo + 1
 		score += _attack_weight * VersusBattle.attack_for_event(cleared, spin_kind, _ctx_b2b, combo_count, perfect_clear)
-	score += LOW_PLACEMENT_WEIGHT * y
+	score += _low_placement_weight * y
 	_last_board_value = - _hole_weight * holes \
 		- _cover_weight * cover \
-		- HEIGHT_WEIGHT * aggregate \
-		- BUMPINESS_WEIGHT * bumpiness \
-		- DEEP_WELL_WEIGHT * shafts
+		- _height_weight * aggregate \
+		- _bumpiness_weight * bumpiness \
+		- _deep_well_weight * shafts
 	_last_board_value += slot_value
 	if _ctx_danger:
 		var peak: int = 0
 		for height: int in heights:
 			peak = maxi(peak, height)
-		_last_board_value -= DANGER_PEAK_WEIGHT * peak
+		_last_board_value -= _danger_peak_weight * peak
 	if well:
 		_last_board_value -= (_tetris_well_weight if _mode == Mode.TETRIS else _well_weight) * heights[_well_col]
 	return score + _last_board_value

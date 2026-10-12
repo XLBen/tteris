@@ -39,7 +39,7 @@ Keys (remappable in Options): `A`/`D` or arrows move, `X`/`W`/`Up` rotate,
 & "<godot>" --headless --path . --script res://tests/run_all.gd
 ```
 
-Expected: `ALL TESTS PASSED (287)`, exit code 0, about three minutes. One module:
+Expected: `ALL TESTS PASSED (290)`, exit code 0, about three minutes. One module:
 `--script res://tests/test_menu.gd`. After editing a script:
 `--headless --check-only --script res://scripts/<file>.gd`; after editing scenes
 or resources: `--headless --editor --quit`.

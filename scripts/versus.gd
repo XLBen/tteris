@@ -832,7 +832,8 @@ func _refresh_side(side: int, view: SideView) -> void:
 	view.layout.set_next(_model.next_queue(side))
 	view.layout.set_hold(_model.hold_type(side))
 	view.layout.set_stats(_model.attack_sent(side), maxi(0, _model.combo(side) - 1),
-		float(_model.pieces_placed(side)) / maxf(1.0, _model.elapsed()), _model.b2b_active(side), pending)
+		float(_model.pieces_placed(side)) / maxf(1.0, _model.elapsed()), _model.b2b_active(side), pending,
+		float(_model.attack_sent(side)) / maxf(1.0, _model.elapsed()))
 	var top_row: int = board.highest_occupied_row()
 	var stack_rows: int = Board.BOARD_HEIGHT - top_row if top_row >= 0 else 0
 	view.fx.set_danger(_model.phase() == VersusBattle.Phase.PLAYING and stack_rows + pending >= DANGER_STACK_ROWS)

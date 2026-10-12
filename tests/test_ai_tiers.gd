@@ -28,7 +28,7 @@ const SEED: int = 20261010
 const TICK: float = 1.0 / 30.0
 const SOLO_SECONDS: float = 90.0
 const DUEL_SECONDS: float = 150.0
-const DUEL_SEEDS: int = 2
+const DUEL_SEEDS: int = 6
 ## Measured pps may sit this far from the profile (tempo jitter, hold swaps).
 const PPS_TOLERANCE: float = 0.2
 ## Each tier must out-attack the one below it by at least this factor.
@@ -278,7 +278,9 @@ static func _case_tspins_belong_to_the_top_tiers(ctx: Dictionary, solo: Dictiona
 
 
 ## Adjacent tiers, seats swapped between seeds so neither owns a side: the
-## higher tier takes every match.
+## higher tier takes the matches - all but one at most (measured over twenty
+## seeds a tier loses about one match in ten to the tier below, so asking for
+## every match of two only held by the luck of the two seeds; 2026-10-12).
 static func _case_higher_tier_wins_duels(ctx: Dictionary) -> void:
 	var ok: bool = true
 	for i: int in range(1, TIERS.size()):
@@ -290,7 +292,7 @@ static func _case_higher_tier_wins_duels(ctx: Dictionary) -> void:
 			var result: Dictionary = ARENA.duel(first, second, 1, SEED + s, TICK, DUEL_SECONDS)
 			if int(result["winner"]) == (0 if flip else 1):
 				wins += 1
-		ok = ok and wins == DUEL_SEEDS
+		ok = ok and wins >= DUEL_SEEDS - 1
 	_case(ctx, "each_tier_beats_the_tier_below_in_duels", ok)
 
 

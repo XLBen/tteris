@@ -42,6 +42,7 @@ static func run_module() -> Dictionary:
 	_remove_test_pack()
 	_case_icon_pack_brings_every_part(ctx)
 	_case_template_pack_is_complete(ctx)
+	_case_versus_side_shows_attack_per_second(ctx)
 	# Put the player's own choice back.
 	if had_choice:
 		ResourcePack.set_enabled(saved_choice)
@@ -187,6 +188,26 @@ static func _case_template_pack_is_complete(ctx: Dictionary) -> void:
 		ok = ok and listed.has(key) and guide.contains("`%s`" % key)
 	ResourcePack.set_enabled([], false)
 	_case(ctx, "template_pack_is_complete_and_documented", ok)
+
+
+## The versus side shows the attack sent per second (2026-10-12, owner) in
+## its ApsValue label; a pack layout made before that label existed still
+## works, it just does not show the number.
+static func _case_versus_side_shows_attack_per_second(ctx: Dictionary) -> void:
+	var side: VersusSide = ResourcePack.layout("versus_side").instantiate() as VersusSide
+	side.bind()
+	side.set_stats(12, 2, 1.5, true, 0, 0.4567)
+	var ok: bool = side.aps_value != null and side.aps_value.text == "0.46" and side.pps_value.text == "1.50"
+	side.free()
+	var old: VersusSide = ResourcePack.layout("versus_side").instantiate() as VersusSide
+	var label: Node = old.get_node(^"%ApsValue")
+	label.get_parent().remove_child(label)
+	label.free()
+	old.bind()
+	old.set_stats(12, 2, 1.5, true, 0, 0.4567)
+	ok = ok and old.aps_value == null and old.sent_value.text == "12" and not VersusSide.REQUIRED_NODES.has("ApsValue")
+	old.free()
+	_case(ctx, "versus_side_shows_attack_per_second", ok)
 
 
 static func _case_scene_scripts_name_no_asset(ctx: Dictionary) -> void:

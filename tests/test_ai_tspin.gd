@@ -61,6 +61,8 @@ static func run_module() -> Dictionary:
 	_case_upper_tiers_land_doubles_in_open_play(ctx)
 	_case_modes_are_a_state_machine(ctx)
 	_case_tetris_mode_stacks_flat_around_a_well(ctx)
+	_case_perfect_clears_are_found_and_played(ctx)
+	_case_tspin_builds_give_up_and_spins_must_clear(ctx)
 	return ctx
 
 
@@ -372,3 +374,105 @@ static func _case_tetris_mode_stacks_flat_around_a_well(ctx: Dictionary) -> void
 		# A Tetris needs ten pieces: a good share of them becomes one.
 		ok = ok and tetrises >= 4 and tetrises * 40 >= battle.pieces_placed(1)
 	_case(ctx, "tetris_mode_stacks_flat_around_a_well", ok)
+
+
+## A Perfect Clear a few plain drops away is searched for and played before
+## anything else (2026-10-12, owner: the CPU missed them), with the hold piece
+## when the line needs it; how far a tier looks is its pc_pieces.
+static func _case_perfect_clears_are_found_and_played(ctx: Dictionary) -> void:
+	var o: int = Tetromino.PieceType.O
+	var i: int = Tetromino.PieceType.I
+	var s: int = Tetromino.PieceType.S
+	var ok: bool = int(VersusAI.DIFFICULTY_PROFILES[&"easy"].get("pc_pieces", 0)) == 0
+	var one: Array[String] = ["########..", "########.."]
+	var three: Array[String] = ["####......", "####......"]
+	for tier: StringName in [&"normal", &"hard", &"lunatic"]:
+		var reach: int = int(VersusAI.DIFFICULTY_PROFILES[tier]["pc_pieces"])
+		var battle: VersusBattle = _battle_with(one)
+		var ai: VersusAI = _ai(battle, tier, false)
+		var grid: Array = ai._copy_board_grid(battle.board(1))
+		var none: Array[int] = []
+		# The O fits: one move. An S does not, but the O behind it (next, or
+		# on hold) does: hold first. Nothing that fits: no line.
+		var first: Dictionary = ai._find_perfect_clear(grid, o, none, -1, true)
+		ok = ok and not first.is_empty() and not bool(first["hold"])
+		var queue: Array[int] = [o, s]
+		first = ai._find_perfect_clear(grid, s, queue, -1, true)
+		ok = ok and not first.is_empty() and bool(first["hold"])
+		first = ai._find_perfect_clear(grid, s, none, o, true)
+		ok = ok and not first.is_empty() and bool(first["hold"])
+		ok = ok and ai._find_perfect_clear(grid, s, queue, -1, false).is_empty()
+		ok = ok and ai._find_perfect_clear(grid, s, none, -1, true).is_empty()
+		# Three pieces away: only for the tiers that look that far.
+		var far: VersusBattle = _battle_with(three)
+		var far_grid: Array = ai._copy_board_grid(far.board(1))
+		queue = [i, o, s]
+		ok = ok and ai._find_perfect_clear(far_grid, i, queue, -1, true).is_empty() == (reach < 3)
+		# Too tall a stack is not searched at all.
+		var tall: VersusBattle = _battle_with(one, 4)
+		ok = ok and ai._find_perfect_clear(ai._copy_board_grid(tall.board(1)), o, none, -1, true).is_empty()
+		# Played for real: the O goes in and the board is empty.
+		battle.debug_force_piece(1, o, 0, battle.piece_pos(1), false, -1)
+		var perfect: bool = false
+		var steps: int = 0
+		while battle.pieces_placed(1) == 0 and steps < 1200:
+			battle.tick(1.0 / 60.0)
+			ai.tick(1.0 / 60.0)
+			steps += 1
+			for event: Dictionary in battle.drain_events():
+				if event["type"] == &"clear" and int(event["side"]) == 1 and bool(event["perfect_clear"]):
+					perfect = true
+		ok = ok and perfect and ai.perfect_clear_plans() == 1 and battle.attack_sent(1) == VersusBattle.PERFECT_CLEAR_SEND
+	# Stacking for a Tetris, a Perfect Clear made with fewer lines still counts
+	# as the ten rows it sends.
+	var battle: VersusBattle = _battle_with(one)
+	var stacker: VersusAI = _ai(battle, &"lunatic", false)
+	stacker.force_mode(VersusAI.Mode.TETRIS)
+	var empty: Array = []
+	empty.resize(Board.BOARD_WIDTH * Board.BOARD_HEIGHT)
+	empty.fill(Board.EMPTY)
+	var left: Array = empty.duplicate()
+	left[(Board.BOARD_HEIGHT - 1) * Board.BOARD_WIDTH] = Board.GARBAGE
+	ok = ok and stacker._score_placement(empty, 2, 10) - stacker._score_placement(left, 2, 10) > 5 * int(VersusAI.DIFFICULTY_PROFILES[&"lunatic"]["attack_weight"])
+	_case(ctx, "perfect_clears_are_found_and_played", ok)
+
+
+## A T-Spin build that does not come together within the tier's tspin_patience
+## pieces is given up for Tetris stacking, and the T is not spun into places
+## where it clears nothing and a plain drop lands it just the same
+## (2026-10-12, owner: the CPU clung to its T-Spins and spun empty minis).
+static func _case_tspin_builds_give_up_and_spins_must_clear(ctx: Dictionary) -> void:
+	var ok: bool = true
+	for tier: StringName in [&"hard", &"lunatic"]:
+		var patience: int = int(VersusAI.DIFFICULTY_PROFILES[tier]["tspin_patience"])
+		ok = ok and patience >= 8 and not bool(VersusAI.DIFFICULTY_PROFILES[tier].get("empty_spins", false))
+		var battle: VersusBattle = _battle_with(FLAT, 2)
+		var ai: VersusAI = _ai(battle, tier)
+		var grid: Array = ai._copy_board_grid(battle.board(1))
+		for _i: int in patience:
+			ai._update_mode(grid, 4)
+		ok = ok and ai.mode() == VersusAI.Mode.TSPIN
+		ai._update_mode(grid, 4)
+		ok = ok and ai.mode() == VersusAI.Mode.TETRIS
+		# Alone for a while: the spins that land clear lines.
+		var counts: Dictionary = {}
+		for spins_empty: bool in [false, true]:
+			var solo: VersusBattle = VersusBattle.new()
+			solo.setup(VersusBattle.Rules.FIXED, 1, VersusBattle.MatchFormat.SINGLE, SEED)
+			solo.debug_freeze_side(0, true)
+			var profile: Dictionary = (VersusAI.DIFFICULTY_PROFILES[tier] as Dictionary).duplicate()
+			profile["empty_spins"] = spins_empty
+			var player: VersusAI = VersusAI.new(solo, 1, profile, SEED)
+			var empty: int = 0
+			var elapsed: float = 0.0
+			while solo.phase() == VersusBattle.Phase.PLAYING and elapsed < SOLO_SECONDS:
+				solo.tick(TICK)
+				player.tick(TICK)
+				elapsed += TICK
+				for event: Dictionary in solo.drain_events():
+					if event["type"] == &"spin" and int(event["side"]) == 1:
+						empty += 1
+			counts[spins_empty] = empty
+			(ctx["lines"] as Array).append("INFO %s, empty spins %s: %d spins that cleared nothing in %d pieces" % [tier, "allowed" if spins_empty else "off", empty, solo.pieces_placed(1)])
+		ok = ok and int(counts[false]) <= 1 and int(counts[false]) <= int(counts[true])
+	_case(ctx, "tspin_builds_give_up_and_spins_must_clear", ok)

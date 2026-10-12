@@ -11,6 +11,8 @@ extends Control
 ##   SentValue, ComboValue, PpsValue   Labels
 ##   B2BLamp        Label lit while Back-to-Back is active
 ##   WarnBar        WarnBar control (incoming garbage meter)
+## Optional: ApsValue, a Label for the attack sent per second (a layout made
+## before it existed simply does not show the number).
 
 const REQUIRED_NODES: Array[String] = [
 	"BoardSlot", "Row", "NameTag", "TierTag", "HoldPreview", "NextPreviews",
@@ -27,6 +29,7 @@ var hold_preview: PiecePreview
 var sent_value: Label
 var combo_value: Label
 var pps_value: Label
+var aps_value: Label
 var b2b_lamp: Label
 var warn_bar: WarnBar
 
@@ -53,6 +56,7 @@ func bind() -> void:
 	sent_value = get_node(^"%SentValue") as Label
 	combo_value = get_node(^"%ComboValue") as Label
 	pps_value = get_node(^"%PpsValue") as Label
+	aps_value = get_node_or_null(^"%ApsValue") as Label
 	b2b_lamp = get_node(^"%B2BLamp") as Label
 	warn_bar = get_node(^"%WarnBar") as WarnBar
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -75,10 +79,13 @@ func set_tags(player_name: String, name_color: Color, tier: String, tier_color: 
 	tier_tag.add_theme_color_override("font_color", tier_color)
 
 
-func set_stats(sent: int, combo: int, pps: float, b2b: bool, pending: int) -> void:
+## `aps` is the garbage sent per second of the round so far.
+func set_stats(sent: int, combo: int, pps: float, b2b: bool, pending: int, aps: float = 0.0) -> void:
 	sent_value.text = str(sent)
 	combo_value.text = str(combo)
 	pps_value.text = "%.2f" % pps
+	if aps_value != null:
+		aps_value.text = "%.2f" % aps
 	b2b_lamp.add_theme_color_override("font_color", ResourcePack.color("highlight") if b2b else ResourcePack.color("lamp_off"))
 	warn_bar.pending = pending
 

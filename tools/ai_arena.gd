@@ -8,6 +8,11 @@ extends SceneTree
 ##     level=1      fixed speed level of the duels
 ##     solo=1       also run the unpressured survival runs (levels 1/5/10)
 ##     pairs=all    "all" for the full matrix, "ladder" for adjacent tiers only
+##     style=tier   only the style report of one tier (or "all"): mirror
+##                  matches, with what the attacks were made of
+##     ab=tier      only the A/B report of one tier: the tier against itself
+##                  with one profile key changed (AB_VARIANTS), so each
+##                  behaviour can be judged on its own
 ##
 ## Duel: side 0 plays the row tier, side 1 the column tier; a match that is
 ## still running after MATCH_SECONDS goes to the side that sent more garbage.
@@ -21,6 +26,16 @@ const MATCH_SECONDS: float = 240.0
 const SOLO_SECONDS: float = 180.0
 const SOLO_LEVELS: Array[int] = [1, 5, 10]
 const BASE_SEED: int = 20261010
+## Profile changes the A/B report tries, one at a time.
+const AB_VARIANTS: Array[Dictionary] = [
+	{"pc_pieces": 0},
+	{"tspin_patience": 0},
+	{"empty_spins": true},
+	{"pc_pieces": 0, "tspin_patience": 0, "empty_spins": true},
+	{"tspin_patience": 8},
+	{"tetris_share": 0.7},
+	{"tetris_share": 1.0},
+]
 
 
 func _initialize() -> void:
@@ -31,6 +46,32 @@ func _initialize() -> void:
 			options[parts[0]] = parts[1]
 	var seeds: int = int(options["seeds"])
 	var level: int = int(options["level"])
+	if options.has("ab"):
+		var tier: StringName = StringName(String(options["ab"]))
+		for change: Dictionary in AB_VARIANTS:
+			var other: Dictionary = (VersusAI.DIFFICULTY_PROFILES[tier] as Dictionary).duplicate()
+			other.merge(change, true)
+			var wins: Array[int] = [0, 0]
+			var sent: Array[float] = [0.0, 0.0]
+			var seconds: float = 0.0
+			for i: int in seeds:
+				var flip: bool = i % 2 == 1
+				var result: Dictionary = duel(other if flip else tier, tier if flip else other, level, BASE_SEED + i)
+				var winner: int = int(result["winner"])
+				if winner >= 0:
+					wins[(1 - winner) if flip else winner] += 1
+				for side: int in 2:
+					sent[(1 - side) if flip else side] += float(result["sent"][side])
+				seconds += float(result["seconds"])
+			print("%-8s as is vs %s  wins %d:%d  aps %.3f/%.3f  avg %.0fs" % [tier, change, wins[0], wins[1], sent[0] / seconds, sent[1] / seconds, seconds / float(seeds)])
+		quit(0)
+		return
+	if options.has("style"):
+		for tier: StringName in TIERS:
+			if String(options["style"]) == "all" or String(options["style"]) == String(tier):
+				print(style_line(tier, level, seeds))
+		quit(0)
+		return
 	print("== duels: level %d, %d seeds, %.0fs cap ==" % [level, seeds, MATCH_SECONDS])
 	for a: int in TIERS.size():
 		for b: int in TIERS.size():
@@ -89,12 +130,13 @@ func _initialize() -> void:
 
 ## One AI-vs-AI single match. Returns winner (side, -1 for a dead heat), the
 ## per-side attack per piece and pieces per second, and the match length.
-static func duel(first: StringName, second: StringName, level: int, match_seed: int, tick: float = TICK, cap_seconds: float = MATCH_SECONDS) -> Dictionary:
+## `first` and `second` are tier names or whole profiles.
+static func duel(first: Variant, second: Variant, level: int, match_seed: int, tick: float = TICK, cap_seconds: float = MATCH_SECONDS) -> Dictionary:
 	var battle: VersusBattle = VersusBattle.new()
 	battle.setup(VersusBattle.Rules.FIXED, level, VersusBattle.MatchFormat.SINGLE, match_seed)
 	var ais: Array[VersusAI] = [
-		VersusAI.new(battle, 0, VersusAI.DIFFICULTY_PROFILES[first], match_seed),
-		VersusAI.new(battle, 1, VersusAI.DIFFICULTY_PROFILES[second], match_seed + 7919),
+		VersusAI.new(battle, 0, first if first is Dictionary else VersusAI.DIFFICULTY_PROFILES[first], match_seed),
+		VersusAI.new(battle, 1, second if second is Dictionary else VersusAI.DIFFICULTY_PROFILES[second], match_seed + 7919),
 	]
 	var elapsed: float = 0.0
 	var pieces: Array[int] = [0, 0]
@@ -114,9 +156,67 @@ static func duel(first: StringName, second: StringName, level: int, match_seed: 
 	return {
 		"winner": winner,
 		"seconds": elapsed,
+		"sent": sent,
 		"app": [float(sent[0]) / maxf(1.0, float(pieces[0])), float(sent[1]) / maxf(1.0, float(pieces[1]))],
 		"pps": [float(pieces[0]) / maxf(0.001, elapsed), float(pieces[1]) / maxf(0.001, elapsed)],
 	}
+
+
+## What a tier's attacks are made of, over `seeds` mirror matches: attack per
+## second and per piece, the share of the rows sent in each AI mode, T-Spin
+## clears, spins that cleared nothing, Perfect Clears.
+static func style_line(tier: StringName, level: int, seeds: int, cap_seconds: float = MATCH_SECONDS) -> String:
+	var total: Dictionary = {}
+	for i: int in seeds:
+		var one: Dictionary = style(tier, level, BASE_SEED + i, cap_seconds)
+		for key: String in one:
+			total[key] = float(total.get(key, 0.0)) + float(one[key])
+	var sent: float = maxf(1.0, float(total["sent"]))
+	var line: String = "%-8s aps %.3f  app %.3f  pps %.2f |" % [tier, float(total["sent"]) / float(total["seconds"]), float(total["sent"]) / maxf(1.0, float(total["pieces"])), float(total["pieces"]) / float(total["seconds"])]
+	for name: String in VersusAI.MODE_NAMES:
+		line += " %s %.0f%% of pieces, %.0f%% of rows;" % [name, 100.0 * float(total.get("pieces_" + name, 0.0)) / maxf(1.0, float(total["pieces"])), 100.0 * float(total.get("sent_" + name, 0.0)) / sent]
+	line += " | per 100 pieces: tetris %.2f  spin clears %.2f  empty spins %.2f  perfect clears %.2f" % [
+		100.0 * float(total["tetris"]) / float(total["pieces"]), 100.0 * float(total["spin_clears"]) / float(total["pieces"]),
+		100.0 * float(total["empty_spins"]) / float(total["pieces"]), 100.0 * float(total["perfect"]) / float(total["pieces"]),
+	]
+	return line
+
+
+## One mirror match of `tier`, both sides summed.
+static func style(tier: StringName, level: int, match_seed: int, cap_seconds: float = MATCH_SECONDS, tick: float = TICK) -> Dictionary:
+	var battle: VersusBattle = VersusBattle.new()
+	battle.setup(VersusBattle.Rules.FIXED, level, VersusBattle.MatchFormat.SINGLE, match_seed)
+	var ais: Array[VersusAI] = [
+		VersusAI.new(battle, 0, VersusAI.DIFFICULTY_PROFILES[tier], match_seed),
+		VersusAI.new(battle, 1, VersusAI.DIFFICULTY_PROFILES[tier], match_seed + 7919),
+	]
+	var out: Dictionary = {"sent": 0, "pieces": 0, "seconds": 0.0, "tetris": 0, "spin_clears": 0, "empty_spins": 0, "perfect": 0}
+	var elapsed: float = 0.0
+	while battle.phase() == VersusBattle.Phase.PLAYING and elapsed < cap_seconds:
+		battle.tick(tick)
+		for event: Dictionary in battle.drain_events():
+			var mode: String = ais[int(event["side"])].mode_name()
+			match event["type"]:
+				&"lock":
+					out["pieces"] += 1
+					out["pieces_" + mode] = int(out.get("pieces_" + mode, 0)) + 1
+				&"spin":
+					out["empty_spins"] += 1
+				&"clear":
+					out["sent"] += int(event["attack"])
+					out["sent_" + mode] = int(out.get("sent_" + mode, 0)) + int(event["attack"])
+					if int(event["t_spin"]) != Scoring.TSpinKind.NONE:
+						out["spin_clears"] += 1
+					elif int(event["lines"]) >= 4:
+						out["tetris"] += 1
+					if bool(event["perfect_clear"]):
+						out["perfect"] += 1
+		ais[0].tick(tick)
+		ais[1].tick(tick)
+		elapsed += tick
+	# Two sides played for `elapsed` each.
+	out["seconds"] = 2.0 * elapsed
+	return out
 
 
 ## One tier alone on side 1 against a frozen side 0.

@@ -136,6 +136,11 @@ const WELL_COLUMN: int = Board.BOARD_WIDTH - 1
 ##                         instead of T-Spin building (T-Spin tiers)
 ##   tetris_well_weight    cost per cell in the well while stacking for a
 ##                         Tetris (default: twice well_weight)
+##   pc_pieces             a Perfect Clear at most this many pieces away is
+##                         searched for and played (0 = never looked for)
+##   tspin_patience        pieces a T-Spin build may take before the tier
+##                         stacks for a Tetris instead (0 = as long as it takes)
+##   empty_spins           also spin the T into places where it clears nothing
 ## An empty profile resolves to the normal entry.
 const DIFFICULTY_PROFILES: Dictionary = {
 	&"easy": {
@@ -185,6 +190,7 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"follow_candidates": 5,
 		"danger_soft_rows": 12,
 		"attack_rows": 6,
+		"pc_pieces": 2,
 	},
 	&"hard": {
 		"pps": 1.4,
@@ -218,6 +224,8 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"danger_soft_rows": 12,
 		"attack_rows": 6,
 		"tetris_share": 0.5,
+		"pc_pieces": 4,
+		"tspin_patience": 14,
 	},
 	&"lunatic": {
 		# 2.5 on average: about 2.2 between bursts, 5 inside them (see
@@ -256,6 +264,8 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"danger_soft_rows": 12,
 		"attack_rows": 6,
 		"tetris_share": 0.4,
+		"pc_pieces": 5,
+		"tspin_patience": 14,
 	},
 }
 ## Safety valve: an unreachable plan (walled-in piece) forces a hard drop
@@ -294,6 +304,10 @@ const MODE_NAMES: Array[String] = ["STACK", "TETRIS", "T-SPIN", "DIG"]
 ## Points for clearing 0..4 lines while stacking for a Tetris: anything less
 ## than the Tetris spends rows the I piece was meant for.
 const TETRIS_CLEAR_VALUES: Array[int] = [0, -400, -500, -400, 1600]
+## Perfect Clear search: the rows it may still have to clear, and the
+## placements one search may try.
+const PC_MAX_ROWS: int = 4
+const PC_NODE_BUDGET: int = 1500
 ## While digging: cost per row of the tallest column, and the share of the
 ## usual time a piece gets (a player in trouble plays faster).
 const DANGER_PEAK_WEIGHT: int = 60
@@ -411,6 +425,17 @@ var _attack_rows: int = 6
 var _tetris_share: float = 0.0
 var _tetris_well_weight: int = 0
 var _mode_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+## Pieces planned in the current mode, and the T-Spin build's allowance.
+var _mode_pieces: int = 0
+var _tspin_patience: int = 0
+var _empty_spins: bool = false
+## Perfect Clear search (see _find_perfect_clear).
+var _pc_pieces: int = 0
+var _pc_nodes: int = 0
+var _pc_failed: Dictionary = {}
+var _pc_first: Dictionary = {}
+var _pc_queue: Array[int] = []
+var _pc_plans: int = 0
 var _ctx_follow: bool = false
 ## Board-value half of the most recent _score_placement result (the other
 ## half is the placement's reward).
@@ -535,6 +560,9 @@ func _init(battle: VersusBattle, side: int, profile: Dictionary = {}, rng_seed: 
 	_attack_rows = mini(int(_profile.get("attack_rows", 6)), _danger_rows - 1)
 	_tetris_share = clampf(float(_profile.get("tetris_share", 0.0)), 0.0, 1.0)
 	_tetris_well_weight = int(_profile.get("tetris_well_weight", _well_weight * 2))
+	_pc_pieces = int(_profile.get("pc_pieces", 0))
+	_tspin_patience = int(_profile.get("tspin_patience", 0))
+	_empty_spins = bool(_profile.get("empty_spins", false))
 	_mode = _draw_attack_mode()
 
 
@@ -551,6 +579,7 @@ func mode_name() -> String:
 ## from there.
 func force_mode(forced: Mode) -> void:
 	_mode = forced
+	_mode_pieces = 0
 	_well_col = WELL_COLUMN
 	_attack_landed = false
 
@@ -558,6 +587,11 @@ func force_mode(forced: Mode) -> void:
 ## The column kept empty while stacking for a Tetris.
 func well_column() -> int:
 	return _well_col
+
+
+## Pieces placed on a found Perfect Clear line so far (calibration read).
+func perfect_clear_plans() -> int:
+	return _pc_plans
 
 
 ## Times the mode changed so far (calibration read).
@@ -577,9 +611,14 @@ func _update_mode(grid: Array, pressure: int) -> void:
 			_mode = _draw_attack_mode()
 	elif _attack_landed:
 		_mode = _draw_attack_mode()
+	elif _mode == Mode.TSPIN and _tspin_patience > 0 and _mode_pieces >= _tspin_patience:
+		# The slot is not coming together: stop feeding it, stack for a Tetris.
+		_mode = Mode.TETRIS
 	_attack_landed = false
+	_mode_pieces += 1
 	if _mode == before:
 		return
+	_mode_pieces = 0
 	_mode_changes += 1
 	_well_col = WELL_COLUMN
 	if _mode == Mode.TETRIS:
@@ -941,6 +980,9 @@ func _build_plan(piece: Tetromino) -> void:
 		if piece.piece_type == Tetromino.PieceType.T:
 			_ready_t_plans += 1
 	_ground_moves = []
+	# A Perfect Clear within reach comes before everything else.
+	if _pc_pieces > 0 and _play_perfect_clear(grid, piece):
+		return
 	var next_type: int = _next_piece_type()
 	# Absolute-cell dedup: only rotation pairs whose ABSOLUTE resting cells
 	# are bit-identical collapse (O all four; most other pieces keep 2-4
@@ -996,6 +1038,15 @@ func _build_plan(piece: Tetromino) -> void:
 	# exists per final placement. Enumeration order, dedup and the shared
 	# simulation budget are inherited from the main race (BC-02).
 	if _tspin_policy != &"none" and piece.piece_type == Tetromino.PieceType.T:
+		# Where a plain drop lands the T (see the empty spins below).
+		var plain_keys: Dictionary = {}
+		if not _empty_spins:
+			var plain_tops: PackedInt32Array = _column_tops(grid)
+			for cells: Array[Vector2i] in _t_shapes():
+				for x: int in range(-3, Board.BOARD_WIDTH):
+					var plain_y: int = _drop_y_fast(grid, cells, x, plain_tops)
+					if plain_y >= 0:
+						plain_keys[_placement_key(cells, x, plain_y)] = true
 		for entry: Dictionary in _reachable_t_spins(grid):
 			if _plan_sims >= _plan_sim_budget:
 				break
@@ -1006,9 +1057,13 @@ func _build_plan(piece: Tetromino) -> void:
 			spin_probe.rotation = final_rotation
 			var final_cells: Array[Vector2i] = spin_probe.get_cells()
 			var spin_key: int = _placement_key(final_cells, spin_x, spin_y)
-			seen_placements[spin_key] = true
 			_plan_sims += 1
 			var spin_simulation: Dictionary = _simulate_placement(grid, final_cells, spin_x, spin_y)
+			# A spin that clears nothing sends nothing and costs the soft drop:
+			# where a plain drop lands the T just the same, it is left to that.
+			if int(spin_simulation["cleared"]) == 0 and plain_keys.has(spin_key):
+				continue
+			seen_placements[spin_key] = true
 			var spin_kind: int = _tspin_landing_kind(grid, piece.piece_type, final_rotation, spin_x, spin_y, int(entry["kick_index"]))
 			var spin_candidate: int = _score_placement(spin_simulation["after"], int(spin_simulation["cleared"]), spin_y, spin_kind)
 			var spin_board: int = _last_board_value
@@ -1185,6 +1240,195 @@ func _build_plan(piece: Tetromino) -> void:
 		_spin_plan and int(chosen_spin.get("cleared", 0)) >= 2)
 	if _ctx_slot_started:
 		_slot_plans += 1
+
+
+## Plays the first move of a Perfect Clear when one is within `pc_pieces`
+## pieces: sets the plan (or taps hold, when the line starts with the other
+## piece) and returns true. The search runs again for every piece, so garbage
+## that arrives in between simply ends the attempt.
+func _play_perfect_clear(grid: Array, piece: Tetromino) -> bool:
+	var first: Dictionary = _find_perfect_clear(grid, piece.piece_type, _battle.next_queue(_side), _battle.hold_type(_side),
+		_hold_policy != &"none" and not _held_this_drop)
+	if first.is_empty():
+		return false
+	_pc_plans += 1
+	if bool(first["hold"]):
+		_log_action(VersusBattle.ACTION_HOLD)
+		_battle.tap(_side, VersusBattle.ACTION_HOLD)
+		_held_this_drop = true
+		_hold_swap_pending = true
+		_awaiting_hold_swap = true
+		_hold_wait_steps = 0
+		_holds_made += 1
+		return true
+	_plan_rotation = int(first["rotation"])
+	_plan_x = int(first["x"])
+	return true
+
+
+## The first move ({hold, rotation, x}) of a line of plain drops that empties
+## the board, or {} when there is none within the tier's reach. Only boards
+## whose stack fits in PC_MAX_ROWS rows are searched, for the smallest number
+## of rows whose empty cells the pieces can fill exactly; `can_hold` says
+## whether this piece may still be swapped (later ones always may, on tiers
+## that hold).
+func _find_perfect_clear(grid: Array, piece_type: int, queue: Array[int], hold_type: int, can_hold: bool) -> Dictionary:
+	var top: int = Board.BOARD_HEIGHT - PC_MAX_ROWS
+	for index: int in top * Board.BOARD_WIDTH:
+		if int(grid[index]) != Board.EMPTY:
+			return {}
+	var masks: Array[int] = []
+	var filled: int = 0
+	for up: int in PC_MAX_ROWS:
+		var mask: int = 0
+		for col: int in Board.BOARD_WIDTH:
+			if int(grid[(Board.BOARD_HEIGHT - 1 - up) * Board.BOARD_WIDTH + col]) != Board.EMPTY:
+				mask |= 1 << col
+				filled += 1
+		masks.append(mask)
+	var stack: int = PC_MAX_ROWS
+	while stack > 0 and masks[stack - 1] == 0:
+		stack -= 1
+	if stack == 0:
+		# Nothing to clear yet.
+		return {}
+	var holds: bool = _hold_policy != &"none"
+	var at_hand: int = 1 + queue.size() + (1 if holds and hold_type >= 0 else 0)
+	_pc_queue = queue
+	_pc_nodes = 0
+	for rows: int in range(stack, PC_MAX_ROWS + 1):
+		var empty: int = rows * Board.BOARD_WIDTH - filled
+		if empty % 4 != 0 or empty / 4 > mini(_pc_pieces, at_hand):
+			continue
+		_pc_failed = {}
+		_pc_first = {}
+		if _pc_solve(masks.slice(0, rows), piece_type, hold_type, 0, true, can_hold, holds):
+			return _pc_first
+	return {}
+
+
+## One step of the search: `rows` are the rows still to clear as bit masks,
+## bottom first; `current` is the piece to place, `stored` the held one and
+## `queue_index` the next of _pc_queue.
+func _pc_solve(rows: Array[int], current: int, stored: int, queue_index: int, first: bool, can_hold: bool, holds: bool) -> bool:
+	var count: int = rows.size()
+	if count == 0:
+		return true
+	if current < 0 or _pc_nodes >= PC_NODE_BUDGET:
+		return false
+	var key: int = count
+	for mask: int in rows:
+		key = key * 1024 + mask
+	key = ((key * 8 + current) * 8 + stored + 1) * 8 + queue_index
+	if _pc_failed.has(key):
+		return false
+	# Column heights; a column filled to the top is a wall nothing crosses, so
+	# the empty cells on each side of it must come in fours.
+	var heights: PackedInt32Array = PackedInt32Array()
+	heights.resize(Board.BOARD_WIDTH)
+	var open: int = 0
+	for col: int in Board.BOARD_WIDTH:
+		var height: int = 0
+		var gaps: int = 0
+		for up: int in count:
+			if rows[up] & (1 << col) != 0:
+				height = up + 1
+			else:
+				gaps += 1
+		heights[col] = height
+		if gaps == 0:
+			if open % 4 != 0:
+				_pc_failed[key] = true
+				return false
+			open = 0
+		open += gaps
+	if open % 4 != 0:
+		_pc_failed[key] = true
+		return false
+	# The piece itself, then the one a hold tap would bring.
+	var pieces: Array[int] = [current]
+	if can_hold:
+		if stored >= 0 and stored != current:
+			pieces.append(stored)
+		elif stored < 0 and queue_index < _pc_queue.size() and _pc_queue[queue_index] != current:
+			pieces.append(_pc_queue[queue_index])
+	for option: int in pieces.size():
+		var piece_type: int = pieces[option]
+		var after_stored: int = stored
+		var after_index: int = queue_index
+		if option == 1:
+			after_stored = current
+			if stored < 0:
+				after_index += 1
+		var following: int = _pc_queue[after_index] if after_index < _pc_queue.size() else -1
+		for shape: Array in _pc_shapes(piece_type):
+			var xs: PackedInt32Array = shape[1]
+			var ups: PackedInt32Array = shape[2]
+			for x: int in range(-3, Board.BOARD_WIDTH):
+				var base: int = 0
+				var inside: bool = true
+				for cell: int in 4:
+					var col: int = x + xs[cell]
+					if col < 0 or col >= Board.BOARD_WIDTH:
+						inside = false
+						break
+					base = maxi(base, heights[col] - ups[cell])
+				if not inside:
+					continue
+				var fits: bool = true
+				for cell: int in 4:
+					if base + ups[cell] >= count:
+						fits = false
+						break
+				if not fits:
+					continue
+				_pc_nodes += 1
+				var after: Array[int] = rows.duplicate()
+				for cell: int in 4:
+					after[base + ups[cell]] |= 1 << (x + xs[cell])
+				var left: Array[int] = []
+				for mask: int in after:
+					if mask != (1 << Board.BOARD_WIDTH) - 1:
+						left.append(mask)
+				if _pc_solve(left, following, after_stored, after_index + 1, false, holds, holds):
+					if first:
+						_pc_first = {"hold": option == 1, "rotation": int(shape[0]), "x": x}
+					return true
+	if _pc_nodes < PC_NODE_BUDGET:
+		_pc_failed[key] = true
+	return false
+
+
+static var _pc_shape_cache: Dictionary = {}
+
+## The distinct drops of a piece for the Perfect Clear search: [rotation,
+## cell columns, cell rows counted up from the piece's lowest cell].
+static func _pc_shapes(piece_type: int) -> Array:
+	if _pc_shape_cache.has(piece_type):
+		return _pc_shape_cache[piece_type]
+	var out: Array = []
+	var seen: Dictionary = {}
+	for rotation: int in 4:
+		var probe: Tetromino = Tetromino.new(piece_type)
+		probe.rotation = rotation
+		var cells: Array[Vector2i] = probe.get_cells()
+		var bottom: int = 0
+		for cell: Vector2i in cells:
+			bottom = maxi(bottom, cell.y)
+		var xs: PackedInt32Array = PackedInt32Array()
+		var ups: PackedInt32Array = PackedInt32Array()
+		var parts: Array[int] = []
+		for cell: Vector2i in cells:
+			xs.append(cell.x)
+			ups.append(bottom - cell.y)
+			parts.append(cell.x * 8 + bottom - cell.y)
+		parts.sort()
+		if seen.has(parts):
+			continue
+		seen[parts] = true
+		out.append([rotation, xs, ups])
+	_pc_shape_cache[piece_type] = out
+	return out
 
 
 ## Seeded score jitter of one candidate (see the profile's style_noise).
@@ -2051,8 +2295,8 @@ func _score_placement(after: Array, cleared: int, y: int, spin_kind: int = Scori
 	var score: int = int(values[mini(cleared, 4)])
 	# (Stacking for a Tetris, the rows a smaller clear sends are no reason to
 	# make it.)
-	if cleared > 0 and _attack_weight > 0 and (cleared >= 4 or _mode != Mode.TETRIS):
-		var perfect_clear: bool = aggregate == 0
+	var perfect_clear: bool = aggregate == 0
+	if cleared > 0 and _attack_weight > 0 and (cleared >= 4 or _mode != Mode.TETRIS or perfect_clear):
 		var combo_count: int = 1 if _ctx_follow else _ctx_combo + 1
 		score += _attack_weight * VersusBattle.attack_for_event(cleared, spin_kind, _ctx_b2b, combo_count, perfect_clear)
 	score += LOW_PLACEMENT_WEIGHT * y

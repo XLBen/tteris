@@ -229,6 +229,7 @@ func _versus_side() -> Control:
 	_stat(info, "SENT", "SentValue", "HudBig")
 	_stat(info, "COMBO", "ComboValue", "HudBig")
 	_stat(info, "PPS", "PpsValue", "HudBig")
+	_stat(info, "ATK/S", "ApsValue", "HudBig")
 	_spacer(info, "Spacer", true)
 	_label(info, "B2BLamp", "B2B", "HudLamp", true)
 	var warn: WarnBar = WarnBar.new()

@@ -86,6 +86,21 @@ layout_mode = 2
 theme_type_variation = &"HudBig"
 text = "0"
 
+[node name="ApsStat" type="VBoxContainer" parent="Row/InfoCard/Content" unique_id=1203377461]
+layout_mode = 2
+theme_override_constants/separation = -2
+
+[node name="Title" type="Label" parent="Row/InfoCard/Content/ApsStat" unique_id=958113027]
+layout_mode = 2
+theme_type_variation = &"HudTitle"
+text = "ATK/S"
+
+[node name="ApsValue" type="Label" parent="Row/InfoCard/Content/ApsStat" unique_id=1476620915]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"HudBig"
+text = "0"
+
 [node name="Spacer" type="Control" parent="Row/InfoCard/Content" unique_id=1740801447]
 layout_mode = 2
 size_flags_vertical = 3

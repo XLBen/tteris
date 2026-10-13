@@ -134,7 +134,7 @@ VERSUS_DESC_EASY,Easy: slow and careless. Leaves holes and never attacks on purp
 VERSUS_DESC_NORMAL,Normal: a steady stacker that clears what it can and lands the odd Tetris.,Normal：稳定堆叠，能消就消，偶尔打出 Tetris。
 VERSUS_DESC_HARD,"Hard: fast. Keeps a well for Tetrises, chains combos and cancels your garbage.",Hard：手速快，留井打 Tetris、连击，并会抵消你送来的垃圾行。
 VERSUS_DESC_LUNATIC,Lunatic: very fast and never slips. T-Spins and Back-to-Back chains.,Lunatic：极快且零失误，会打 T-Spin 和 Back-to-Back 连锁。
-VERSUS_DESC_EXTRA,Extra: Lunatic's speed with weights it found by playing against itself. Still in training.,Extra：Lunatic 的手速，评分权重由自对弈训练得出。仍在训练中。
+VERSUS_DESC_EXTRA,Extra: Lunatic's speed with weights it found by playing against itself. Stacks for Tetrises and digs early.,Extra：Lunatic 的手速，评分权重由自对弈训练得出。只攒 Tetris，很早就开始挖。
 VERSUS_DESC_SINGLE,One round decides the match.,一局定胜负。
 VERSUS_DESC_BEST_OF_3,First to win two rounds takes the match.,先赢两局的一方获胜。
 VERSUS_DESC_START,Start the match with the settings above.,按上面的设置开始对战。

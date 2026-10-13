@@ -318,7 +318,7 @@ func _versus_setup() -> Control:
 		var title: Label = _label(card, side[0] + "Title", side[1], "HudTitle", side[0] == "Right")
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		var tiers: BoxContainer = _box(card, "Tiers", false, 6)
-		for tier: String in ["Easy", "Normal", "Hard", "Lunatic"]:
+		for tier: String in ["Easy", "Normal", "Hard", "Lunatic", "Extra"]:
 			_choice(tiers, side[2] + tier, tier).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	# LAN Battle: host or join, and what the line is doing.
 	var lan_panel: PanelContainer = _card(root, "LanCard", Vector2(0, 0))

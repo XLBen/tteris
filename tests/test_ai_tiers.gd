@@ -96,7 +96,17 @@ static func _attack_per_minute(run: Dictionary, other: Dictionary) -> float:
 
 
 static func _case_profile_ladder_shape(ctx: Dictionary) -> void:
-	var ok: bool = VersusAI.DIFFICULTY_PROFILES.size() == TIERS.size()
+	# The four tiers of the ladder, and Extra beside it (2026-10-13, owner:
+	# lunatic with the weights self-play found, as a tier of its own). Extra
+	# is no rung: it plays at lunatic's speed with lunatic's search, and how
+	# it fares against lunatic is what the training is measured by.
+	var ok: bool = VersusAI.DIFFICULTY_PROFILES.size() == TIERS.size() + 1
+	var extra: Dictionary = VersusAI.DIFFICULTY_PROFILES[&"extra"]
+	var top: Dictionary = _profile(&"lunatic")
+	for key: String in ["pps", "burst_pps", "burst_share", "think_share", "error_rate", "lookahead_depth", "plan_sim_budget",
+			"follow_candidates", "hold_policy", "tspin_policy", "pc_pieces", "tuck_depth", "hold_lookahead"]:
+		ok = ok and extra.has(key) and extra[key] == top[key]
+	ok = ok and int(extra["attack_rows"]) < int(extra["danger_rows"]) and extra != top
 	for i: int in TIERS.size():
 		var profile: Dictionary = _profile(TIERS[i])
 		for key: String in ["pps", "think_share", "error_rate", "error_pool", "error_max_drop", "attack_weight",

@@ -57,6 +57,7 @@ const DIFFICULTY_TAGS: Dictionary = {
 	&"normal": ["NORMAL", "tier_normal"],
 	&"hard": ["HARD", "tier_hard"],
 	&"lunatic": ["LUNATIC", "tier_lunatic"],
+	&"extra": ["EXTRA", "tier_extra"],
 }
 
 var _model: VersusBattle

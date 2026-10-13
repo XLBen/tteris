@@ -61,6 +61,13 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "Lunatic"
 
+[node name="VersusPlayerExtra" type="Button" parent="Players/LeftCard/Content/Tiers" unique_id=1530442718]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Extra"
+
 [node name="RightCard" type="PanelContainer" parent="Players" unique_id=1039954027]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 0)
@@ -111,6 +118,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 toggle_mode = true
 text = "Lunatic"
+
+[node name="VersusCPUExtra" type="Button" parent="Players/RightCard/Content/Tiers" unique_id=903117264]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Extra"
 
 [node name="LanCard" type="PanelContainer" parent="." unique_id=1578257721]
 unique_name_in_owner = true

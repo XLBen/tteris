@@ -29,6 +29,7 @@ const VERSUS_DIFFICULTY_EASY: StringName = &"easy"
 const VERSUS_DIFFICULTY_NORMAL: StringName = &"normal"
 const VERSUS_DIFFICULTY_HARD: StringName = &"hard"
 const VERSUS_DIFFICULTY_LUNATIC: StringName = &"lunatic"
+const VERSUS_DIFFICULTY_EXTRA: StringName = &"extra"
 
 var mode: StringName = MODE_NONE
 var versus_rules: StringName = &""

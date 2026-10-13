@@ -20,6 +20,7 @@ const DIFFICULTY_TAGS: Dictionary = {
 	&"normal": "NORMAL",
 	&"hard": "HARD",
 	&"lunatic": "LUNATIC",
+	&"extra": "EXTRA",
 }
 
 
@@ -125,9 +126,9 @@ static func _case_tag_stays_english_and_setup_names_too(ctx: Dictionary) -> void
 	await _tree().process_frame
 	# The difficulty names have no translation rows (the setup buttons and
 	# the tag read the same in every language); their descriptions do.
-	for tier_name: String in ["Easy", "Normal", "Hard", "Lunatic"]:
+	for tier_name: String in ["Easy", "Normal", "Hard", "Lunatic", "Extra"]:
 		ok = ok and TranslationServer.translate(tier_name) == tier_name
-	for key: String in ["VERSUS_DESC_EASY", "VERSUS_DESC_NORMAL", "VERSUS_DESC_HARD", "VERSUS_DESC_LUNATIC"]:
+	for key: String in ["VERSUS_DESC_EASY", "VERSUS_DESC_NORMAL", "VERSUS_DESC_HARD", "VERSUS_DESC_LUNATIC", "VERSUS_DESC_EXTRA"]:
 		ok = ok and TranslationServer.translate(key) != key
 	TranslationServer.set_locale(previous_locale)
 	session.start_mode(session.MODE_NONE)

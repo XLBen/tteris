@@ -121,7 +121,7 @@ static func _case_default_pack_covers_every_scene_request(ctx: Dictionary) -> vo
 			asked += 1
 			ok = ok and ResourcePack.color(found.get_string(1)) != ResourcePack.MISSING_COLOR
 	ok = ok and asked >= 30
-	for key: String in ResourcePack.PIECE_COLOR_KEYS + ["tier_easy", "tier_normal", "tier_hard", "tier_lunatic", "garbage"]:
+	for key: String in ResourcePack.PIECE_COLOR_KEYS + ["tier_easy", "tier_normal", "tier_hard", "tier_lunatic", "tier_extra", "garbage"]:
 		ok = ok and ResourcePack.color(key) != ResourcePack.MISSING_COLOR
 	# The seven pieces keep seven different colors, garbage an eighth.
 	var seen: Array[Color] = []

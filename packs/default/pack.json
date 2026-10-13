@@ -113,6 +113,7 @@
 		"tier_normal": "#8cccff",
 		"tier_hard": "#ffb34d",
 		"tier_lunatic": "#ff6673",
+		"tier_extra": "#d98cff",
 
 		"fx_flash": "#ffffff",
 		"fx_garbage": "#e6ebf2",

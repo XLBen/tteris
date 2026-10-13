@@ -45,7 +45,7 @@ COLORS = {
     "good": "#8ccc7a", "bad": "#e8584a", "lamp_off": "#5a4630",
     "player": "#f0c040", "opponent": "#d8503a",
     "warning": "#e03a22", "warning_queued": "#8a3a1c", "cancel": "#fff0c8",
-    "tier_easy": "#8ccc7a", "tier_normal": "#6cb4dc", "tier_hard": "#f0a040", "tier_lunatic": "#e8483a",
+    "tier_easy": "#8ccc7a", "tier_normal": "#6cb4dc", "tier_hard": "#f0a040", "tier_lunatic": "#e8483a", "tier_extra": "#c890e0",
     "fx_flash": "#fff0c8", "fx_garbage": "#d8c8a8", "fx_danger": "#e03a22",
     "fx_ko_veil": "#1c0806c2", "fx_ko_text": "#f0c040",
     "callout_perfect": "#fff0a8", "callout_tspin": "#d08ae0", "callout_tetris": "#f0c040", "callout_clear": "#ffe27a",

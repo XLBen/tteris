@@ -30,7 +30,7 @@ COLOR_GROUPS = [
     ("方块", ["piece_i", "piece_o", "piece_t", "piece_s", "piece_z", "piece_j", "piece_l", "garbage"]),
     ("背景与棋盘", ["background_base", "background_tint", "menu_top", "menu_bottom", "area_fill", "area_border", "board_fill", "board_border", "grid", "panel_fill", "panel_border", "veil"]),
     ("文字", ["text_title", "text_value", "text_dim", "accent", "highlight", "good", "bad", "lamp_off"]),
-    ("对战", ["player", "opponent", "warning", "warning_queued", "cancel", "tier_easy", "tier_normal", "tier_hard", "tier_lunatic"]),
+    ("对战", ["player", "opponent", "warning", "warning_queued", "cancel", "tier_easy", "tier_normal", "tier_hard", "tier_lunatic", "tier_extra"]),
     ("特效与喊话", ["fx_flash", "fx_garbage", "fx_danger", "fx_ko_veil", "fx_ko_text", "callout_perfect", "callout_tspin", "callout_tetris", "callout_clear"]),
     ("按钮与窗口", ["button_fill", "button_hover", "button_pressed", "button_disabled", "button_border", "button_focus", "button_text", "button_text_disabled", "window_fill", "window_border"]),
 ]

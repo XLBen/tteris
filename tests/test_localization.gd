@@ -54,8 +54,8 @@ const AUTO_TRANSLATE_KEYS: Dictionary = {
 # exist whose text-equal lookup would translate them. Both the scene-literal
 # casing and the uppercase in-game tag casing are covered.
 const FORBIDDEN_DIFFICULTY_KEYS: Array[String] = [
-	"Easy", "Normal", "Hard", "Lunatic",
-	"EASY", "NORMAL", "HARD", "LUNATIC",
+	"Easy", "Normal", "Hard", "Lunatic", "Extra",
+	"EASY", "NORMAL", "HARD", "LUNATIC", "EXTRA",
 ]
 # Player-visible texts that stay as-is in every language, with reasons:
 #   - Easy/Normal/Hard/Lunatic: BD-12 difficulty words, frozen English.
@@ -65,7 +65,7 @@ const FORBIDDEN_DIFFICULTY_KEYS: Array[String] = [
 #   - v0.0.0: config_version_label projects the version string at runtime;
 #     language-neutral.
 const COVERAGE_EXEMPT_TEXTS: Array[String] = [
-	"Easy", "Normal", "Hard", "Lunatic",
+	"Easy", "Normal", "Hard", "Lunatic", "Extra",
 	"1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
 	"新建游戏项目", "v0.0.0",
 	# The template main menu's placeholder subtitle (covered since the main

@@ -50,6 +50,7 @@ const DIFFICULTY_OPTIONS: Array = [
 	[&"normal", "Normal", "VERSUS_DESC_NORMAL"],
 	[&"hard", "Hard", "VERSUS_DESC_HARD"],
 	[&"lunatic", "Lunatic", "VERSUS_DESC_LUNATIC"],
+	[&"extra", "Extra", "VERSUS_DESC_EXTRA"],
 ]
 const FORMAT_OPTIONS: Array = [
 	[&"single", "Single Match", "VERSUS_DESC_SINGLE"],

@@ -158,7 +158,8 @@ const WELL_COLUMN: int = Board.BOARD_WIDTH - 1
 ##   tuck_depth            grounded moves (a slide or a rotation after the
 ##                         soft drop) a placement may take: places under an
 ##                         overhang that no straight drop reaches (0 = none)
-## An empty profile resolves to the normal entry.
+## An empty profile resolves to the normal entry. "extra" is not a rung of
+## the hand-tuned ladder: it is lunatic with trained weights.
 const DIFFICULTY_PROFILES: Dictionary = {
 	&"easy": {
 		"pps": 0.55,
@@ -287,6 +288,57 @@ const DIFFICULTY_PROFILES: Dictionary = {
 		"tspin_patience": 14,
 		"tuck_depth": 2,
 		"hold_lookahead": true,
+	},
+	&"extra": {
+		# Lunatic's speed and search with weights found by self-play
+		# (tools/train/tune_weights.py, generation 41 of the run; the numbers
+		# are replaced whenever a later generation is taken over).
+		"pps": 2.5,
+		"burst_pps": 5.0,
+		"burst_share": 0.2,
+		"burst_pieces": [6, 10],
+		"think_share": 0.3,
+		"error_rate": 0.0,
+		"error_pool": 2,
+		"error_max_drop": 0,
+		"attack_weight": 1023,
+		"clear_values": [0, 15, 104, 473, 950],
+		"danger_clear_values": [0, 1435, 1446, 2350, 3238],
+		"danger_rows": 8,
+		"well_weight": 24,
+		"hole_weight": 219,
+		"cover_weight": 10,
+		"lookahead_depth": 4,
+		"hold_policy": &"regular",
+		"hold_gain_margin": 150,
+		"style_noise": 35,
+		"tspin_policy": &"advanced",
+		"tspin_bonus": 391,
+		"tslot_notch": 44,
+		"tslot_ready": 167,
+		"tslot_fill": 41,
+		"tslot_armed": 1052,
+		"tslot_triples": false,
+		"tslot_cap": 1,
+		"tslot_t_horizon": 4,
+		"t_waste_penalty": 1169,
+		"plan_sim_budget": 1024,
+		"follow_candidates": 4,
+		"danger_soft_rows": 12,
+		"attack_rows": 3,
+		"tetris_share": 1.0,
+		"pc_pieces": 5,
+		"tspin_patience": 22,
+		"tuck_depth": 2,
+		"hold_lookahead": true,
+		"height_weight": 10,
+		"bumpiness_weight": 29,
+		"deep_well_weight": 18,
+		"low_placement_weight": 9,
+		"danger_peak_weight": 48,
+		"follow_danger_step": 70,
+		"tetris_well_weight": 51,
+		"tuck_cost": 49,
 	},
 }
 ## Safety valve: an unreachable plan (walled-in piece) forces a hard drop

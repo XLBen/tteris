@@ -72,6 +72,7 @@
 		"tier_normal": "#6cb4dc",
 		"tier_hard": "#f0a040",
 		"tier_lunatic": "#e8483a",
+		"tier_extra": "#c890e0",
 		"fx_flash": "#fff0c8",
 		"fx_garbage": "#d8c8a8",
 		"fx_danger": "#e03a22",
@@ -94,7 +95,10 @@
 	},
 	"backdrop": {
 		"sheet": "backdrop.png",
-		"frame": [192, 108],
+		"frame": [
+			192,
+			108
+		],
 		"frames": 72,
 		"fps": 12
 	}

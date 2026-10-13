@@ -14,6 +14,8 @@ extends Control
 ##                         fixed speed only)
 ##   VersusDescription     Label describing the focused choice
 ##   VersusStartButton     Button that starts the match
+## Optional (OPTIONAL_BUTTONS): the Extra tier's two buttons - a layout made
+## before that tier existed simply does not offer it.
 ## The page does not keep the choices itself: the setup screen tells it what
 ## is picked (show_choices) and listens to its signals.
 
@@ -26,10 +28,11 @@ const OPTIONS: Dictionary = {
 	},
 	"left": {
 		&"easy": "VersusPlayerEasy", &"normal": "VersusPlayerNormal",
-		&"hard": "VersusPlayerHard", &"lunatic": "VersusPlayerLunatic",
+		&"hard": "VersusPlayerHard", &"lunatic": "VersusPlayerLunatic", &"extra": "VersusPlayerExtra",
 	},
 	"difficulty": {
 		&"easy": "VersusCPUEasy", &"normal": "VersusCPUNormal", &"hard": "VersusCPUHard", &"lunatic": "VersusCPULunatic",
+		&"extra": "VersusCPUExtra",
 	},
 	"format": {&"single": "VersusMatchSingleMatch", &"best_of_3": "VersusMatchBestof3"},
 }
@@ -44,6 +47,7 @@ const REQUIRED_NODES: Array[String] = [
 	"VersusCPUEasy", "VersusCPUNormal", "VersusCPUHard", "VersusCPULunatic",
 	"VersusMatchSingleMatch", "VersusMatchBestof3",
 ]
+const OPTIONAL_BUTTONS: Array[String] = ["VersusPlayerExtra", "VersusCPUExtra"]
 const PAGE_PVE: StringName = &"pve"
 const PAGE_EVE: StringName = &"eve"
 const PAGE_LAN: StringName = &"lan"
@@ -104,7 +108,9 @@ func bind() -> void:
 	for group: String in OPTIONS:
 		_buttons[group] = {}
 		for value: Variant in OPTIONS[group]:
-			var button: Button = get_node(NodePath("%" + String(OPTIONS[group][value]))) as Button
+			var button: Button = get_node_or_null(NodePath("%" + String(OPTIONS[group][value]))) as Button
+			if button == null and OPTIONAL_BUTTONS.has(String(OPTIONS[group][value])):
+				continue
 			button.toggle_mode = true
 			for state: String in ["font_pressed_color", "font_hover_pressed_color"]:
 				button.add_theme_color_override(state, ResourcePack.color("highlight"))

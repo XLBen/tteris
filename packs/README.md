@@ -192,7 +192,7 @@ Backgrounds: `background_base`, `background_tint` (tint of the background image)
 `board_fill`, `board_border`, `grid`, `panel_fill`, `panel_border`, `veil`.
 Text and accents: `text_title`, `text_value`, `text_dim`, `accent`, `highlight`,
 `good`, `bad`, `lamp_off`, `player`, `opponent`, `warning`, `warning_queued`,
-`cancel`, `tier_easy` `tier_normal` `tier_hard` `tier_lunatic`.
+`cancel`, `tier_easy` `tier_normal` `tier_hard` `tier_lunatic` `tier_extra`.
 Menus: `button_fill`, `button_hover`, `button_pressed`, `button_disabled`,
 `button_border`, `button_focus`, `button_text`, `button_text_disabled`,
 `window_fill`, `window_border`.
